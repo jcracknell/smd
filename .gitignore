@@ -1,0 +1,5 @@
+target/
+
+# sbt-idea generated project files
+.idea/
+.idea_modules/
