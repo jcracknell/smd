@@ -45,4 +45,16 @@ object GraphemeCriteria {
   case class Not(criterion: GraphemeCriterion) extends GraphemeCriterion {
     def isSatisfiedBy(grapheme: GraphemeInfo): Boolean = !criterion.isSatisfiedBy(grapheme)
   }
+
+  /** [[smd.unicode.GraphemeCriterion]] which is satisfied by graphemes consisting of a single code point
+    * satisfying the provided [[smd.unicode.CodePointCriterion]].
+    *
+    * @param criterion the [[smd.unicode.CodePointCriterion]] which must be satisfied.
+    */
+  case class SingleCodePoint(criterion: CodePointCriterion) extends GraphemeCriterion {
+    def isSatisfiedBy(grapheme: GraphemeInfo): Boolean = {
+      val cp = CodePointInfo.at(grapheme.source, grapheme.index)
+      cp.length == grapheme.length && criterion.isSatisfiedBy(cp)
+    }
+  }
 }
