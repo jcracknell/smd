@@ -8,7 +8,10 @@ package unicode
   * @param category the Unicode category to which the grapheme belongs, as defined by [[java.lang.Character]].
   * @param length the length of the grapheme.
   */
-final case class GraphemeInfo(category: Byte, index: Int, length: Int)
+final case class GraphemeInfo(source: CharSequence, index: Int, length: Int, category: Byte) {
+  /** The value of the grapheme. */
+  lazy val value: CharSequence = source.subSequence(index, length)
+}
 
 object GraphemeInfo {
   /** Retrieves [[smd.unicode.GraphemeInfo]] for the grapheme starting at the specified index in the provided string.
@@ -41,13 +44,13 @@ object GraphemeInfo {
         if(isCombiningCategory(cp.category)) {
           i += cp.length
         } else {
-          return GraphemeInfo(category, index, i - index)
+          return GraphemeInfo(str, index, i - index, category)
         }
       }
-      return GraphemeInfo(category, index, i - index)
+      return GraphemeInfo(str, index, i - index, category)
     }
 
-    GraphemeInfo(category, index, cp.length)
+    GraphemeInfo(str, index, cp.length, category)
   }
 
   @inline private def isCombiningCategory(category: Byte): Boolean =
