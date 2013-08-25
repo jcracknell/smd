@@ -93,6 +93,8 @@ trait Parser[+A] extends (ParsingContext => ParsingResult[A]) {
   override def apply(context: ParsingContext): ParsingResult[A] = parse(context)
 
   def ^^[B](transform: ParsingResult[A] => B): Parser[B] = Transform(this, transform)
+
+  def ? : Parser[Option[A]] = Optional(this)
 }
 
 object Parser {
@@ -121,6 +123,20 @@ object Parser {
       val result = Success(literal, context.index, literal.length)
       context.advanceBy(literal.length)
       result
+    }
+  }
+
+  case class Optional[+A](parser: Parser[A]) extends Parser[Option[A]] {
+    def parse(context: ParsingContext): ParsingResult[Option[A]] = {
+      val c = context.clone
+      val r = parser.parse(c)
+
+      if(r.succeeded) {
+        context.assimilate(c)
+        Success(Some(r.product), r.index, r.length)
+      } else {
+        Success(None, r.index, r.length)
+      }
     }
   }
 
