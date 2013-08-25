@@ -87,8 +87,12 @@ case object Failure extends ParsingResult[Nothing] {
 }
 
 trait Parser[+A] extends (ParsingContext => ParsingResult[A]) {
+  import Parser._
+
   def parse(context: ParsingContext): ParsingResult[A]
   override def apply(context: ParsingContext): ParsingResult[A] = parse(context)
+
+  def ^^[B](transform: ParsingResult[A] => B): Parser[B] = Transform(this, transform)
 }
 
 object Parser {
@@ -117,6 +121,13 @@ object Parser {
       val result = Success(literal, context.index, literal.length)
       context.advanceBy(literal.length)
       result
+    }
+  }
+
+  case class Transform[A, +B](parser: Parser[A], transform: ParsingResult[A] => B) extends Parser[B] {
+    def parse(context: ParsingContext): ParsingResult[B] = {
+      val r = parser.parse(context)
+      if(r.succeeded) Success(transform(r), r.index, r.length) else Failure
     }
   }
 }
