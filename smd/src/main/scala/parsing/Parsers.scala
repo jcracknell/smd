@@ -87,107 +87,20 @@ case object Failure extends ParsingResult[Nothing] {
 }
 
 trait Parser[+A] extends (ParsingContext => ParsingResult[A]) {
-  import Parser._
-
   def parse(context: ParsingContext): ParsingResult[A]
   override def apply(context: ParsingContext): ParsingResult[A] = parse(context)
 
-  def ^^[B](transform: ParsingResult[A] => B): Parser[B] = Transform(this, transform)
+  def ^^[B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 
-  def ? : Parser[Option[A]] = Optional(this)
+  def ? : Parser[Option[A]] = OptionalParser(this)
 
-  def *                      : Parser[Seq[A]] = Repetition(this, None, None)
-  def *   (occurs: Int)      : Parser[Seq[A]] = Repetition(this, Some(occurs), Some(occurs))
-  def *   (min: Int, max:Int): Parser[Seq[A]] = Repetition(this, Some(min), Some(max))
-  def *   (range: (Int, Int)): Parser[Seq[A]] = Repetition(this, Some(range._1), Some(range._2))
+  def *                      : Parser[Seq[A]] = RepetitionParser(this, None, None)
+  def *   (occurs: Int)      : Parser[Seq[A]] = RepetitionParser(this, Some(occurs), Some(occurs))
+  def *   (min: Int, max:Int): Parser[Seq[A]] = RepetitionParser(this, Some(min), Some(max))
+  def *   (range: (Int, Int)): Parser[Seq[A]] = RepetitionParser(this, Some(range._1), Some(range._2))
   def *>  (min: Int)         : Parser[Seq[A]] = this*>=(min + 1)
-  def *>= (min: Int)         : Parser[Seq[A]] = Repetition(this, Some(min), None)
+  def *>= (min: Int)         : Parser[Seq[A]] = RepetitionParser(this, Some(min), None)
   def *<  (max: Int)         : Parser[Seq[A]] = this*<=(max - 1)
-  def *<= (max: Int)         : Parser[Seq[A]] = Repetition(this, None, Some(max))
+  def *<= (max: Int)         : Parser[Seq[A]] = RepetitionParser(this, None, Some(max))
   def +                      : Parser[Seq[A]] = this*>=1
-}
-
-object Parser {
-  case class Literal(literal: String) extends Parser[String] {
-    import smd.unicode.GraphemeInfo
-
-    if(0 == literal.length) throw new IllegalArgumentException(s"Provided literal ${literal.literalEncode} has length 0.")
-
-    private val lastGrapheme = GraphemeInfo.iterable(literal).last
-
-    def parse(context: ParsingContext): ParsingResult[String] = {
-      var i = 0
-      while(i != literal.length) {
-        if(literal.charAt(i) != context.input.charAt(context.index + i))
-          return Failure
-        i += 1
-      }
-
-      // Having checked sequence equivalence, we must also verify that the final grapheme in the literal fully matches
-      // the grapheme at the corresponding location in the input in order to handle the case where the matching section
-      // in the input is followed by additional combining marks.
-      val finalContextGrapheme = GraphemeInfo.at(context.input, context.index + lastGrapheme.index)
-      if(lastGrapheme.length != finalContextGrapheme.length)
-        return Failure
-
-      val result = Success(literal, context.index, literal.length)
-      context.advanceBy(literal.length)
-      result
-    }
-  }
-
-  case class Optional[+A](parser: Parser[A]) extends Parser[Option[A]] {
-    def parse(context: ParsingContext): ParsingResult[Option[A]] = {
-      val c = context.clone
-      val r = parser.parse(c)
-
-      if(r.succeeded) {
-        context.assimilate(c)
-        Success(Some(r.product), r.index, r.length)
-      } else {
-        Success(None, r.index, r.length)
-      }
-    }
-  }
-
-  case class Repetition[+A](body: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[Seq[A]] {
-    (min, max) match {
-      case (Some(a), Some(b)) if a > b => throw new IllegalArgumentException(s"Provided range [${min.get}, ${max.get}] is invalid.")
-      case (Some(x), _) if x < 0 => throw new IllegalArgumentException("Provided min must be a non-negative integer.")
-      case (_, Some(x)) if x < 0 => throw new IllegalArgumentException("Provided max must be a non-negative integer.")
-    }
-
-    private val minCount = min.getOrElse(0)
-    private val maxCount = max.getOrElse(-1)
-
-    def parse(context: ParsingContext): ParsingResult[Seq[A]] = {
-      val mark = context.mark
-      val products = collection.mutable.ListBuffer[A]()
-
-      var n = 0
-      while(true) {
-        val iterationContext = context.clone
-        val iterationResult = body.parse(iterationContext)
-
-        if(iterationResult.succeeded) {
-          context.assimilate(iterationContext)
-          products.append(iterationResult.product)
-          n += 1
-
-          if(maxCount == n)
-            return mark.success(products.toList)
-        } else {
-          return if(minCount > n) Failure else mark.success(products.toList)
-        }
-      }
-      ???
-    }
-  }
-
-  case class Transform[A, +B](parser: Parser[A], transform: ParsingResult[A] => B) extends Parser[B] {
-    def parse(context: ParsingContext): ParsingResult[B] = {
-      val r = parser.parse(context)
-      if(r.succeeded) Success(transform(r), r.index, r.length) else Failure
-    }
-  }
 }
