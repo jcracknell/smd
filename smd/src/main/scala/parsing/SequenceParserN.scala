@@ -35,9 +35,8 @@ case class SequenceParser3[+T1, +T2, +T3](seq: SequenceParser) extends SequenceP
 }
 
 object SequenceParser3 {
-  implicit val concatenationHeuristic: ConcatenationHeuristic[SequenceParser3[_, _, _], Parser[_], SequenceParser] =
-    new ConcatenationHeuristic[SequenceParser3[_, _, _], Parser[_], SequenceParser] {
-      def concat(lhs: SequenceParser3[_, _, _], rhs: Parser[_]): SequenceParser =
-        SequenceParser((lhs.seq.parsers :+ rhs):_*)
-    }
+  implicit object concatenationHeuristic extends ConcatenationHeuristic[SequenceParser3[_, _, _], Parser[_], SequenceParser] {
+    def concat(lhs: SequenceParser3[_, _, _], rhs: Parser[_]): SequenceParser =
+      SequenceParser((lhs.seq.parsers :+ rhs):_*)
+  }
 }

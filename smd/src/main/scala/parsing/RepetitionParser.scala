@@ -4,8 +4,8 @@ package parsing
 case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[Seq[A]] {
   (min, max) match {
     case (Some(a), Some(b)) if a > b => throw new IllegalArgumentException(s"Provided range [${min.get}, ${max.get}] is invalid.")
-    case (Some(x), _) if x < 0 => throw new IllegalArgumentException("Provided min must be a non-negative integer.")
-    case (_, Some(x)) if x < 0 => throw new IllegalArgumentException("Provided max must be a non-negative integer.")
+    case (Some(x), _      ) if x < 0 => throw new IllegalArgumentException("Provided min must be a non-negative integer.")
+    case (_,       Some(x)) if x < 0 => throw new IllegalArgumentException("Provided max must be a non-negative integer.")
   }
 
   private val minCount = min.getOrElse(0)
