@@ -28,3 +28,12 @@ case class LiteralParser(literal: String) extends Parser[String] {
     result
   }
 }
+
+object LiteralParser {
+  /** Concatenation heuristic which combines adjacent literals. */
+  // TODO: Is this a good idea, or is it too confusing? Certainly it has performance benefits.
+  implicit val concatenationHeuristic = new ConcatenationHeuristic[LiteralParser, LiteralParser, LiteralParser] {
+    def concat(lhs: LiteralParser, rhs: LiteralParser): LiteralParser =
+      LiteralParser(lhs.literal + rhs.literal)
+  }
+}

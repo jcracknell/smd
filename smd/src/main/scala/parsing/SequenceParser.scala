@@ -19,3 +19,10 @@ case class SequenceParser(parsers: Parser[Any]*) extends Parser[IndexedSeq[Any]]
     mark.success(products)
   }
 }
+
+object SequenceParser {
+  implicit object concatenationHeuristic extends ConcatenationHeuristic[SequenceParser, Parser[_], SequenceParser] {
+    def concat(lhs: SequenceParser, rhs: Parser[_]): SequenceParser =
+      SequenceParser((lhs.parsers :+ rhs):_*)
+  }
+}
