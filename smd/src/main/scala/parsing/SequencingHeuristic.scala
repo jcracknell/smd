@@ -1,7 +1,7 @@
 package smd
 package parsing
 
-trait SequencingHeuristic[-L <: Parser[_], -R <: Parser[_], +C <: Parser[_]] {
+trait SequencingHeuristic[-L <: Parser[_], -R, +C <: Parser[_]] {
   def concat(lhs: L, rhs: R): C
 }
 
@@ -15,7 +15,7 @@ object SequencingHeuristic {
     * @tparam C the combined parser type (inferred).
     * @return a [[smd.parsing.SequencingHeuristic]] implementation which delegates to the provided `comb` function.
     */
-  def create[L <: Parser[_], R <: Parser[_], C <: Parser[_]](comb: (L, R) => C): SequencingHeuristic[L, R, C] =
+  def create[L <: Parser[_], R, C <: Parser[_]](comb: (L, R) => C): SequencingHeuristic[L, R, C] =
     new SequencingHeuristic[L, R, C] {
       def concat(lhs: L, rhs: R): C = comb(lhs, rhs)
     }

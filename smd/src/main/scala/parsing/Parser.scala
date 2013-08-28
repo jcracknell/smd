@@ -8,12 +8,8 @@ trait Parser[+A] {
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
-  def ~[L >: this.type <: Parser[_], R <: Parser[_], C <: Parser[_]](rhs: R)(implicit sh: SequencingHeuristic[L, R, C]): C =
+  def ~[L >: this.type <: Parser[_], R, C <: Parser[_]](rhs: R)(implicit sh: SequencingHeuristic[L, R, C]): C =
     sh.concat(this, rhs)
-
-  // This is necessary to save the String => LiteralParser implicit conversion for the LHS
-  def ~[L >: this.type <: Parser[_], C <: Parser[_]](str: String)(implicit sh: SequencingHeuristic[L, LiteralParser, C]): C =
-    sh.concat(this, LiteralParser(str))
 
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
@@ -29,4 +25,7 @@ trait Parser[+A] {
 object Parser {
   implicit def sequencingHeuristic[L, R]: SequencingHeuristic[Parser[L], Parser[R], SequenceParser2[L, R]] =
     SequencingHeuristic.create((l, r) => SequenceParser2(SequenceParser(l, r)))
+
+  implicit def stringSequencingHeuristic[L]: SequencingHeuristic[Parser[L], String, SequenceParser2[L, String]] =
+    SequencingHeuristic.create((l, r) => SequenceParser2(SequenceParser(l, LiteralParser(r))))
 }

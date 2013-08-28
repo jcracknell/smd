@@ -62,4 +62,15 @@ class SequencingHeuristicSpec extends FunSpec with ShouldMatchers with Parsers {
   it("LiteralParser ~ LiteralParser => LiteralParser") {
     (LiteralParser("a") ~ LiteralParser("b")) should be (LiteralParser("ab"))
   }
+  it("\"a\" ~ \"b\" => LiteralParser") {
+    ("a" ~ "b") should be (LiteralParser("ab"))
+  }
+  it("OptionalParser[String] ~ \"b\" => SequenceParser2[Option[String], String]") {
+    (OptionalParser(LiteralParser("a")) ~ "b") should be (
+      SequenceParser2[Option[String], String](
+        SequenceParser(
+          OptionalParser(LiteralParser("a")),
+          LiteralParser("b")))
+    )
+  }
 }
