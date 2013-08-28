@@ -28,8 +28,5 @@ trait Parser[+A] {
 
 object Parser {
   implicit def concatenationHeuristic[L, R]: ConcatenationHeuristic[Parser[L], Parser[R], SequenceParser2[L, R]] =
-    new ConcatenationHeuristic[Parser[L], Parser[R], SequenceParser2[L, R]] {
-      def concat(lhs: Parser[L], rhs: Parser[R]): SequenceParser2[L, R] =
-        SequenceParser2[L, R](SequenceParser(lhs, rhs))
-    }
+    ConcatenationHeuristic.create((l, r) => SequenceParser2(SequenceParser(l, r)))
 }

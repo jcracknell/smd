@@ -20,10 +20,7 @@ case class SequenceParser2[+T1, +T2](seq: SequenceParser) extends SequenceParser
 
 object SequenceParser2 {
   implicit def concatenationHeuristic[T1, T2, R]: ConcatenationHeuristic[SequenceParser2[T1, T2], Parser[R], SequenceParser3[T1, T2, R]] =
-    new ConcatenationHeuristic[SequenceParser2[T1, T2], Parser[R], SequenceParser3[T1, T2, R]] {
-      def concat(lhs: SequenceParser2[T1, T2], rhs: Parser[R]): SequenceParser3[T1, T2, R] =
-        SequenceParser3[T1, T2, R](SequenceParser((lhs.seq.parsers :+ rhs):_*))
-    }
+    ConcatenationHeuristic.create((l, r) => SequenceParser3(SequenceParser((l.seq.parsers :+ r):_*)))
 }
 
 case class SequenceParser3[+T1, +T2, +T3](seq: SequenceParser) extends SequenceParserN[(T1, T2, T3)] {
