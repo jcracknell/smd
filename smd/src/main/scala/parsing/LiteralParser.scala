@@ -30,10 +30,8 @@ case class LiteralParser(literal: String) extends Parser[String] {
 }
 
 object LiteralParser {
-  /** Concatenation heuristic which combines adjacent literals. */
+  /** [[smd.parsing.SequencingHeuristic]] which combines adjacent literals. */
   // TODO: Is this a good idea, or is it too confusing? Certainly it has performance benefits.
-  implicit object concatenationHeuristic extends ConcatenationHeuristic[LiteralParser, LiteralParser, LiteralParser] {
-    def concat(lhs: LiteralParser, rhs: LiteralParser): LiteralParser =
-      LiteralParser(lhs.literal + rhs.literal)
-  }
+  implicit val sequencingHeuristic: SequencingHeuristic[LiteralParser, LiteralParser, LiteralParser] =
+    SequencingHeuristic.create((l, r) => LiteralParser(l.literal + r.literal))
 }

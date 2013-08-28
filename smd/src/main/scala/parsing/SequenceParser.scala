@@ -21,8 +21,6 @@ case class SequenceParser(parsers: Parser[Any]*) extends Parser[IndexedSeq[Any]]
 }
 
 object SequenceParser {
-  implicit object concatenationHeuristic extends ConcatenationHeuristic[SequenceParser, Parser[_], SequenceParser] {
-    def concat(lhs: SequenceParser, rhs: Parser[_]): SequenceParser =
-      SequenceParser((lhs.parsers :+ rhs):_*)
-  }
+  implicit val sequencingHeuristic: SequencingHeuristic[SequenceParser, Parser[_], SequenceParser] =
+    SequencingHeuristic.create((l, r) => SequenceParser((l.parsers :+ r).toArray:_*))
 }
