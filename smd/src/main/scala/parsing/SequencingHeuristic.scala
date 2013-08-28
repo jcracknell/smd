@@ -1,8 +1,8 @@
 package smd
 package parsing
 
-trait SequencingHeuristic[-L <: Parser[_], -R, +C <: Parser[_]] {
-  def concat(lhs: L, rhs: R): C
+trait SequencingHeuristic[-L <: Parser[_], -R, +C <: Parser[_]] extends ((L, R) => C) {
+  def apply(lhs: L, rhs: R): C
 }
 
 object SequencingHeuristic {
@@ -17,6 +17,6 @@ object SequencingHeuristic {
     */
   def create[L <: Parser[_], R, C <: Parser[_]](comb: (L, R) => C): SequencingHeuristic[L, R, C] =
     new SequencingHeuristic[L, R, C] {
-      def concat(lhs: L, rhs: R): C = comb(lhs, rhs)
+      def apply(lhs: L, rhs: R): C = comb(lhs, rhs)
     }
 }

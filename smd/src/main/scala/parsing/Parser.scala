@@ -9,7 +9,7 @@ trait Parser[+A] {
   def ? : OptionalParser[A] = OptionalParser(this)
 
   def ~[L >: this.type <: Parser[_], R, C <: Parser[_]](rhs: R)(implicit sh: SequencingHeuristic[L, R, C]): C =
-    sh.concat(this, rhs)
+    sh(this, rhs)
 
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
