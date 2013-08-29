@@ -32,6 +32,25 @@ case class SequenceParser3[+T1, +T2, +T3](seq: SequenceParser) extends SequenceP
 }
 
 object SequenceParser3 {
-  implicit val sequencingHeuristic: SequencingHeuristic[SequenceParser3[_, _, _], Parser[_], SequenceParser] =
+  implicit def sequencingHeuristic[T1, T2, T3, R]: SequencingHeuristic[
+    SequenceParser3[T1, T2, T3],
+    Parser[R],
+    SequenceParser4[T1, T2, T3, R]
+  ] =
+    SequencingHeuristic.create((l, r) => SequenceParser4(SequenceParser((l.seq.parsers :+ r):_*)))
+}
+
+case class SequenceParser4[+T1, +T2, +T3, +T4](seq: SequenceParser) extends SequenceParserN[(T1, T2, T3, T4)] {
+  protected def tuplize(products: IndexedSeq[Any]): (T1, T2, T3, T4) = (
+    products(0).asInstanceOf[T1],
+    products(1).asInstanceOf[T2],
+    products(2).asInstanceOf[T3],
+    products(3).asInstanceOf[T4]
+  )
+}
+
+object SequenceParser4 {
+  implicit val sequencingHeuristic: SequencingHeuristic[SequenceParser4[_, _, _, _], Parser[_], SequenceParser] =
     SequencingHeuristic.create((l, r) => SequenceParser((l.seq.parsers :+ r).toArray:_*))
 }
+
