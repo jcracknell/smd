@@ -17,7 +17,6 @@ trait Parser[+A] {
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
   def *   (min: Int, max:Int) = RepetitionParser(this, Some(min),      Some(max)     )
-  def *   (range: (Int, Int)) = RepetitionParser(this, Some(range._1), Some(range._2))
   def *>  (min: Int)          = RepetitionParser(this, Some(min + 1),  None          )
   def *>= (min: Int)          = RepetitionParser(this, Some(min),      None          )
   def *<  (max: Int)          = RepetitionParser(this, None,           Some(max - 1) )
