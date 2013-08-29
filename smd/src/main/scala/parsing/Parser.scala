@@ -4,12 +4,15 @@ package parsing
 trait Parser[+A] {
   def parse(context: ParsingContext): ParsingResult[A]
 
+
   def ^^[B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
-  def ~[L >: this.type <: Parser[_], R, C <: Parser[_]](rhs: R)(implicit sh: SequencingHeuristic[L, R, C]): C =
-    sh(this, rhs)
+  def ||[B >: A](rhs: Parser[B]): OrderedChoiceParser[B] = OrderedChoiceParser(this, rhs)
+
+  def ~[L >: this.type <: Parser[_], R, C <: Parser[_]](rhs: R)(implicit heuristic: SequencingHeuristic[L, R, C]): C =
+    heuristic(this, rhs)
 
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
