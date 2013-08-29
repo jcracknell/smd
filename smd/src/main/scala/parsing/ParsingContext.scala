@@ -4,16 +4,14 @@ package parsing
 class ParsingContext(val input: String, protected var _index: Int) { context =>
   def this(input: String) = this(input, 0)
 
-  val inputLength = input.length
-
   def index: Int = _index
 
   @inline def advanceBy(length: Int): Unit = advanceTo(_index + length)
 
-  def advanceTo(index: Int): Unit = {
-    if(index >= inputLength) throw new IllegalArgumentException(s"Provided index $index exceeds input length of $inputLength.")
+  def advanceTo(idx: Int): Unit = {
+    if(idx > input.length) throw new IllegalArgumentException(s"Provided index $idx exceeds input length of ${input.length}.")
 
-    _index += index
+    _index = idx
   }
 
   override def clone: ParsingContext = ???
