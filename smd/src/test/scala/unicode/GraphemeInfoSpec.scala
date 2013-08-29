@@ -4,22 +4,18 @@ package unicode
 import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
 
-class GraphemeInfoSpec extends FunSpec with ShouldMatchers {
+class GraphemeInfoSpec extends FunSpec with ShouldMatchers with GraphemeExemplars {
   describe("at method") {
-    it("should work for \"a\"") {
-      GraphemeInfo.at("a", 0) shouldEqual GraphemeInfo(0, 1, Character.LOWERCASE_LETTER)
+    def resultFor(str: String, index: Int = 0)(assert: GraphemeInfo => Unit): Unit = {
+      it(s"should produce the expected result for ${str.literalEncode} at index $index") {
+        assert(GraphemeInfo.at(str, index))
+      }
     }
-    it("should work for \"ab\"") {
-      GraphemeInfo.at("ab", 0) shouldEqual GraphemeInfo(0, 1, Character.LOWERCASE_LETTER)
-    }
-    it("should work for 'a' w/ combining ring") {
-      GraphemeInfo.at("a\u030a", 0) shouldEqual GraphemeInfo(0, 2, Character.LOWERCASE_LETTER)
-    }
-    it("should work for 'a' w/ combining ring & caron") {
-      GraphemeInfo.at("a\u030a\u030c", 0) shouldEqual GraphemeInfo(0, 3, Character.LOWERCASE_LETTER)
-    }
-    it("should work for combining ring & 'a' w/ combining ring") {
-      GraphemeInfo.at("\u030aa\u030a", 0) shouldEqual GraphemeInfo(0, 1, Character.NON_SPACING_MARK)
-    }
+
+    resultFor("a") { _ shouldEqual GraphemeInfo(0, 1, Character.LOWERCASE_LETTER) }
+    resultFor("ab") { _ shouldEqual GraphemeInfo(0, 1, Character.LOWERCASE_LETTER) }
+    resultFor(s"a${g.combining_ring}") { _ shouldEqual GraphemeInfo(0, 2, Character.LOWERCASE_LETTER) }
+    resultFor(s"a${g.combining_ring}${g.combining_caron}") { _ shouldEqual GraphemeInfo(0, 3, Character.LOWERCASE_LETTER) }
+    resultFor(s"${g.combining_ring}a${g.combining_ring}") { _ shouldEqual GraphemeInfo(0, 1, Character.NON_SPACING_MARK) }
   }
 }
