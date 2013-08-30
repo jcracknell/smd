@@ -4,7 +4,7 @@ package parsing
 trait SequenceParserN[+A <: Product] extends Parser[A] {
   def parse(context: ParsingContext): ParsingResult[A] = {
     val r = seq.parse(context)
-    if(r.succeeded) Success(tuplize(r.product), r.index, r.length) else Failure
+    if(r.succeeded) r.copy(tuplize(r.product)) else ParsingResult.Failure
   }
 
   protected def seq: SequenceParser

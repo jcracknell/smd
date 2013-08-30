@@ -12,7 +12,7 @@ case class SequenceParser(parsers: Parser[Any]*) extends Parser[IndexedSeq[Any]]
         products(i) = r.product
         i += 1
       } else {
-        return Failure
+        return rb.failure
       }
     }
 

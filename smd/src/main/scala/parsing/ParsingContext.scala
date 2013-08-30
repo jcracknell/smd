@@ -26,8 +26,8 @@ class ParsingContext(val input: CharSequence, protected var idx: Int) { context 
 
     /** Creates a successful [[smd.parsing.ParsingResult]] with the provided product. */
     def success[A](product: A): ParsingResult[A] =
-      Success(product, resultIndex, context.index - resultIndex)
+      new ParsingResult.Success[A](product, input, resultIndex, context.index)
 
-    def failure[A]: ParsingResult[A] = Failure
+    def failure[A]: ParsingResult[A] = ParsingResult.Failure
   }
 }

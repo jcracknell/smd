@@ -1,38 +1,56 @@
 package smd
 package parsing
 
-/** The result of applying an [[smd.parsing.Parser]] to an [[smd.parsing.ParsingContext]]. */
+/** The result of applying an [[smd.parsing.Parser]] to an [[smd.parsing.ParsingContext]].
+  *
+  * @tparam A the type of the product of the parsing result.
+  * @define ifSuccessful (if parsing was successful)
+  */
 sealed trait ParsingResult[+A] {
-  /** The product of the parser, if parsing was successful. */
-  @throws[UnsupportedOperationException]
-  def product: A
-
-  /** The index at which parsing started if parsing was successful. */
-  @throws[UnsupportedOperationException]
-  def index: Int
-
-  /** The number of consumed characters, if parsing was successful. */
-  @throws[UnsupportedOperationException]
-  def length: Int
-
   /** Returns true if parsing was successful. */
   def succeeded: Boolean
 
   /** Returns true if parsing failed. */
   def failed: Boolean
+
+  /** The product of the parser $ifSuccessful. */
+  @throws[UnsupportedOperationException]
+  def product: A
+
+  /** The index at which parsing started $ifSuccessful. */
+  @throws[UnsupportedOperationException]
+  def index: Int
+
+  /** The index prior to which parsing ended $ifSuccessful. */
+  @throws[UnsupportedOperationException]
+  def endIndex: Int
+
+  /** The number of consumed characters $ifSuccessful. */
+  @throws[UnsupportedOperationException]
+  def length: Int
+
+  /** The portion of the input which was consumed $ifSuccessful. */
+  @throws[UnsupportedOperationException]
+  def string: CharSequence
+
+  /** Creates a copy of this [[smd.parsing.ParsingResult]] with the provided replacement product.
+    *
+    * @param replacement the product to be stored in the resulting copy.
+    * @tparam B the type of the product of the resulting copy.
+    * @return a copy of this [[smd.parsing.ParsingResult]] with the provided replacement product.
+    */
+  @throws[UnsupportedOperationException]
+  def copy[B](replacement: B): ParsingResult[B]
 }
 
 object ParsingResult {
-  /** Returns [[smd.parsing.Success]] if `cond` holds, [[smd.parsing.Failure]] otherwise.
-    *
-    * @param cond the condition which must hold for success.
-    * @param result the result in the event of success.
-    * @tparam A the type of the product in the event of success.
-    * @return [[smd.parsing.Success]] if `cond` holds, [[smd.parsing.Failure]] otherwise.@return
-    */
-  // TODO: this is a littly wonky because of the multiple arguments. Is this method really necessary, or
-  // will Parsers generally use the context tooling?
-  def when[A](cond: Boolean, result: => ParsingResult[A]): ParsingResult[A] = if(cond) result else Failure
+  class Success[+A](val product: A, protected val source: CharSequence, val index: Int, val endIndex: Int) extends ParsingResult[A] {
+    def succeeded: Boolean = true
+    def failed: Boolean = false
+    def length: Int = endIndex - index
+    def string: CharSequence = source.subSequence(index, endIndex)
+    def copy[B](replacement: B): ParsingResult[B] = new Success[B](replacement, source, index, endIndex)
+  }
 
   /** Creates a failed [[smd.parsing.ParsingResult]] of the specified type.
     *
@@ -40,17 +58,21 @@ object ParsingResult {
     * @return a failed [[smd.parsing.ParsingResult]] of the specified type.
     */
   def failure[A]: ParsingResult[A] = Failure.asInstanceOf[ParsingResult[A]]
-}
 
-case class Success[+A](product: A, index: Int, length: Int) extends ParsingResult[A] {
-  val succeeded: Boolean = true
-  val failed:    Boolean = false
-}
-
-case object Failure extends ParsingResult[Nothing] {
-  def product:   Nothing = throw new UnsupportedOperationException("Attempt to access product of failed ParsingResult.")
-  def index:     Int =     throw new UnsupportedOperationException("Attempt to access index of failed ParsingResult.")
-  def length:    Int =     throw new UnsupportedOperationException("Attempt to access length of failed ParsingResult.")
-  val succeeded: Boolean = false
-  val failed:    Boolean = true
+  case object Failure extends ParsingResult[Nothing] {
+    val succeeded: Boolean = false
+    val failed: Boolean = true
+    def product: Nothing =
+      throw new UnsupportedOperationException("Attempt to access product of failed ParsingResult.")
+    def index: Int =
+      throw new UnsupportedOperationException("Attempt to access index of failed ParsingResult.")
+    def endIndex: Int =
+      throw new UnsupportedOperationException("Attempt to access endIndex of failed ParsingResult.")
+    def length: Int =
+      throw new UnsupportedOperationException("Attempt to access length of failed ParsingResult.")
+    def string: CharSequence =
+      throw new UnsupportedOperationException("Attempt to access parsedInput of failed ParsingResult.")
+    def copy[B](replacement: B): ParsingResult[B] =
+      throw new UnsupportedOperationException("Call to copy on failed ParsingResult.")
+  }
 }

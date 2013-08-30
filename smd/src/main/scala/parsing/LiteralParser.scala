@@ -9,10 +9,11 @@ case class LiteralParser(literal: String) extends Parser[String] {
   private val lastGrapheme = GraphemeInfo.iterable(literal).last
 
   def parse(context: ParsingContext): ParsingResult[String] = {
+    val rb = context.resultBuilder
     var i = 0
     while(i != literal.length) {
       if(literal.charAt(i) != context.input.charAt(context.index + i))
-        return Failure
+        return rb.failure
       i += 1
     }
 
@@ -21,11 +22,10 @@ case class LiteralParser(literal: String) extends Parser[String] {
     // in the input is followed by additional combining marks.
     val finalContextGrapheme = GraphemeInfo.at(context.input, context.index + lastGrapheme.index)
     if(lastGrapheme.length != finalContextGrapheme.length)
-      return Failure
+      return rb.failure
 
-    val result = Success(literal, context.index, literal.length)
     context.advanceBy(literal.length)
-    result
+    rb.success(literal)
   }
 }
 
