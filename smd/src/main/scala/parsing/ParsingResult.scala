@@ -48,7 +48,7 @@ object ParsingResult {
     def succeeded: Boolean = true
     def failed: Boolean = false
     def length: Int = endIndex - index
-    def string: CharSequence = source.subSequence(index, endIndex)
+    def string: CharSequence = source.proxySubSequence(index, endIndex)
     def copy[B](replacement: B): ParsingResult[B] = new Success[B](replacement, source, index, endIndex)
   }
 
