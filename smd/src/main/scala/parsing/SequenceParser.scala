@@ -3,7 +3,7 @@ package parsing
 
 case class SequenceParser(parsers: Parser[Any]*) extends Parser[IndexedSeq[Any]] {
   def parse(context: ParsingContext): ParsingResult[IndexedSeq[Any]] = {
-    val mark = context.mark
+    val rb = context.resultBuilder
     val products = Array.ofDim[Any](parsers.length)
     var i = 0
     while(parsers.length != i) {
@@ -16,7 +16,7 @@ case class SequenceParser(parsers: Parser[Any]*) extends Parser[IndexedSeq[Any]]
       }
     }
 
-    mark.success(products)
+    rb.success(products)
   }
 }
 

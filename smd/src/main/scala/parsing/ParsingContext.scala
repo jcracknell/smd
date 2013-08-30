@@ -1,31 +1,33 @@
 package smd
 package parsing
 
-class ParsingContext(val input: String, protected var _index: Int) { context =>
-  def this(input: String) = this(input, 0)
+class ParsingContext(val input: CharSequence, protected var idx: Int) { context =>
+  def this(input: CharSequence) = this(input, 0)
 
-  def index: Int = _index
+  def index: Int = idx
 
-  @inline def advanceBy(length: Int): Unit = advanceTo(_index + length)
+  @inline def advanceBy(length: Int): Unit = advanceTo(idx + length)
 
-  def advanceTo(idx: Int): Unit = {
-    if(idx > input.length) throw new IllegalArgumentException(s"Provided index $idx exceeds input length of ${input.length}.")
+  def advanceTo(i: Int): Unit = {
+    if(i > input.length) throw new IllegalArgumentException(s"Provided index $i exceeds input length of ${input.length}.")
 
-    _index = idx
+    idx = i
   }
 
   override def clone: ParsingContext = ???
 
   def assimilate(clone: ParsingContext): Unit = {
-    _index = clone._index
+    idx = clone.idx
   }
 
-  /** Mark the start of a parsing result. */
-  def mark = new {
-    val index = context._index
-    def length = context._index - index
-    def when[A](cond: Boolean, product: => A): ParsingResult[A] = if(cond) Success(product, index, length) else Failure
-    def success[A](product: A): ParsingResult[A] = Success(product, index, length)
+  /** Retrieves a result builder for the current context position. */
+  def resultBuilder = new {
+    protected val resultIndex = context.index
+
+    /** Creates a successful [[smd.parsing.ParsingResult]] with the provided product. */
+    def success[A](product: A): ParsingResult[A] =
+      Success(product, resultIndex, context.index - resultIndex)
+
     def failure[A]: ParsingResult[A] = Failure
   }
 }

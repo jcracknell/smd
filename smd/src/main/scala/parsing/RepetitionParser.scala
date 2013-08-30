@@ -12,7 +12,7 @@ case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[I
   private val maxCount = max.getOrElse(-1)
 
   def parse(context: ParsingContext): ParsingResult[Seq[A]] = {
-    val mark = context.mark
+    val rb = context.resultBuilder
     val products = collection.mutable.ListBuffer[A]()
 
     var n = 0
@@ -26,9 +26,9 @@ case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[I
         n += 1
 
         if(maxCount == n)
-          return mark.success(products.toList)
+          return rb.success(products.toList)
       } else {
-        return if(minCount > n) Failure else mark.success(products.toList)
+        return if(minCount > n) rb.failure else rb.success(products.toList)
       }
     }
     ???
