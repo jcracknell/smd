@@ -17,7 +17,9 @@ case class OrderedChoiceParser[+A](choices: Parser[A]*) extends Parser[A] {
 
     ParsingResult.Failure
   }
+}
 
-  override def ||[B >: A](rhs: Parser[B]): OrderedChoiceParser[B] =
-    OrderedChoiceParser((choices :+ rhs):_*)
+object OrderedChoiceParser {
+  def orderedChoiceHeuristic[A]: OrderedChoiceHeuristic[OrderedChoiceParser[A], Parser[A], OrderedChoiceParser[A]] =
+    OrderedChoiceHeuristic.create((l, r) => OrderedChoiceParser(l.choices :+ r: _*))
 }

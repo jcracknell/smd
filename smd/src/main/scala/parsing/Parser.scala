@@ -10,10 +10,11 @@ trait Parser[+A] {
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
-  def ||[B >: A](rhs: Parser[B]): OrderedChoiceParser[B] = OrderedChoiceParser(this, rhs)
+  def ||[L >: this.type <: Parser[_], R, RP <: Parser[_], C <: Parser[_]](rhs: R)(implicit rToP: R => RP, heuristic: OrderedChoiceHeuristic[L, RP, C]): C =
+    heuristic(this, rToP(rhs))
 
-  def ~[L >: this.type <: Parser[_], R, C <: Parser[_]](rhs: R)(implicit heuristic: SequencingHeuristic[L, R, C]): C =
-    heuristic(this, rhs)
+  def ~[L >: this.type <: Parser[_], R, RP <: Parser[_], S <: Parser[_]](rhs: R)(implicit rToP: R => RP, heuristic: SequencingHeuristic[L, RP, S]): S =
+    heuristic(this, rToP(rhs))
 
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
@@ -26,9 +27,9 @@ trait Parser[+A] {
 }
 
 object Parser {
+  implicit def orderedChoiceHeuristic[A]: OrderedChoiceHeuristic[Parser[A], Parser[A], OrderedChoiceParser[A]] =
+    OrderedChoiceHeuristic.create((l, r) => OrderedChoiceParser(l, r))
+
   implicit def sequencingHeuristic[L, R]: SequencingHeuristic[Parser[L], Parser[R], SequenceParser2[L, R]] =
     SequencingHeuristic.create((l, r) => SequenceParser2(SequenceParser(l, r)))
-
-  implicit def stringSequencingHeuristic[L]: SequencingHeuristic[Parser[L], String, SequenceParser2[L, String]] =
-    SequencingHeuristic.create((l, r) => SequenceParser2(SequenceParser(l, LiteralParser(r))))
 }
