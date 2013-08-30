@@ -4,8 +4,9 @@ package parsing
 trait Parser[+A] {
   def parse(context: ParsingContext): ParsingResult[A]
 
+  def ->[B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 
-  def ^^[B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
+  def ->>[B](transform: A => B): Parser[B] = ProductTransformParser(this, transform)
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
