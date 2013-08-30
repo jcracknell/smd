@@ -25,14 +25,14 @@ class SequencingHeuristicSpec extends FunSpec with ShouldMatchers with Parsers {
     val b = LiteralParser("c")
 
     (a ~ b) should be (
-      SequenceParser3[Option[String], String, String](
+      SequenceParser3[String, String, String](
         SequenceParser(
           LiteralParser("a"),
           LiteralParser("b"),
           LiteralParser("c")))
     )
   }
-  it("SequenceParser3[A, B, C] ~ Parser[D] => SequenceParser") {
+  it("SequenceParser3[A, B, C] ~ Parser[D] => SequenceParser4[A, B, C, D]") {
     val a = SequenceParser3[String, String, String](
               SequenceParser(
                 LiteralParser("a"),
@@ -42,11 +42,31 @@ class SequencingHeuristicSpec extends FunSpec with ShouldMatchers with Parsers {
     val b = LiteralParser("d")
 
     (a ~ b) should be (
+      SequenceParser4[String, String, String, String](
+        SequenceParser(
+          LiteralParser("a"),
+          LiteralParser("b"),
+          LiteralParser("c"),
+          LiteralParser("d")))
+    )
+  }
+  it("SequenceParser4[A, B, C, D] ~ Parser[E] => SequenceParser") {
+    val a = SequenceParser4[String, String, String, String](
       SequenceParser(
         LiteralParser("a"),
         LiteralParser("b"),
         LiteralParser("c"),
-        LiteralParser("d"))
+        LiteralParser("d")))
+
+    val b = LiteralParser("e")
+
+    (a ~ b) should be (
+      SequenceParser(
+        LiteralParser("a"),
+        LiteralParser("b"),
+        LiteralParser("c"),
+        LiteralParser("d"),
+        LiteralParser("e"))
     )
   }
   it("SequenceParser ~ Parser[_] -> SequenceParser") {
