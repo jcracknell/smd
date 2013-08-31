@@ -56,8 +56,8 @@ object GraphemeCriteria {
     * @param criterion the [[smd.unicode.CodePointCriterion]] which must be satisfied.
     */
   case class SingleCodePoint(criterion: CodePointCriterion) extends GraphemeCriterion {
-    def isSatisfiedBy(grapheme: GraphemeInfo): Boolean = {
-      ???
-    }
+    def isSatisfiedBy(grapheme: GraphemeInfo): Boolean =
+      // Use isDefinedAt instead of length to avoid having to count in the event that codePoints is a list
+      !grapheme.codePoints.isDefinedAt(1) && criterion.isSatisfiedBy(grapheme.codePoints.head)
   }
 }
