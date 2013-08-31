@@ -59,17 +59,18 @@ object CodePointCriteria {
     *
     * @param values the set of code points satisfying this criterion.
     */
-  case class Values(values: Int*) extends CodePointCriterion {
+  case class Values(values: Set[Int]) extends CodePointCriterion {
     for(cp <- values if !Character.isValidCodePoint(cp))
       throw new IllegalArgumentException(s"Provided set of values contains invalid code point $cp (${HexEncoding.encodeLower(cp)}).")
 
-    private val satisfyingValues = collection.immutable.BitSet(values:_*)
-
-    def isSatisfiedBy(codePoint: CodePointInfo): Boolean = satisfyingValues.contains(codePoint.value)
+    def isSatisfiedBy(codePoint: CodePointInfo): Boolean = values.contains(codePoint.value)
   }
 
   object Values {
-    def apply(values: Iterable[Char]): Values = Values(values.map(_.toInt).toSeq:_*)
+    private def mkValues(cps: Iterable[Int]) = Values(collection.immutable.BitSet(cps.toSeq: _*))
+
+    def apply(cp0: Int, cps: Int*): Values = mkValues(cp0 +: cps)
+    def apply[A <% Int](as: Iterable[A]): Values = mkValues(as.map(_.toInt))
   }
 }
 
