@@ -14,7 +14,6 @@ class ProxyCharSequence(
   protected val start: Int,
   protected val end: Int
 ) extends CharSequence {
-
   @inline private def mapIndex(i: Int) = start + i
 
   def length(): Int = end - start
@@ -35,6 +34,7 @@ class ProxyCharSequence(
     case _ => false
   }
 
+
   override def toString: String =
-    new java.lang.StringBuilder(length).append(underlying, start, end).toString
+    new String(Array.tabulate[Char](length)(i => underlying.charAt(mapIndex(i))))
 }

@@ -31,7 +31,7 @@ final class GraphemeInfo(
 
   /** The string representation of the grapheme. */
   override def toString: String =
-    new StringBuilder(length).append(source, start, end).toString()
+    new String(Array.tabulate[Char](length)(i => source.charAt(start + i)))
 }
 
 object GraphemeInfo {
