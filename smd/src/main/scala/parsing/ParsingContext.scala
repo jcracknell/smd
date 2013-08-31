@@ -40,6 +40,10 @@ trait ParsingContext { context =>
     def success[A](product: A): ParsingResult[A] =
       new ParsingResult.Success[A](product, input, resultIndex, context.index)
 
+    /** Creates a successful [[smd.parsing.ParsingResult]] with a product of type [[scala.Nothing]]. */
+    def nothing: ParsingResult[Nothing] =
+      new ParsingResult.Success(null, input, resultIndex, context.index).asInstanceOf[ParsingResult[Nothing]]
+
     /** Creates an unsuccessful [[smd.parsing.ParsingResult]]. */
     def failure[A]: ParsingResult[A] = ParsingResult.Failure
   }
