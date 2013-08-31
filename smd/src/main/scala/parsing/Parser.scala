@@ -4,17 +4,21 @@ package parsing
 trait Parser[+A] {
   def parse(context: ParsingContext): ParsingResult[A]
 
-  def ->[B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
+  def -> [B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 
-  def ->>[B](transform: A => B): Parser[B] = ProductTransformParser(this, transform)
+  def ->> [B](transform: A => B): Parser[B] = ProductTransformParser(this, transform)
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
-  def ||[L >: this.type <: Parser[_], R, RP <: Parser[_], C <: Parser[_]](rhs: R)(implicit rToP: R => RP, heuristic: OrderedChoiceHeuristic[L, RP, C]): C =
-    heuristic(this, rToP(rhs))
+  def | [L >: this.type <: Parser[_], R, RP <: Parser[_], C <: Parser[_]]
+        (rhs: R)
+        (implicit rhsToParser: R => RP, heuristic: OrderedChoiceHeuristic[L, RP, C]): C =
+    heuristic(this, rhsToParser(rhs))
 
-  def ~[L >: this.type <: Parser[_], R, RP <: Parser[_], S <: Parser[_]](rhs: R)(implicit rToP: R => RP, heuristic: SequencingHeuristic[L, RP, S]): S =
-    heuristic(this, rToP(rhs))
+  def ~ [L >: this.type <: Parser[_], R, RP <: Parser[_], S <: Parser[_]]
+        (rhs: R)
+        (implicit rhsToParser: R => RP, heuristic: SequencingHeuristic[L, RP, S]): S =
+    heuristic(this, rhsToParser(rhs))
 
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
