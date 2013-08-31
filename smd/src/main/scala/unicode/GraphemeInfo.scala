@@ -93,6 +93,25 @@ object GraphemeInfo {
     }
   }
 
+  /** Create a lookup which can be used to quickly retrieve the grapheme encompassing any index in `str`.
+    *
+    * @param str the [[java.lang.CharSequence]] for which a lookup should be created.
+    * @return a lookup which can be used to quickly retriev the grapheme encompassing any index in `str`.
+    */
+  def createLookup(str: CharSequence): PartialFunction[Int, GraphemeInfo] = {
+    val lut = Array.ofDim[GraphemeInfo](str.length())
+    var i = 0
+    while(i < str.length()) {
+      val g = at(str, i)
+      val j = i + g.length
+      while(i < j) {
+        lut(j) = g
+        i += 1
+      }
+    }
+    lut
+  }
+
   @inline private def isCombiningCategory(category: Byte): Boolean =
     // This is a happy coincidence, as NSM = 6, EM = 7, CSM = 8
     // The order of comparisons is chosen because most characters (letters) will fail on the first one
