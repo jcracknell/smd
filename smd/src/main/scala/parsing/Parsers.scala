@@ -25,4 +25,10 @@ trait Parsers {
 
   implicit def graphemeCriterion2GraphemeParser(criterion: smd.unicode.GraphemeCriterion): GraphemeParser =
     GraphemeParser(criterion)
+
+  implicit def range2GraphemeParser[A <% Int](range: collection.immutable.NumericRange[A]): GraphemeParser =
+    GraphemeParser(Grapheme.SingleCodePoint(CodePoint.Range(range.start, range.last)))
+
+  implicit def iterable2GraphemeParser[A <% Int](codePoints: Iterable[A]): GraphemeParser =
+    GraphemeParser(Grapheme.SingleCodePoint(CodePoint.Values(codePoints)))
 }
