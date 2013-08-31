@@ -20,7 +20,7 @@ case class SequenceParser2[+T1, +T2](seq: SequenceParser) extends SequenceParser
 
 object SequenceParser2 {
   implicit def sequencingHeuristic[T1, T2, R]: SequencingHeuristic[SequenceParser2[T1, T2], Parser[R], SequenceParser3[T1, T2, R]] =
-    SequencingHeuristic.create((l, r) => SequenceParser3(SequenceParser((l.seq.parsers :+ r):_*)))
+    SequencingHeuristic.create((l, r) => SequenceParser3(SequenceParser(l.seq.sequence :+ r)))
 }
 
 case class SequenceParser3[+T1, +T2, +T3](seq: SequenceParser) extends SequenceParserN[(T1, T2, T3)] {
@@ -37,7 +37,7 @@ object SequenceParser3 {
     Parser[R],
     SequenceParser4[T1, T2, T3, R]
   ] =
-    SequencingHeuristic.create((l, r) => SequenceParser4(SequenceParser((l.seq.parsers :+ r):_*)))
+    SequencingHeuristic.create((l, r) => SequenceParser4(SequenceParser(l.seq.sequence :+ r)))
 }
 
 case class SequenceParser4[+T1, +T2, +T3, +T4](seq: SequenceParser) extends SequenceParserN[(T1, T2, T3, T4)] {
@@ -51,6 +51,6 @@ case class SequenceParser4[+T1, +T2, +T3, +T4](seq: SequenceParser) extends Sequ
 
 object SequenceParser4 {
   implicit val sequencingHeuristic: SequencingHeuristic[SequenceParser4[_, _, _, _], Parser[_], SequenceParser] =
-    SequencingHeuristic.create((l, r) => SequenceParser((l.seq.parsers :+ r).toArray:_*))
+    SequencingHeuristic.create((l, r) => SequenceParser(l.seq.sequence :+ r))
 }
 
