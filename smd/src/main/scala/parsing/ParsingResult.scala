@@ -29,9 +29,9 @@ sealed trait ParsingResult[+A] {
   @throws[UnsupportedOperationException]
   def length: Int
 
-  /** The portion of the input which was consumed $ifSuccessful. */
+  /** The parsed sub-sequence of the input $ifSuccessful. */
   @throws[UnsupportedOperationException]
-  def string: CharSequence
+  def parsed: CharSequence
 
   /** The range of input indices which was consumed. */
   @throws[UnsupportedOperationException]
@@ -52,7 +52,7 @@ object ParsingResult {
     def succeeded: Boolean = true
     def failed: Boolean = false
     def length: Int = endIndex - index
-    def string: CharSequence = source.proxySubSequence(index, endIndex)
+    def parsed: CharSequence = source.proxySubSequence(index, endIndex)
     def copy[B](replacement: B): ParsingResult[B] = new Success[B](replacement, source, index, endIndex)
   }
 
@@ -74,7 +74,7 @@ object ParsingResult {
       throw new UnsupportedOperationException("Attempt to access endIndex of failed ParsingResult.")
     def length: Int =
       throw new UnsupportedOperationException("Attempt to access length of failed ParsingResult.")
-    def string: CharSequence =
+    def parsed: CharSequence =
       throw new UnsupportedOperationException("Attempt to access parsedInput of failed ParsingResult.")
     def copy[B](replacement: B): ParsingResult[B] =
       throw new UnsupportedOperationException("Call to copy on failed ParsingResult.")
