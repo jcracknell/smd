@@ -12,21 +12,21 @@ class RegexParserSpec extends FunSpec with ShouldMatchers with GraphemeExemplars
   }
 
   it("should match") {
-    (RegexParser("[a-z]+".r).parse(new ParsingContext("abc123")) match {
+    (RegexParser("[a-z]+".r).parse(ParsingContext("abc123")) match {
       case SuccessAt(_, 0, 3) => true
       case _ => false
     }) should be (true)
   }
   it("should match at the end of the input") {
-    (RegexParser("[a-z]+".r).parse(new ParsingContext("123abc", 3)) match {
+    (RegexParser("[a-z]+".r).parse(ParsingContext("123abc", 3)) match {
       case SuccessAt(_, 3, 3) => true
       case _ => false
     }) should be (true)
   }
   it("should only match a prefix") {
-    (RegexParser("[a-z]+").parse(new ParsingContext("1a")).succeeded) should be (false)
+    (RegexParser("[a-z]+").parse(ParsingContext("1a")).succeeded) should be (false)
   }
   it("should not match a partial grapheme") {
-    (RegexParser("[a-z]+".r).parse(new ParsingContext(s"a${g.combining_acute_accent}")).succeeded) should be (false)
+    (RegexParser("[a-z]+".r).parse(ParsingContext(s"a${g.combining_acute_accent}")).succeeded) should be (false)
   }
 }

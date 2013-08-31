@@ -1,26 +1,31 @@
 package smd
 package parsing
 
-class ParsingContext(val input: CharSequence, protected var idx: Int) { context =>
-  def this(input: CharSequence) = this(input, 0)
+import smd.unicode.GraphemeInfo
 
-  def index: Int = idx
+trait ParsingContext { context =>
+  /** The input character sequence to be parsed. */
+  def input: CharSequence
 
-  @inline def advanceBy(length: Int): Unit = advanceTo(idx + length)
+  /** The current index in the input sequence. */
+  def index: Int
 
-  def advanceTo(i: Int): Unit = {
-    if(i > input.length) throw new IllegalArgumentException(s"Provided index $i exceeds input length of ${input.length}.")
+  /** Retrieve the unicode grapheme encompassing the provided index in the input.
+    *
+    * @param i the index for which the encompassing unicode grapheme should be retrieved.
+    * @return the unicode grapheme encompassing the provided index in the input.
+    */
+  def graphemeAt(i: Int): GraphemeInfo
 
-    idx = i
-  }
+  /** Advances the current index by the specified number of positions. */
+  def advanceBy(length: Int): Unit = advanceTo(index + length)
 
-  override def clone: ParsingContext = ???
+  /** Moves the current index to the provided index. */
+  def advanceTo(i: Int): Unit
 
-  def assimilate(clone: ParsingContext): Unit = {
-    idx = clone.idx
-  }
+  /** Creates a new, identical [[smd.parsing.ParsingContext]] which can be altered without changing the current context. */
+  def copy: ParsingContext
 
-  /** Retrieves a result builder for the current context position. */
   def resultBuilder: ResultBuilder = new ResultBuilder
 
   class ResultBuilder {
@@ -37,5 +42,38 @@ class ParsingContext(val input: CharSequence, protected var idx: Int) { context 
 
     /** Creates an unsuccessful [[smd.parsing.ParsingResult]]. */
     def failure[A]: ParsingResult[A] = ParsingResult.Failure
+  }
+}
+
+object ParsingContext {
+  def apply(str: CharSequence, index: Int = 0): ParsingContext = new RootContext(str, index)
+
+  class RootContext(val input: CharSequence, var index: Int) extends ParsingContext { root =>
+    protected val graphemeLut = GraphemeInfo.createLookup(input)
+
+    def graphemeAt(i: Int): GraphemeInfo = {
+      assert(i > input.length, s"Provided index ($i) should not exceed the input length (${input.length()}).")
+
+      graphemeLut(i)
+    }
+
+    def advanceTo(i: Int): Unit = {
+      assert(i > input.length, s"Provided index ($i) should not exceed the input length (${input.length()}).")
+      assert(i <= index, s"Provided index ($i) should be greater than the current index ($index).")
+
+      index = i
+    }
+
+    def copy: ParsingContext = new DependantContext
+
+    class DependantContext extends ParsingContext {
+      val input: CharSequence = root.input
+      var index: Int = root.index
+      def graphemeAt(i: Int): GraphemeInfo = root.graphemeLut(i)
+
+      def advanceTo(i: Int): Unit = { index = i }
+
+      def copy: ParsingContext = new DependantContext
+    }
   }
 }

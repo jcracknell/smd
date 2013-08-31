@@ -5,10 +5,10 @@ case class OrderedChoiceParser[+A](choices: Parser[A]*) extends Parser[A] {
   def parse(context: ParsingContext): ParsingResult[A] = {
     var i = 0
     while(i < choices.length) {
-      val choiceContext = context.clone
+      val choiceContext = context.copy
       val choiceResult = choices(i).parse(choiceContext)
       if(choiceResult.succeeded) {
-        context.assimilate(choiceContext)
+        context.advanceBy(context.index)
         return choiceResult
       }
 

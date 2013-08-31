@@ -17,11 +17,11 @@ case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[I
 
     var n = 0
     while(true) {
-      val iterationContext = context.clone
+      val iterationContext = context.copy
       val iterationResult = body.parse(iterationContext)
 
       if(iterationResult.succeeded) {
-        context.assimilate(iterationContext)
+        context.advanceTo(iterationContext.index)
         products.append(iterationResult.product)
         n += 1
 
