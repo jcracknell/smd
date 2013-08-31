@@ -5,6 +5,8 @@ trait Parsers {
   protected val Grapheme =  smd.unicode.GraphemeCriteria
   protected val CodePoint = smd.unicode.CodePointCriteria
 
+  val EOF = EndOfInputParser
+
   def &:[A](parser: Parser[A]): AndPredicateParser[A] = AndPredicateParser(parser)
 
   def !:(parser: Parser[Any]): NotPredicateParser = NotPredicateParser(parser)
