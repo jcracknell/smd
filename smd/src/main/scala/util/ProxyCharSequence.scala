@@ -6,8 +6,8 @@ package util
   * This implementation is as lazy as possible and performs no error checking whatsoever - you have been warned.
   *
   * @param underlying the underlying [[java.lang.CharSequence]].
-  * @param start the start index of the range of the underlying [[java.lang.CharSequence]] accessible via this proxy.
-  * @param end the end index of the range of the underlying [[java.lang.CharSequence]] accessible via this proxy.
+  * @param start the start index of proxied range from the underlying sequence, inclusive.
+  * @param end the end index of the proxied range from the underlying sequence, exclusive.
   */
 class ProxyCharSequence(
   protected val underlying: CharSequence,
@@ -15,10 +15,26 @@ class ProxyCharSequence(
   protected val end: Int
 ) extends CharSequence {
 
+  @inline private def mapIndex(i: Int) = start + i
+
   def length(): Int = end - start
 
-  def charAt(i: Int): Char = underlying.charAt(start + i)
+  def charAt(i: Int): Char = underlying.charAt(mapIndex(i))
 
   def subSequence(from: Int, to: Int): CharSequence =
-    new ProxyCharSequence(underlying, start + from, start + to)
+    new ProxyCharSequence(underlying, mapIndex(from), mapIndex(to))
+
+  override def hashCode(): Int = underlying.hashCode() ^ start ^ end
+
+  override def equals(obj: Any): Boolean = obj match {
+    case that: ProxyCharSequence =>
+      this.start == that.start && this.end == that.end && this.underlying == that.underlying
+    case that: CharSequence =>
+      this.length() == that.length() &&
+      (0 until length).forall(i => underlying.charAt(mapIndex(i)) == that.charAt(i))
+    case _ => false
+  }
+
+  override def toString: String =
+    new java.lang.StringBuilder(length).append(underlying, start, end).toString
 }
