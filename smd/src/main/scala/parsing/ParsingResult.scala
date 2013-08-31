@@ -33,6 +33,10 @@ sealed trait ParsingResult[+A] {
   @throws[UnsupportedOperationException]
   def string: CharSequence
 
+  /** The range of input indices which was consumed. */
+  @throws[UnsupportedOperationException]
+  def range: Range = index until endIndex
+
   /** Creates a copy of this [[smd.parsing.ParsingResult]] with the provided replacement product.
     *
     * @param replacement the product to be stored in the resulting copy.
