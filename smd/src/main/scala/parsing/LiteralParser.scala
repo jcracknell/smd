@@ -20,7 +20,7 @@ case class LiteralParser(literal: String) extends Parser[String] {
     // Having checked sequence equivalence, we must also verify that the final grapheme in the literal fully matches
     // the grapheme at the corresponding location in the input in order to handle the case where the matching section
     // in the input is followed by additional combining marks.
-    val finalContextGrapheme = GraphemeInfo.at(context.input, context.index + lastGrapheme.index)
+    val finalContextGrapheme = GraphemeInfo.at(context.input, context.index + lastGrapheme.start)
     if(lastGrapheme.length != finalContextGrapheme.length)
       return rb.failure
 

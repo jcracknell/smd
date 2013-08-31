@@ -6,16 +6,35 @@ import org.scalatest.matchers.ShouldMatchers
 
 class GraphemeInfoSpec extends FunSpec with ShouldMatchers with GraphemeExemplars {
   describe("at method") {
-    def resultFor(str: String, index: Int = 0)(assert: GraphemeInfo => Unit): Unit = {
+    def test[A](str: String, index: Int = 0)(assert: PartialFunction[GraphemeInfo, A]): Unit = {
       it(s"should produce the expected result for ${str.literalEncode} at index $index") {
-        assert(GraphemeInfo.at(str, index))
+        val result = GraphemeInfo.at(str, index)
+        assert.isDefinedAt(result) should be (true)
+        assert.apply(result)
       }
     }
 
-    resultFor("a") { _ shouldEqual GraphemeInfo(0, 1, Character.LOWERCASE_LETTER) }
-    resultFor("ab") { _ shouldEqual GraphemeInfo(0, 1, Character.LOWERCASE_LETTER) }
-    resultFor(s"a${g.combining_ring}") { _ shouldEqual GraphemeInfo(0, 2, Character.LOWERCASE_LETTER) }
-    resultFor(s"a${g.combining_ring}${g.combining_caron}") { _ shouldEqual GraphemeInfo(0, 3, Character.LOWERCASE_LETTER) }
-    resultFor(s"${g.combining_ring}a${g.combining_ring}") { _ shouldEqual GraphemeInfo(0, 1, Character.NON_SPACING_MARK) }
+    test("a") {
+      case GraphemeInfo(0, 1, Character.LOWERCASE_LETTER, Seq(_)) => true
+    }
+    test("ab") {
+      case GraphemeInfo(0, 1, Character.LOWERCASE_LETTER, Seq(_)) => true
+    }
+    test(s"a${g.combining_ring}") {
+      case GraphemeInfo(0, 2, Character.LOWERCASE_LETTER, Seq(
+             CodePointInfo('a', Character.LOWERCASE_LETTER),
+             CodePointInfo(_, Character.NON_SPACING_MARK)
+           )) =>
+    }
+    test(s"a${g.combining_ring}${g.combining_caron}") {
+      case GraphemeInfo(0, 3, Character.LOWERCASE_LETTER, Seq(
+             CodePointInfo('a', Character.LOWERCASE_LETTER),
+             CodePointInfo(_, Character.NON_SPACING_MARK),
+             CodePointInfo(_, Character.NON_SPACING_MARK)
+           )) =>
+    }
+    test(s"${g.combining_ring}a${g.combining_ring}") {
+      case GraphemeInfo(0, 1, Character.NON_SPACING_MARK, Seq(_)) => true
+    }
   }
 }
