@@ -9,6 +9,8 @@ package unicode
   * @param value the value assigned to the character category by Java's unicode facilities.
   */
 sealed abstract class UnicodeCategory(val abbr: String, val value: Byte) {
+  /** Creates a set consisting of this category and the provided other category. */
+  def +(other: UnicodeCategory): Set[UnicodeCategory] = Set(this, other)
   override def toString: String = abbr
 }
 
@@ -46,19 +48,20 @@ sealed abstract class UnicodeCategory(val abbr: String, val value: Byte) {
   * @define Zl    The "Line Separator" or "Zl" $category
   * @define Zp    The "Paragraph Separator" or "Zp" $category
   * @define Zs    The "Space Separator" or "Zs" $category
-  *
-  * @define categoryGroup category group defined in the unicode standard, equivalent to
-  *
-  * @define L    The "Letter" or "L" $categoryGroup `Lu | Ll | Lt | Lm | Lo`.
-  * @define LC   The "Cased Letter" or "LC" $categoryGroup `Lu | Ll | Lt`.
-  * @define C    The "Other" or "C" $categoryGroup `Cc | Cf | Cs | Co | Cn`.
-  * @define P    The "Punctuation" or "P" $categoryGroup `Pc | Pd | Ps | Pi | Pf | Po`.
-  * @define M    The "Mark" or "M" $categoryGroup `Mn | Mc | Me`.
-  * @define N    The "Number" or "N" $categoryGroup `Nd | Nl | No`.
-  * @define S    The "Symbol" or "S" $categoryGroup `Sm | Sc | Sk | So`.
-  * @define Z    The "Separator" or "Z" $categoryGroup `Zs | Zl | Zp`.
   */
 object UnicodeCategory {
+  /** Convenience method for extracting category values:
+    *
+    * {{{
+    * UnicodeCategory.map(u => u.Ll + u.Lu + u.Lt)
+    * }}}
+    *
+    * @param op the map operation
+    * @tparam A the result type
+    * @return the result of applying the map operation
+    */
+  def map[A](op: UnicodeCategory.type => A): A = op(UnicodeCategory)
+
   /** An implicit conversion from a [[smd.unicode.UnicodeCategory]] to the corresponding [[scala.Byte]] value used
     * in Java's unicode mechanisms, for easy interoperability. */
   implicit def category2Byte(category: UnicodeCategory): Byte = category.value
@@ -124,7 +127,19 @@ object UnicodeCategory {
   /** $Zs */ case object SpaceSeparator       extends UnicodeCategory("Zs", Character.SPACE_SEPARATOR)
   /** $Zs */    val Zs = SpaceSeparator
 
-  /** Category groups defined in the unicode specification. */
+  /** Category groups defined in the unicode specification.
+    *
+    * @define categoryGroup category group defined in the unicode standard, equivalent to
+    *
+    * @define L    The "Letter" or "L" $categoryGroup `Lu | Ll | Lt | Lm | Lo`.
+    * @define LC   The "Cased Letter" or "LC" $categoryGroup `Lu | Ll | Lt`.
+    * @define C    The "Other" or "C" $categoryGroup `Cc | Cf | Cs | Co | Cn`.
+    * @define P    The "Punctuation" or "P" $categoryGroup `Pc | Pd | Ps | Pi | Pf | Po`.
+    * @define M    The "Mark" or "M" $categoryGroup `Mn | Mc | Me`.
+    * @define N    The "Number" or "N" $categoryGroup `Nd | Nl | No`.
+    * @define S    The "Symbol" or "S" $categoryGroup `Sm | Sc | Sk | So`.
+    * @define Z    The "Separator" or "Z" $categoryGroup `Zs | Zl | Zp`.
+    */
   object Groups {
     /** $L  */ val Letter: Set[UnicodeCategory]  =      Set(Lu, Ll, Lt, Lm, Lo)
     /** $L  */ val L = Letter
