@@ -4,8 +4,8 @@ package grammar
 import smd.parsing.{Parser, Parsers}
 
 trait CommonProductions extends Parsers {
-  def Document: Parser[smd.nodes.DocumentNode]
-  def Expression: Parser[smd.expressions.Expression]
+  def Document: Parser[smd.nodes.DocumentNode] = ???
+  def Expression: Parser[smd.expressions.Expression] = ???
 
   /** A single or multi-line comment. */
   lazy val Comment = SingleLineComment | MultiLineComment
@@ -35,7 +35,7 @@ trait CommonProductions extends Parsers {
   /** A space character or newline sequence. */
   lazy val Whitespace = SpaceChar | NewLine
   /** A valid newline sequence. */
-  lazy val NewLine =    "\n" | "\r" | "\r\n" | "\u2028" | "\u2029"
+  lazy val NewLine =    "\r\n" | CodePoint.Values('\n', '\r', '\u2028', '\u2029')
   lazy val SpaceChars = SpaceChar.*
   lazy val SpaceChar =  CodePoint.Values(' ', '\t')
 
