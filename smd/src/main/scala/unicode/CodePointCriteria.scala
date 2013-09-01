@@ -32,11 +32,22 @@ object CodePointCriteria {
     *
     * @param categories categories which will satisfy this criterion.
     */
-  case class Category(categories: Byte*) extends CodePointCriterion {
-    private val satisfyingCategories = Array.fill(31)(false)
-    categories.foreach(satisfyingCategories.update(_, true))
+  case class Category(categories: Set[UnicodeCategory]) extends CodePointCriterion {
+    require(!categories.isEmpty, "no provided categories.")
+
+    // Create an array lookup table for better performance
+    private val satisfyingCategories = Array.fill(UnicodeCategory.MaxValue + 1)(false)
+    categories.foreach { c => satisfyingCategories(c.value) = true }
 
     def isSatisfiedBy(codePoint: CodePointInfo): Boolean = satisfyingCategories(codePoint.category)
+  }
+
+  object Category {
+    def apply(c0: UnicodeCategory, cs: UnicodeCategory*): Category =
+      new Category((c0 +: cs).toSet)
+
+    def apply(categories: Iterable[UnicodeCategory]): Category =
+      new Category(categories.toSet)
   }
 
   /** An [[smd.unicode.CodePointCriterion]] which is never satisfied. */
