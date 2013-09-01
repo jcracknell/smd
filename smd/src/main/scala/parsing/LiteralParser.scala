@@ -10,12 +10,16 @@ case class LiteralParser(literal: String) extends Parser[String] {
 
   def parse(context: ParsingContext): ParsingResult[String] = {
     val rb = context.resultBuilder
+
+    if(context.input.length - context.index < literal.length)
+      return rb.failure
+
     var i = 0
-    while(i != literal.length) {
+    do {
       if(literal.charAt(i) != context.input.charAt(context.index + i))
         return rb.failure
       i += 1
-    }
+    } while(i != literal.length)
 
     // Having checked sequence equivalence, we must also verify that the final grapheme in the literal fully matches
     // the grapheme at the corresponding location in the input in order to handle the case where the matching section

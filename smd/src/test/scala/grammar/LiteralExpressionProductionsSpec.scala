@@ -10,21 +10,17 @@ class LiteralExpressionProductionsSpec extends FunSpec with ShouldMatchers {
   describe("NumericLiteralExpression") {
     Map(
       "0"      -> 0d,
-      ".0123"  -> 0.123d,
+      ".0123"  -> 0.0123d,
       "12.345" -> 12.345d,
-      "-12"    -> -12d,
-      "-.0123" -> -0.0123d,
       "12e1"   -> 120d,
-      "-12E2"  -> -1200d,
+      "12E2"   -> 1200d,
       "0x1234" -> 0x1234.toDouble
     ).mapValues(NumericLiteralExpression(_))
     .foreach { case (input, product) =>
-      /*
       it(s"should parse ${input.literalEncode} as ${product.toString}") {
         val result = Grammar.NumericLiteralExpression.parse(input)
         result.product should be (product)
       }
-      */
     }
   }
   describe("StringLiteralCharacter") {

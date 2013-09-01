@@ -30,7 +30,7 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
   private lazy val RequiredDecimalPart =   "." ~ Digit.+ >>(_.parsed.toString.toDouble)
   private lazy val OptionalDecimalPart =   ("." ~ Digit.* >>(_.parsed)).?  >>> { p => p.map(_.toString.toDouble).getOrElse(0d) }
   private lazy val OptionalExponentPart =  (("e" | "E") ~ SignedInteger >>>(_._2)).? >>> { p => math.pow(10d, p.map(_.toString.toDouble).getOrElse(0d)) }
-  private lazy val SignedInteger =         ("+" | "-").? ~ Digit.+        >>(_.parsed.toString.toDouble)
+  private lazy val SignedInteger =         ("+" >>>> +1d | "-" >>>> -1d).? ~ (Digit.+ >>(_.parsed)) >>> { p => p._1.getOrElse(1d) * p._2.toString.toDouble }
   private lazy val DecimalIntegerLiteral = ("0" | NonZeroDigit ~ Digit.*) >>(_.parsed.toString.toDouble)
 
 
