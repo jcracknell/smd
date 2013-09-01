@@ -8,6 +8,8 @@ object Dependencies {
 object SmdBuild extends Build {
   import Dependencies._
 
+  val generateSources = TaskKey[Unit]("generate-sources", "Generate dynamically generated source files used by the project.")
+
   val baseSettings = Defaults.defaultSettings ++ Seq(
     version :=      "0.1",
     scalaVersion := "2.10.2",
@@ -22,10 +24,20 @@ object SmdBuild extends Build {
     settings =  baseSettings,
     aggregate = Seq(core)
   )
-  
-  lazy val core = Project(
-    id =       "smd-core",
-    base =     file("smd"),
-    settings = baseSettings ++ Seq()
-  )
+
+  lazy val core = {
+    val generateSourcesTask = generateSources <<= scalaSource.in(Compile) map { (baseDir: File) =>
+      val sequenceParserGenerators = (2 to 16) map { new SequenceParserNGenerator(_, 16) } toList
+
+      val generators = sequenceParserGenerators
+
+      generators.foreach(_.generate(baseDir))
+    }
+
+    Project(
+      id =       "smd-core",
+      base =     file("smd"),
+      settings = baseSettings ++ Seq(generateSourcesTask)
+    )
+  }
 }
