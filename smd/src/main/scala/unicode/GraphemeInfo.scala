@@ -105,7 +105,7 @@ object GraphemeInfo {
       val g = at(str, i)
       val j = i + g.length
       while(i < j) {
-        lut(j) = g
+        lut(i) = g
         i += 1
       }
     }

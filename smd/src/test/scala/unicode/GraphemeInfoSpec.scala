@@ -21,17 +21,10 @@ class GraphemeInfoSpec extends FunSpec with ShouldMatchers with GraphemeExemplar
       case GraphemeInfo(0, 1, Character.LOWERCASE_LETTER, Seq(_)) => true
     }
     test(s"a${g.combining_ring}") {
-      case GraphemeInfo(0, 2, Character.LOWERCASE_LETTER, Seq(
-             CodePointInfo('a', Character.LOWERCASE_LETTER),
-             CodePointInfo(_, Character.NON_SPACING_MARK)
-           )) =>
+      case GraphemeInfo(0, 2, Character.LOWERCASE_LETTER, Seq(CodePointInfo('a'), _)) =>
     }
     test(s"a${g.combining_ring}${g.combining_caron}") {
-      case GraphemeInfo(0, 3, Character.LOWERCASE_LETTER, Seq(
-             CodePointInfo('a', Character.LOWERCASE_LETTER),
-             CodePointInfo(_, Character.NON_SPACING_MARK),
-             CodePointInfo(_, Character.NON_SPACING_MARK)
-           )) =>
+      case GraphemeInfo(0, 3, Character.LOWERCASE_LETTER, Seq(CodePointInfo('a'), _, _)) =>
     }
     test(s"${g.combining_ring}a${g.combining_ring}") {
       case GraphemeInfo(0, 1, Character.NON_SPACING_MARK, Seq(_)) => true

@@ -3,6 +3,7 @@ package parsing
 
 trait Parser[+A] {
   def parse(context: ParsingContext): ParsingResult[A]
+  def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
 
   def >>  [B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 

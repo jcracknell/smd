@@ -41,7 +41,7 @@ object CodePointCriteria {
 
   /** An [[smd.unicode.CodePointCriterion]] which is never satisfied. */
   case object None extends CodePointCriterion {
-    def isSatisfiedBy(codePoint: CodePointInfo): Boolean = true
+    def isSatisfiedBy(codePoint: CodePointInfo): Boolean = false
   }
 
   /** An [[smd.unicode.CodePointCriterion]] which is satisfied by code points in the specified range of values.

@@ -70,13 +70,14 @@ class SequencingHeuristicSpec extends FunSpec with ShouldMatchers with Parsers {
     )
   }
   it("SequenceParser ~ Parser[_] -> SequenceParser") {
-    val a = SequenceParser(LiteralParser("a"))
-    val b = LiteralParser("b")
+    val a = SequenceParser(LiteralParser("a"), LiteralParser("b"))
+    val b = LiteralParser("c")
 
     (a ~ b) should be (
       SequenceParser(
         LiteralParser("a"),
-        LiteralParser("b"))
+        LiteralParser("b"),
+        LiteralParser("c"))
     )
   }
   it("LiteralParser ~ LiteralParser => LiteralParser") {

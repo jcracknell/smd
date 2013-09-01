@@ -2,21 +2,23 @@ package smd
 package parsing
 
 case class SequenceParser(sequence: IndexedSeq[Parser[Any]]) extends Parser[IndexedSeq[Any]] {
-  require(sequence.lengthGt(2), "sequence must contain at least two parsers.")
+  require(sequence.lengthGte(2), "sequence must contain at least two parsers.")
 
   def parse(context: ParsingContext): ParsingResult[IndexedSeq[Any]] = {
     val rb = context.resultBuilder
     val products = Array.ofDim[Any](sequence.length)
     var i = 0
-    while(sequence.length != i) {
+
+    do {
       val r = sequence(i).parse(context)
       if(r.succeeded){
         products(i) = r.product
-        i += 1
       } else {
         return rb.failure
       }
-    }
+
+      i += 1
+    } while(i < sequence.length)
 
     rb.success(products)
   }

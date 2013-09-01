@@ -3,9 +3,11 @@ package parsing
 
 case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[Seq[A]] {
   (min, max) match {
-    case (Some(a), Some(b)) if a > b => throw new IllegalArgumentException(s"Provided range [${min.get}, ${max.get}] is invalid.")
-    case (Some(x), _      ) if x < 0 => throw new IllegalArgumentException("Provided min must be a non-negative integer.")
-    case (_,       Some(x)) if x < 0 => throw new IllegalArgumentException("Provided max must be a non-negative integer.")
+    case (Some(a), Some(b)) => require(a <= b, s"Provided range [${min.get}, ${max.get}] is invalid.")
+                               require(1 < b, "Provided max must be a positive integer.")
+    case (Some(x), _      ) => require(0 < x, "Provided min must be a non-negative integer.")
+    case (_,       Some(x)) => require(1 < x, "Provided max must be a positive integer.")
+    case _ =>
   }
 
   private val minCount = min.getOrElse(0)
@@ -16,21 +18,17 @@ case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[I
     val products = collection.mutable.ListBuffer[A]()
 
     var n = 0
-    while(true) {
+    do {
       val iterationContext = context.copy
       val iterationResult = body.parse(iterationContext)
-
       if(iterationResult.succeeded) {
         context.advanceTo(iterationContext.index)
         products.append(iterationResult.product)
-        n += 1
-
-        if(maxCount == n)
-          return rb.success(products.toList)
       } else {
-        return if(minCount > n) rb.failure else rb.success(products.toList)
+        return if(n >= minCount) rb.success(products.toList) else rb.failure
       }
-    }
-    ???
+      n += 1
+    } while(n != maxCount)
+    rb.success(products.toList)
   }
 }

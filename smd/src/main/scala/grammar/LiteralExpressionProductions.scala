@@ -4,7 +4,7 @@ package grammar
 import smd.{expressions => expr}
 import smd.parsing.{OrderedChoiceParser, Parsers}
 
-trait ExpressionProductions extends Parsers with CommonProductions {
+trait LiteralExpressionProductions extends Parsers with CommonExpressionProductions {
   lazy val LiteralExpression = NullLiteralExpression |
                                BooleanLiteralExpression |
                                NumericLiteralExpression |
@@ -21,7 +21,7 @@ trait ExpressionProductions extends Parsers with CommonProductions {
   lazy val NumericLiteral = HexIntegerLiteral | DecimalLiteral
 
   // TODO: Parse hex value
-  private lazy val HexIntegerLiteral =     "0x" ~ (HexDigit.+ >>(_.parsed)) >>>(_._2.toString.toDouble)
+  private lazy val HexIntegerLiteral =     "0x" ~ (HexDigit.+ >>(_.parsed)) >>> { p => java.lang.Long.parseLong(p._2.toString, 16).toDouble }
 
   private lazy val DecimalLiteral =
     DecimalIntegerLiteral ~ OptionalDecimalPart ~ OptionalExponentPart >>> { p => (p._1 + p._2) * p._3 } |
@@ -53,18 +53,4 @@ trait ExpressionProductions extends Parsers with CommonProductions {
   lazy val StringLiteralCharacter = ("\\" ~ (UnicodeEscapeSequence | HexadecimalEscapeSequence | NewLine | UnicodeCharacter)) |
                                     !CodePoint.Values('\n', '\r', '\u2028', '\u2029')
 
-  lazy val Keyword = "break" | "case" | "catch" | "class" | "const" | "continue" | "debugger" |
-                     "default" | "delete" | "do" | "else" | "enum" | "export" | "extends" |
-                     "false" | "finally" | "for" | "function" | "if" | "import" | "instanceof" |
-                     "in" | "new" | "null" | "return" | "super" | "switch" | "this" | "throw" |
-                     "true" | "try" | "typeof" | "var" | "void" | "while" | "with"
-
-  /** Zero or more space characters or comments. */
-  lazy val ExpressionWhitespaceNoNewline = (SpaceChar | Comment).*
-
-  /** Zero or more whitespace characters or comments. */
-  lazy val ExpressionWhitespace = (Whitespace | Comment).*
-
-  lazy val HexadecimalEscapeSequence = "x" ~ HexDigit.*(2)
-  lazy val UnicodeEscapeSequence =     "u" ~ HexDigit.*(4)
 }

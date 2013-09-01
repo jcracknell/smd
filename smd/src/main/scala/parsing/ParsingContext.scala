@@ -56,28 +56,30 @@ object ParsingContext {
     protected val graphemeLut = GraphemeInfo.createLookup(input)
 
     def graphemeAt(i: Int): GraphemeInfo = {
-      assert(i > input.length, s"Provided index ($i) should not exceed the input length (${input.length()}).")
+      assert(0 <= i, s"Provided index ($i) must be a non-negative integer.")
+      assert(i < input.length, s"Provided index ($i) should be less than the input length (${input.length()}).")
 
       graphemeLut(i)
     }
 
     def advanceTo(i: Int): Unit = {
-      assert(i > input.length, s"Provided index ($i) should not exceed the input length (${input.length()}).")
-      assert(i <= index, s"Provided index ($i) should be greater than the current index ($index).")
+      assert(0 <= i, s"Provided index ($i) must be a non-negative integer.")
+      assert(i <= input.length, s"Provided index ($i) should not exceed the input length (${input.length()}).")
+      assert(i >= index, s"Provided index ($i) should be greater than or equal to the current index ($index).")
 
       index = i
     }
 
-    def copy: ParsingContext = new DependantContext
+    def copy: ParsingContext = new DependantContext(index)
 
-    class DependantContext extends ParsingContext {
+    class DependantContext(var index: Int) extends ParsingContext {
       val input: CharSequence = root.input
-      var index: Int = root.index
+
       def graphemeAt(i: Int): GraphemeInfo = root.graphemeLut(i)
 
       def advanceTo(i: Int): Unit = { index = i }
 
-      def copy: ParsingContext = new DependantContext
+      def copy: ParsingContext = new DependantContext(index)
     }
   }
 }
