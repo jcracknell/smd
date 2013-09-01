@@ -2,8 +2,9 @@ package smd
 package parsing
 
 trait Parsers {
-  protected val Grapheme =  smd.unicode.GraphemeCriteria
-  protected val CodePoint = smd.unicode.CodePointCriteria
+  protected val CodePoint =       smd.unicode.CodePointCriteria
+  protected val Grapheme =        smd.unicode.GraphemeCriteria
+  protected val UnicodeCategory = smd.unicode.UnicodeCategory
 
   val EOF = EndOfInputParser
 
