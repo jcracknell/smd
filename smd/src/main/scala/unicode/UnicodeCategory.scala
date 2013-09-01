@@ -15,7 +15,6 @@ sealed abstract class UnicodeCategory(val abbr: String, val value: Byte) {
 /** Facility defining [[smd.unicode.UnicodeCategory]] values.
   *
   * @define category category defined in the unicode standard.
-  * @define categoryGroup category group defined in the unicode standard, equivalent to
   *
   * @define Cc    The "Control" or "Cc" $category
   * @define Cf    The "Format" or "Cf" $category
@@ -47,6 +46,17 @@ sealed abstract class UnicodeCategory(val abbr: String, val value: Byte) {
   * @define Zl    The "Line Separator" or "Zl" $category
   * @define Zp    The "Paragraph Separator" or "Zp" $category
   * @define Zs    The "Space Separator" or "Zs" $category
+  *
+  * @define categoryGroup category group defined in the unicode standard, equivalent to
+  *
+  * @define L    The "Letter" or "L" $categoryGroup `Lu | Ll | Lt | Lm | Lo`.
+  * @define LC   The "Cased Letter" or "LC" $categoryGroup `Lu | Ll | Lt`.
+  * @define C    The "Other" or "C" $categoryGroup `Cc | Cf | Cs | Co | Cn`.
+  * @define P    The "Punctuation" or "P" $categoryGroup `Pc | Pd | Ps | Pi | Pf | Po`.
+  * @define M    The "Mark" or "M" $categoryGroup `Mn | Mc | Me`.
+  * @define N    The "Number" or "N" $categoryGroup `Nd | Nl | No`.
+  * @define S    The "Symbol" or "S" $categoryGroup `Sm | Sc | Sk | So`.
+  * @define Z    The "Separator" or "Z" $categoryGroup `Zs | Zl | Zp`.
   */
 object UnicodeCategory {
   /** An implicit conversion from a [[smd.unicode.UnicodeCategory]] to the corresponding [[scala.Byte]] value used
@@ -114,33 +124,35 @@ object UnicodeCategory {
   /** $Zs */ case object SpaceSeparator       extends UnicodeCategory("Zs", Character.SPACE_SEPARATOR)
   /** $Zs */    val Zs = SpaceSeparator
 
-  // Meta-Categories
-
-  /** The "Letter" $categoryGroup `Lu | Ll | Lt | Lm | Lo`. */
-  val L: Set[UnicodeCategory]  = Set(Lu, Ll, Lt, Lm, Lo)
-  /** The "Cased Letter" $categoryGroup `Lu | Ll | Lt`. */
-  val LC: Set[UnicodeCategory] = Set(Lu, Ll, Lt)
-  /** The "Other" $categoryGroup `Cc | Cf | Cs | Co | Cn`. */
-  val C: Set [UnicodeCategory] = Set(Cc, Cf, Cs, Co, Cn)
-  /** The "Punctuation" $categoryGroup `Pc | Pd | Ps | Pi | Pf | Po`. */
-  val P: Set [UnicodeCategory] = Set(Pc, Pd, Ps, Pe, Pi, Pf, Po)
-  /** The "Mark" $categoryGroup `Mn | Mc | Me`. */
-  val M: Set [UnicodeCategory] = Set(Mn, Mc, Me)
-  /** The "Number" $categoryGroup `Nd | Nl | No`. */
-  val N: Set [UnicodeCategory] = Set(Nd, Nl, No)
-  /** The "Symbol" $categoryGroup `Sm | Sc | Sk | So`. */
-  val S: Set [UnicodeCategory] = Set(Sm, Sc, Sk, So)
-  /** The "Separator" $categoryGroup `Zs | Zl | Zp`. */
-  val Z: Set [UnicodeCategory] = Set(Zs, Zl, Zp)
+  /** Category groups defined in the unicode specification. */
+  object Groups {
+    /** $L  */ val Letter: Set[UnicodeCategory]  =      Set(Lu, Ll, Lt, Lm, Lo)
+    /** $L  */ val L = Letter
+    /** $LC */ val CasedLetter: Set[UnicodeCategory] =  Set(Lu, Ll, Lt)
+    /** $LC */ val LC = CasedLetter
+    /** $C  */ val Control: Set [UnicodeCategory] =     Set(Cc, Cf, Cs, Co, Cn)
+    /** $C  */ val C = Control
+    /** $P  */ val Punctuation: Set [UnicodeCategory] = Set(Pc, Pd, Ps, Pe, Pi, Pf, Po)
+    /** $P  */ val P = Punctuation
+    /** $M  */ val Mark: Set [UnicodeCategory] =        Set(Mn, Mc, Me)
+    /** $M  */ val M = Mark
+    /** $N  */ val Number: Set [UnicodeCategory] =      Set(Nd, Nl, No)
+    /** $N  */ val N = Number
+    /** $S  */ val Symbol: Set [UnicodeCategory] =      Set(Sm, Sc, Sk, So)
+    /** $S  */ val S = Symbol
+    /** $Z  */ val Separator: Set [UnicodeCategory] =   Set(Zs, Zl, Zp)
+    /** $Z  */ val Z = Separator
+  }
 
   /** The set of all [[smd.unicode.UnicodeCategory]] values. */
   val AllCategories: Set[UnicodeCategory] = Set(Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe,
                                                 Pi, Pf, Po, Sm, Sc, Sk, So, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn)
 
-  private val MaxCategory = AllCategories.map(_.value).max
+  /** The maximum value of a category. */
+  val MaxValue = AllCategories.map(_.value).max
 
   private val categoryLookup: Array[UnicodeCategory] = {
-    val lut = Array.ofDim[UnicodeCategory](MaxCategory + 1)
+    val lut = Array.ofDim[UnicodeCategory](MaxValue + 1)
     for(c <- AllCategories)
       lut(c.value) = c
     lut
@@ -152,7 +164,7 @@ object UnicodeCategory {
     * @param category the category value
     */
   def get(category: Byte): UnicodeCategory = {
-    require(0 <= category && category <= MaxCategory, s"the provided category ($category) is invalid.")
+    require(0 <= category && category <= MaxValue, s"the provided category ($category) is invalid.")
     categoryLookup(category)
   }
 
