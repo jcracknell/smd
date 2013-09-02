@@ -1,7 +1,7 @@
 package smd
 package grammar
 
-import smd.parsing.{Parser, Parsers}
+import smd.parsing.Parsers
 
 trait CommonProductions extends Parsers {
   def Document: Parser[smd.nodes.DocumentNode] = ???
