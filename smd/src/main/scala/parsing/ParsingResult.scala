@@ -13,6 +13,10 @@ sealed trait ParsingResult[+A] {
   /** Returns true if parsing failed. */
   def failed: Boolean
 
+  /** Alias for `this.product`. */
+  @throws[UnsupportedOperationException]
+  @inline def p : A = product
+
   /** The product of the parser $ifSuccessful. */
   @throws[UnsupportedOperationException]
   def product: A
