@@ -7,6 +7,7 @@ trait ExpressionProductions extends CommonProductions
                                with IdentifierExpressionProductions
                                with PrimaryExpressionProductions
                                with AtExpressionProductions
+                               with LeftHandSideExpressionProductions
 {
-  def Expression: Parser[smd.expressions.Expression] = PrimaryExpression
+  def Expression: Parser[smd.expressions.Expression] = LeftHandSideExpression
 }
