@@ -5,6 +5,11 @@ import smd.{expressions => expr}
 import smd.parsing.{OrderedChoiceParser, Parsers}
 
 trait CommonExpressionProductions extends Parsers with CommonProductions {
+  /** An argument list, including parentheses. */
+  lazy val ArgumentList: Parser[Seq[expr.Expression]] = "(" ~ ExpressionWhitespace ~ ArgumentListArguments ~ ExpressionWhitespace ~ ")" >>>(_._3)
+
+  private lazy val ArgumentListArguments = Expression ~ (ArgumentSeparator ~ Expression).* >>> { p => p._1 +: p._2.map(_._2) }
+
   protected lazy val ArgumentSeparator = ExpressionWhitespace ~ "," ~ ExpressionWhitespace >>>>(())
 
   lazy val Keyword = "break" | "case" | "catch" | "class" | "const" | "continue" | "debugger" |

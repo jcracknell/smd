@@ -5,28 +5,19 @@ import smd.{expressions => expr}
 
 trait LeftHandSideExpressionProductions extends AtExpressionProductions {
 
-  lazy val LeftHandSideExpression =
+  lazy val LeftHandSideExpression: Parser[expr.Expression] =
     AtExpression ~ (ExpressionWhitespace ~ (
-      CallExpression | StaticProperty | DynamicProperty
+      // Build a sequence of functions which will construct the appropriate expr when provided a body
+      ArgumentList    >>> { args => (b: expr.Expression) => expr.CallExpression(b, args) } |
+      StaticProperty  >>> { prop => (b: expr.Expression) => expr.StaticPropertyExpression(b, prop) } |
+      DynamicProperty >>> { prop => (b: expr.Expression) => expr.DynamicPropertyExpression(b, prop) }
     )).* >>> { p =>
-      val base = p._1
+      val body = p._1
       val builders: Seq[expr.Expression => expr.Expression] = p._2.map(_._2)
-      (base /: builders) { (x, b) => b(x) }
+      (body /: builders) { (x, b) => b(x) }
     }
 
-  private lazy val CallExpression = ArgumentList >>>{ p => mkBuilder(body => expr.CallExpression(body, p)) }
+  private lazy val StaticProperty = "." ~ ExpressionWhitespace ~ Identifier >>>(_._3)
 
-  private lazy val StaticProperty =
-    "." ~ ExpressionWhitespace ~ Identifier >>>{ p => mkBuilder(body => expr.StaticPropertyExpression(body, p._3)) }
-
-  private lazy val DynamicProperty =
-    "[" ~ ExpressionWhitespace ~
-    Expression ~
-    ExpressionWhitespace ~ "]" >>>{ p => mkBuilder(body => expr.DynamicPropertyExpression(body, p._3)) }
-
-  private def mkBuilder(build: expr.Expression => expr.Expression): (expr.Expression => expr.Expression) = build
-
-  lazy val ArgumentList = "(" ~ ExpressionWhitespace ~ ArgumentListArguments ~ ExpressionWhitespace ~ ")" >>>(_._3)
-
-  private lazy val ArgumentListArguments = Expression ~ (ArgumentSeparator ~ Expression).* >>> { p => p._1 +: p._2.map(_._2) }
+  private lazy val DynamicProperty = "[" ~ ExpressionWhitespace ~ Expression ~ ExpressionWhitespace ~ "]" >>>(_._3)
 }
