@@ -4,6 +4,10 @@ class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"parsi
   private def className(x: Int = n) = s"SequenceParser$x"
   private def qualifiedClassName(x: Int = n) = s"smd.parsing.${className(x)}"
 
+  private def ordinal(x: Int) = {
+    x + IndexedSeq("th","st","nd","rd","th")(if(10 <= x && x <= 19) 4 else math.min(4, x % 10))
+  }
+
   private val types =            (1 to n).map("T"+_)
   private val typeList =         types.mkString(", ")
   private val productTupleType = s"($typeList)"
@@ -20,8 +24,8 @@ class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"parsi
     |
     |/** Parses $n expressions, providing strongly-typed results.
     |  * ${(1 to n).map({ i => s"""
-    |  * @param  _${i.toString.padTo(2, ' ')} the ${i}th parser in the sequence.
-    |  * @tparam T${i.toString.padTo(2, ' ')} the product type of the ${i}th parser in the sequence.""".stripMargin }).mkString("")}
+    |  * @param  _${i.toString.padTo(2, ' ')} the ${ordinal(i)} parser in the sequence.
+    |  * @tparam T${i.toString.padTo(2, ' ')} the product type of the ${ordinal(i)} parser in the sequence.""".stripMargin }).mkString("")}
     |  */
     |case class ${className()}[${types.map("+"+_).mkString(", ")}](
     |  ${(1 to n).map(i => s"_$i: Parser[T$i]").mkString(", ")}
