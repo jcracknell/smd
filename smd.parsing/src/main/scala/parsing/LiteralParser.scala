@@ -32,11 +32,3 @@ case class LiteralParser(literal: String) extends Parser[String] {
     rb.success(literal)
   }
 }
-
-object LiteralParser {
-  // TODO: Is this a good idea, or is it too confusing? Certainly it has performance benefits.
-  /** [[smd.parsing.SequencingHeuristic]] which combines adjacent [[smd.parsing.LiteralParser]] instances into a single
-    * equivalent [[smd.parsing.LiteralParser]]. */
-  implicit val sequencingHeuristic: SequencingHeuristic[LiteralParser, LiteralParser, LiteralParser] =
-    SequencingHeuristic.create((l, r) => LiteralParser(l.literal + r.literal))
-}
