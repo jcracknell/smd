@@ -3,13 +3,13 @@ package expressions
 
 import smd.nodes.DocumentNode
 
-sealed trait Expression
+abstract class Expression
 
-sealed trait UnaryExpression extends Expression {
+abstract class UnaryExpression extends Expression {
   def expr: Expression
 }
 
-sealed trait BinaryExpression extends Expression {
+abstract class BinaryExpression extends Expression {
   def lhs: Expression
   def rhs: Expression
 }

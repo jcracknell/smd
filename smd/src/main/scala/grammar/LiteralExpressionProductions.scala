@@ -44,11 +44,12 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
                                      (1 to 16).reverse.map(n => new String(Array.fill(n)('`'))).map { ticks =>
                                        ticks ~ ((!:(ticks) ~ UnicodeCharacter).* >>(_.parsed)) ~ ticks >>>(_._2)
                                      }
-                                   ) >>>(_._2)
+                                   ) >>>(_._2.toString)
 
-  lazy val DoubleQuotedStringLiteral = "\"" ~ ((!:("\"") ~ StringLiteralCharacter).* >>(_.parsed)) ~ "\"" >>>(_._2)
+  // TODO: decode JS strings
+  lazy val DoubleQuotedStringLiteral = "\"" ~ ((!:("\"") ~ StringLiteralCharacter).* >>(_.parsed)) ~ "\"" >>>(_._2.toString)
 
-  lazy val SingleQuotedStringLiteral = "'"  ~ ((!:("'")  ~ StringLiteralCharacter).* >>(_.parsed)) ~ "'"  >>>(_._2)
+  lazy val SingleQuotedStringLiteral = "'"  ~ ((!:("'")  ~ StringLiteralCharacter).* >>(_.parsed)) ~ "'"  >>>(_._2.toString)
 
   lazy val StringLiteralCharacter = ("\\" ~ (UnicodeEscapeSequence | HexadecimalEscapeSequence | NewLine | UnicodeCharacter)) |
                                     !CodePoint.Values('\n', '\r', '\u2028', '\u2029')
