@@ -39,9 +39,4 @@ object LiteralParser {
     * equivalent [[smd.parsing.LiteralParser]]. */
   implicit val sequencingHeuristic: SequencingHeuristic[LiteralParser, LiteralParser, LiteralParser] =
     SequencingHeuristic.create((l, r) => LiteralParser(l.literal + r.literal))
-
-  /** [[smd.parsing.SequencingHeuristic]] which combines an [[smd.parsing.LiteralParser]] with and adjacent string into
-    * a single equivalent [[smd.parsing.LiteralParser]]. */
-  implicit val convertingSequencingHeuristic: SequencingHeuristic[LiteralParser, String, LiteralParser] =
-    SequencingHeuristic.create((l, r) => LiteralParser(l.literal + r))
 }
