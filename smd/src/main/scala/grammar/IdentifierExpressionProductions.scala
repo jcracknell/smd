@@ -11,8 +11,9 @@ trait IdentifierExpressionProductions extends CommonExpressionProductions {
                         IdentifierExpressionStart ~ IdentifierExpressionPart.* >> { r => r.parsed }
 
   lazy val IdentifierExpressionPart = IdentifierExpressionStart |
-                                      UnicodeCategory.map(u => u.Mn + u.Mc + u.Nd + u.Pc) |
+                                      CodePoint.Category(UnicodeCategory.map(u => u.Mn + u.Mc + u.Nd + u.Pc)) |
                                       "\u200C" | "\u200D"
 
-  lazy val IdentifierExpressionStart = UnicodeCategory.map(u => u.Groups.L + u.Nl) | "$" | "_" | "\\" ~ UnicodeEscapeSequence
+  lazy val IdentifierExpressionStart = CodePoint.Category(UnicodeCategory.map(u => u.Groups.L + u.Nl)) | "$" | "_" | "\\" ~ UnicodeEscapeSequence
+
 }

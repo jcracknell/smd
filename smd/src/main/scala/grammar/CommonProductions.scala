@@ -25,12 +25,13 @@ trait CommonProductions extends Parsers {
   lazy val NonIndentSpace = " ".*(0,3)
 
 
-  lazy val HexDigit =          Digit ++ ('a' to 'f') ++ ('A' to 'F')
-  lazy val Digit =             '0' to '9'
-  lazy val NonZeroDigit =      '1' to '9'
-  lazy val EnglishAlpha =      EnglishLowerAlpha ++ EnglishUpperAlpha
-  lazy val EnglishLowerAlpha = 'a' to 'z'
-  lazy val EnglishUpperAlpha = 'A' to 'Z'
+  lazy val HexDigit =          CodePoint.Values(('0' to '9') ++ ('a' to 'f') ++ ('A' to 'F'))
+  lazy val Digit =             CodePoint.Values('0' to '9')
+  lazy val NonZeroDigit =      CodePoint.Values('1' to '9')
+  lazy val EnglishAlpha =      EnglishLowerAlpha | EnglishUpperAlpha
+  lazy val EnglishLowerAlpha = CodePoint.Range('a', 'z')
+  lazy val EnglishUpperAlpha = CodePoint.Range('A', 'Z')
+
 
   /** A space character or newline sequence. */
   lazy val Whitespace = SpaceChar | NewLine

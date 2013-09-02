@@ -13,15 +13,15 @@ trait Parser[+A] {
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
-  def | [L >: this.type <: Parser[_], R, RP <: Parser[_], C <: Parser[_]]
-        (rhs: R)
-        (implicit rhsToParser: R => RP, heuristic: OrderedChoiceHeuristic[L, RP, C]): C =
-    heuristic(this, rhsToParser(rhs))
+  def | [L >: this.type <: Parser[_], R <: Parser[_], C <: Parser[_]]
+        (rhs: Implicit[R])
+        (implicit heuristic: OrderedChoiceHeuristic[L, R, C]): C =
+    heuristic(this, rhs)
 
-  def ~ [L >: this.type <: Parser[_], R, RP <: Parser[_], S <: Parser[_]]
-        (rhs: R)
-        (implicit rhsToParser: R => RP, heuristic: SequencingHeuristic[L, RP, S]): S =
-    heuristic(this, rhsToParser(rhs))
+  def ~ [L >: this.type <: Parser[_], R <: Parser[_], S <: Parser[_]]
+        (rhs: Implicit[R])
+        (implicit heuristic: SequencingHeuristic[L, R, S]): S =
+    heuristic(this, rhs)
 
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )

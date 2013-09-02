@@ -8,6 +8,8 @@ class SequencingHeuristicSpec extends FunSpec with ShouldMatchers with Parsers {
   it("Parser[A] ~ Parser[B] => SequenceParser2[A, B]") {
     val a = OptionalParser(LiteralParser("a"))
     val b = LiteralParser("b")
+    val c = a ~ b
+    c.toString
 
     (a ~ b) should be (
       SequenceParser2(OptionalParser(LiteralParser("a")), LiteralParser("b"))
