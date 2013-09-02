@@ -3,9 +3,12 @@ package grammar
 
 import smd.{expressions => expr}
 
-trait PrimaryExpressionGrammar extends LiteralExpressionProductions
-                                  with IdentifierExpressionProductions
+trait PrimaryExpressionProductions extends LiteralExpressionProductions
+                                      with IdentifierExpressionProductions
 {
+  /** A literal, array literal, or object literal expression. */
+  lazy val PrimaryExpression = LiteralExpression | ArrayLiteralExpression | ObjectLiteralExpression
+
   lazy val ArrayLiteralExpression =
     "[" ~ ExpressionWhitespace ~ ArrayElements ~ ExpressionWhitespace ~ "]" >>> { p => expr.ArrayLiteralExpression(p._3) }
 
@@ -21,7 +24,6 @@ trait PrimaryExpressionGrammar extends LiteralExpressionProductions
     ArgumentSeparator ~ ElidedElements ~ ExpressionWhitespace ~ Expression >>> { p => p._2 :+ p._4 }
 
   private lazy val ElidedElements = ArgumentSeparator.* >>>(_.map(i => expr.ElidedExpression()))
-
 
 
   lazy val ObjectLiteralExpression =

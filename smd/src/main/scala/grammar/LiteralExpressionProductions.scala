@@ -10,7 +10,7 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
                                NumericLiteralExpression |
                                StringLiteralExpression
 
-  lazy val NullLiteralExpression = NullLiteral >>>>(expr.NullLiteralExpression)
+  lazy val NullLiteralExpression = NullLiteral >>>>(expr.NullLiteralExpression())
   lazy val NullLiteral = "null"
 
   lazy val BooleanLiteralExpression = BooleanLiteral >>> { p => expr.BooleanLiteralExpression(p) }

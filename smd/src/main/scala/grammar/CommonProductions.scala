@@ -5,7 +5,7 @@ import smd.parsing.Parsers
 
 trait CommonProductions extends Parsers {
   def Document: Parser[smd.nodes.DocumentNode] = ???
-  def Expression: Parser[smd.expressions.Expression] = ???
+  def Expression: Parser[smd.expressions.Expression]
 
   /** A single or multi-line comment. */
   lazy val Comment = SingleLineComment | MultiLineComment
