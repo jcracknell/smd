@@ -46,7 +46,7 @@ case class NegativeExpression(expr: Expression) extends UnaryExpression
 case class NotEqualsExpression(lhs: Expression, rhs: Expression) extends BinaryExpression
 case class NullLiteralExpression() extends Expression
 case class NumericLiteralExpression(value: Double) extends Expression
-case class ObjectLiteralExpression(props: Seq[(Expression, Expression)]) extends Expression
+case class ObjectLiteralExpression(props: Seq[(String, Expression)]) extends Expression
 case class PositiveExpression(expr: Expression) extends UnaryExpression
 case class PostfixDecrementExpression(expr: Expression) extends UnaryExpression
 case class PostfixIncrementExpression(expr: Expression) extends UnaryExpression
