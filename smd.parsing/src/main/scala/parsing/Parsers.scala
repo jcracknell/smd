@@ -12,6 +12,11 @@ trait Parsers {
 
   def !:(parser: Parser[Any]): NotPredicateParser = NotPredicateParser(parser)
 
+  def <>[A](parser: => Parser[A]): Parser[A] = new Parser[A] {
+    protected lazy val _parser = parser
+    def parse(context: ParsingContext): ParsingResult[A] = _parser.parse(context)
+  }
+
   implicit def convertCodePointCriterion2Parser(criterion: smd.unicode.CodePointCriterion): GraphemeParser =
     GraphemeParser(Grapheme.SingleCodePoint(criterion))
 

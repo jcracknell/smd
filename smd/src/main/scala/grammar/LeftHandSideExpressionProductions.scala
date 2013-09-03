@@ -17,5 +17,5 @@ trait LeftHandSideExpressionProductions extends AtExpressionProductions {
 
   private lazy val StaticProperty = "." ~ ExpressionWhitespace ~ Identifier >>>(_._3)
 
-  private lazy val DynamicProperty = "[" ~ ExpressionWhitespace ~ Expression ~ ExpressionWhitespace ~ "]" >>>(_._3)
+  private lazy val DynamicProperty = "[" ~ ExpressionWhitespace ~ <>(Expression) ~ ExpressionWhitespace ~ "]" >>>(_._3)
 }

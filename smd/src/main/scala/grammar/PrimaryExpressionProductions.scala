@@ -13,14 +13,14 @@ trait PrimaryExpressionProductions extends LiteralExpressionProductions
 
   private lazy val ArrayElements =
     (
-      Expression ~ SubsequentArrayElement.* >>> { p => p._1 +: (p._2.flatten.toSeq) } |
+      <>(Expression) ~ SubsequentArrayElement.* >>> { p => p._1 +: (p._2.flatten.toSeq) } |
       SubsequentArrayElement.+ >>>(_.flatten) | // initial element elided
       ElidedElements             // all elements elided
     ) ~ ElidedElements >>>(_._1)
 
   /** A non-elided array element preceded by any number of elided elements. */
   private lazy val SubsequentArrayElement =
-    ArgumentSeparator ~ ElidedElements ~ ExpressionWhitespace ~ Expression >>> { p => p._2 :+ p._4 }
+    ArgumentSeparator ~ ElidedElements ~ ExpressionWhitespace ~ <>(Expression) >>> { p => p._2 :+ p._4 }
 
   private lazy val ElidedElements = ArgumentSeparator.* >>>(_.map(i => $ex.Elided()))
 
@@ -28,11 +28,10 @@ trait PrimaryExpressionProductions extends LiteralExpressionProductions
   lazy val ObjectLiteralExpression =
     "{" ~ ExpressionWhitespace ~ ObjectPropertyAssignments ~ ExpressionWhitespace ~ "}" >>> { p => $ex.ObjectLiteral(p._3) }
 
-
   private lazy val ObjectPropertyAssignments =
     (ObjectPropertyAssignment ~ (ArgumentSeparator ~ ObjectPropertyAssignment).* ~ ArgumentSeparator.?) >>> { p => p._1 +: p._2.map(_._2) }
 
   private lazy val ObjectPropertyAssignment =
     (StringLiteral | NumericLiteral >>>(_.toString) | Identifier) ~
-    ExpressionWhitespace ~ ":" ~ ExpressionWhitespace ~ Expression >>> { p => (p._1, p._5) }
+    ExpressionWhitespace ~ ":" ~ ExpressionWhitespace ~ <>(Expression) >>> { p => (p._1, p._5) }
 }
