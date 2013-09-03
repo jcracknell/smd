@@ -14,16 +14,15 @@ trait PrimaryExpressionProductions extends LiteralExpressionProductions
   private lazy val ArrayElements =
     (
       <>(Expression) ~ SubsequentArrayElement.* >>> { case (e, ses) => e +: ses.flatten } |
-      SubsequentArrayElement.+                  >>> { p => $ex.Elided() +: p.flatten } | // initial element elided
-      ArgumentSeparator.*                       >>>>(Seq[Expression]()) // all elements elided
-    ) ~ ArgumentSeparator.* >>>(_._1)
+      SubsequentArrayElement.+                  >>> { p => $ex.Elided() +: p.flatten } // initial element elided
+    ).? ~ ArgumentSeparator.* >>>(_._1.getOrElse(Seq()))
 
   /** A non-elided array element preceded by any number of elided elements. */
   private lazy val SubsequentArrayElement =
     ArgumentSeparator.+ ~ ExpressionWhitespace ~ <>(Expression) >>> { case (seps, _, e) => seps.tail.map(_ => $ex.Elided()) :+ e }
 
   lazy val ObjectLiteralExpression =
-    "{" ~ ExpressionWhitespace ~ ObjectPropertyAssignments ~ ExpressionWhitespace ~ "}" >>> { p => $ex.ObjectLiteral(p._3) }
+    "{" ~ ExpressionWhitespace ~ ObjectPropertyAssignments.? ~ ExpressionWhitespace ~ "}" >>> { case (_,_,ps,_,_) => $ex.ObjectLiteral(ps.getOrElse(Seq())) }
 
   private lazy val ObjectPropertyAssignments =
     (ObjectPropertyAssignment ~ (ArgumentSeparator ~ ObjectPropertyAssignment).* ~ ArgumentSeparator.?) >>> { p => p._1 +: p._2.map(_._2) }
