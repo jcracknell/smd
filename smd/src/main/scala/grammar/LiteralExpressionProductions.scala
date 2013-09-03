@@ -1,7 +1,6 @@
 package smd
 package grammar
 
-import smd.{expressions => expr}
 import smd.parsing.{OrderedChoiceParser, Parsers}
 
 trait LiteralExpressionProductions extends Parsers with CommonExpressionProductions {
@@ -10,14 +9,14 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
                                NumericLiteralExpression |
                                StringLiteralExpression
 
-  lazy val NullLiteralExpression = NullLiteral >>>>(expr.NullLiteralExpression())
+  lazy val NullLiteralExpression = NullLiteral >>>>($ex.NullLiteral())
   lazy val NullLiteral = "null"
 
-  lazy val BooleanLiteralExpression = BooleanLiteral >>> { p => expr.BooleanLiteralExpression(p) }
+  lazy val BooleanLiteralExpression = BooleanLiteral >>> { p => $ex.BooleanLiteral(p) }
   lazy val BooleanLiteral = "true"  >>>> true |
                             "false" >>>> false
 
-  lazy val NumericLiteralExpression = NumericLiteral >>> { p => expr.NumericLiteralExpression(p) }
+  lazy val NumericLiteralExpression = NumericLiteral >>> { p => $ex.NumericLiteral(p) }
   lazy val NumericLiteral = HexIntegerLiteral | DecimalLiteral
 
   // TODO: Parse hex value
@@ -36,7 +35,7 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
 
   // String Literals
 
-  lazy val StringLiteralExpression = StringLiteral >>> { p => expr.StringLiteralExpression(p.toString) }
+  lazy val StringLiteralExpression = StringLiteral >>> { p => $ex.StringLiteral(p.toString) }
 
   lazy val StringLiteral = DoubleQuotedStringLiteral | SingleQuotedStringLiteral | VerbatimStringLiteral
 

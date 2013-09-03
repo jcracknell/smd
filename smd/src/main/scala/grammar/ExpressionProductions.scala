@@ -9,5 +9,5 @@ trait ExpressionProductions extends CommonProductions
                                with AtExpressionProductions
                                with LeftHandSideExpressionProductions
 {
-  def Expression: Parser[smd.expressions.Expression] = LeftHandSideExpression
+  def Expression: Parser[Expression] = LeftHandSideExpression
 }

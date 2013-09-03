@@ -1,12 +1,10 @@
 package smd
 package grammar
 
-import smd.{expressions => expr}
-import smd.parsing.{OrderedChoiceParser, Parsers}
 
-trait CommonExpressionProductions extends Parsers with CommonProductions {
+trait CommonExpressionProductions extends CommonProductions {
   /** An argument list, including parentheses. */
-  lazy val ArgumentList: Parser[Seq[expr.Expression]] = "(" ~ ExpressionWhitespace ~ ArgumentListArguments ~ ExpressionWhitespace ~ ")" >>>(_._3)
+  lazy val ArgumentList: Parser[Seq[Expression]] = "(" ~ ExpressionWhitespace ~ ArgumentListArguments ~ ExpressionWhitespace ~ ")" >>>(_._3)
 
   private lazy val ArgumentListArguments = Expression ~ (ArgumentSeparator ~ Expression).* >>> { p => p._1 +: p._2.map(_._2) }
 

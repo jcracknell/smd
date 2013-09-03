@@ -3,8 +3,8 @@ package grammar
 
 import org.scalatest.FunSpec
 import org.scalatest.matchers.ShouldMatchers
-import smd.expressions._
 import smd.parsing.ParsingContext
+import smd.dom.Expression
 
 class LiteralExpressionProductionsSpec extends FunSpec with ShouldMatchers {
   describe("NumericLiteralExpression") {
@@ -15,7 +15,7 @@ class LiteralExpressionProductionsSpec extends FunSpec with ShouldMatchers {
       "12e1"   -> 120d,
       "12E2"   -> 1200d,
       "0x1234" -> 0x1234.toDouble
-    ).mapValues(NumericLiteralExpression(_))
+    ).mapValues(Expression.NumericLiteral(_))
     .foreach { case (input, product) =>
       it(s"should parse ${input.literalEncode} as ${product.toString}") {
         val result = Grammar.NumericLiteralExpression.parse(input)
@@ -37,19 +37,19 @@ class LiteralExpressionProductionsSpec extends FunSpec with ShouldMatchers {
   describe("StringLiteralExpression") {
     it("should parse an empty double-quoted string literal") {
       val product =  Grammar.StringLiteralExpression.parse(ParsingContext("\"\"")).product
-      (product) should be (StringLiteralExpression(""))
+      (product) should be (Expression.StringLiteral(""))
     }
     it("should parse a non-empty double-quoted string literal") {
       val product =  Grammar.StringLiteralExpression.parse(ParsingContext("\"a\"")).product
-      (product) should be (StringLiteralExpression("a"))
+      (product) should be (Expression.StringLiteral("a"))
     }
     it("should parse an empty single-quoted string literal") {
       val product = Grammar.StringLiteralExpression.parse(ParsingContext("''")).product
-      (product) should be (StringLiteralExpression(""))
+      (product) should be (Expression.StringLiteral(""))
     }
     it("should parse a non-empty single-quoted string literal") {
       val product =  Grammar.StringLiteralExpression.parse(ParsingContext("'a'")).product
-      (product) should be (StringLiteralExpression("a"))
+      (product) should be (Expression.StringLiteral("a"))
     }
   }
 }

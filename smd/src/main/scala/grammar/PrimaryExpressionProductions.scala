@@ -1,7 +1,6 @@
 package smd
 package grammar
 
-import smd.{expressions => expr}
 
 trait PrimaryExpressionProductions extends LiteralExpressionProductions
                                       with IdentifierExpressionProductions
@@ -10,7 +9,7 @@ trait PrimaryExpressionProductions extends LiteralExpressionProductions
   lazy val PrimaryExpression = LiteralExpression | ArrayLiteralExpression | ObjectLiteralExpression
 
   lazy val ArrayLiteralExpression =
-    "[" ~ ExpressionWhitespace ~ ArrayElements ~ ExpressionWhitespace ~ "]" >>> { p => expr.ArrayLiteralExpression(p._3) }
+    "[" ~ ExpressionWhitespace ~ ArrayElements ~ ExpressionWhitespace ~ "]" >>> { p => $ex.ArrayLiteral(p._3) }
 
   private lazy val ArrayElements =
     (
@@ -23,11 +22,11 @@ trait PrimaryExpressionProductions extends LiteralExpressionProductions
   private lazy val SubsequentArrayElement =
     ArgumentSeparator ~ ElidedElements ~ ExpressionWhitespace ~ Expression >>> { p => p._2 :+ p._4 }
 
-  private lazy val ElidedElements = ArgumentSeparator.* >>>(_.map(i => expr.ElidedExpression()))
+  private lazy val ElidedElements = ArgumentSeparator.* >>>(_.map(i => $ex.Elided()))
 
 
   lazy val ObjectLiteralExpression =
-    "{" ~ ExpressionWhitespace ~ ObjectPropertyAssignments ~ ExpressionWhitespace ~ "}" >>> { p => expr.ObjectLiteralExpression(p._3) }
+    "{" ~ ExpressionWhitespace ~ ObjectPropertyAssignments ~ ExpressionWhitespace ~ "}" >>> { p => $ex.ObjectLiteral(p._3) }
 
 
   private lazy val ObjectPropertyAssignments =

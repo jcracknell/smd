@@ -1,10 +1,8 @@
 package smd
 package grammar
 
-import smd.{expressions => expr}
-
 trait IdentifierExpressionProductions extends CommonExpressionProductions {
-  lazy val IdentifierExpression = Identifier >>> { p => expr.IdentifierExpression(p) }
+  lazy val IdentifierExpression = Identifier >>> { p => $ex.Identifier(p) }
 
   // TODO: Decode identifier name
   lazy val Identifier = &:(Keyword ~ &:(IdentifierExpressionPart)) ~
