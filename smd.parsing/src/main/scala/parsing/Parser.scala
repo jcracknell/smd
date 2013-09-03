@@ -23,6 +23,12 @@ trait Parser[+A] {
         (implicit heuristic: SequencingHeuristic[L, R, S]): S =
     heuristic(this, rhs)
 
+  /** Parse two expressions in sequence, discarding the results of the left-hand expression. */
+  def ~> [B](rhs: Parser[B]): Parser[B] = RightParser(this, rhs)
+
+  /** Parse two expressions in sequence, discarding the results of the right-hand expression. */
+  def <~ [B](rhs: Parser[B]): Parser[A] = LeftParser(this, rhs)
+
   def *                       = RepetitionParser(this, None,           None          )
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
   def *   (min: Int, max:Int) = RepetitionParser(this, Some(min),      Some(max)     )
