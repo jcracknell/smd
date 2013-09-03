@@ -17,6 +17,14 @@ trait Parsers {
     def parse(context: ParsingContext): ParsingResult[A] = _parser.parse(context)
   }
 
+  def repSep[A, B](n:Int, rep: Parser[A], sep: Parser[B]): Parser[(Seq[A], Seq[B])] = {
+    require(n >= 0, "repSep requires 0 or more repetitions.")
+    if(0 == n)
+      (rep ~ (sep ~ rep).*).? >>> { o => o.map(p => (p._1 +: p._2.map(_._2), p._2.map(_._1))).getOrElse((Seq(), Seq())) }
+    else
+      rep ~ (sep ~ rep).*     >>> { p => (p._1 +: p._2.map(_._2), p._2.map(_._1)) }
+  }
+
   implicit def convertCodePointCriterion2Parser(criterion: smd.unicode.CodePointCriterion): GraphemeParser =
     GraphemeParser(Grapheme.SingleCodePoint(criterion))
 

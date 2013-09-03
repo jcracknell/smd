@@ -4,7 +4,7 @@ package grammar
 
 trait CommonExpressionProductions extends CommonProductions {
   /** An argument list, including parentheses. */
-  lazy val ArgumentList: Parser[Seq[Expression]] = "(" ~ ExpressionWhitespace ~ ArgumentListArguments ~ ExpressionWhitespace ~ ")" >>>(_._3)
+  lazy val ArgumentList: Parser[Seq[Expression]] = "(" ~ ExpressionWhitespace ~ ArgumentListArguments.? ~ ExpressionWhitespace ~ ")" >>>(_._3.getOrElse(Seq()))
 
   private lazy val ArgumentListArguments = <>(Expression) ~ (ArgumentSeparator ~ <>(Expression)).* >>> { p => p._1 +: p._2.map(_._2) }
 
