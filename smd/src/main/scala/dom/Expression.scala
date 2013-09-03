@@ -1,7 +1,7 @@
 package smd
 package dom
 
-abstract class Expression extends Node
+sealed abstract class Expression extends Node
 
 object Expression {
   trait Unary extends Expression {
