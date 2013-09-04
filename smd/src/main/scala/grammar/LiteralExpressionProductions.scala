@@ -35,22 +35,37 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
 
   // String Literals
 
-  lazy val StringLiteralExpression = StringLiteral >>> { p => $ex.StringLiteral(p.toString) }
+  lazy val StringLiteralExpression = StringLiteral >>> { p => $ex.StringLiteral(p) }
 
   lazy val StringLiteral = DoubleQuotedStringLiteral | SingleQuotedStringLiteral | VerbatimStringLiteral
 
   lazy val VerbatimStringLiteral = &:("`") ~ OrderedChoiceParser(
                                      (1 to 16).reverse.map(n => new String(Array.fill(n)('`'))).map { ticks =>
-                                       ticks ~ ((!:(ticks) ~ UnicodeCharacter).* >>(_.parsed)) ~ ticks >>>(_._2)
+                                       ticks ~> ((!:(ticks) ~ UnicodeCharacter).* >>(_.parsed)) <~ ticks
                                      }
                                    ) >>>(_._2.toString)
 
-  // TODO: decode JS strings
-  lazy val DoubleQuotedStringLiteral = "\"" ~ ((!:("\"") ~ StringLiteralCharacter).* >>(_.parsed)) ~ "\"" >>>(_._2.toString)
+  lazy val DoubleQuotedStringLiteral = "\""  ~> (!:("\"") ~> StringPart).* <~ "\""  >>> { p => new String(p.flatten.toArray) }
 
-  lazy val SingleQuotedStringLiteral = "'"  ~ ((!:("'")  ~ StringLiteralCharacter).* >>(_.parsed)) ~ "'"  >>>(_._2.toString)
+  lazy val SingleQuotedStringLiteral = "'"  ~> (!:("'") ~> StringPart).* <~ "'"  >>> { p => new String(p.flatten.toArray) }
 
-  lazy val StringLiteralCharacter = ("\\" ~ (UnicodeEscapeSequence | HexadecimalEscapeSequence | NewLine | UnicodeCharacter)) |
-                                    !CodePoint.Values('\n', '\r', '\u2028', '\u2029')
+  private lazy val StringPart = EscapeSequence >>>(Seq(_)) | !CodePoint.Values('\n', '\r', '\u2028', '\u2029') >>>(_.chars)
 
+  lazy val EscapeSequence = "\\" ~> (CharacterEscape | UnicodeEscapeSequence | HexadecimalEscapeSequence | OctalEscapeSequence)
+
+  private lazy val CharacterEscape = "\'" >>>> '\'' |
+                                     "\"" >>>> '\"' |
+                                     "t"  >>>> '\t' |
+                                     "n"  >>>> '\n' |
+                                     "r"  >>>> '\r' |
+                                     "\\" >>>> '\\' |
+                                     "b"  >>>> '\b' |
+                                     "f"  >>>> '\f' |
+                                     "v"  >>>> '\u000b'
+
+  private lazy val OctalEscapeSequence =
+    CodePoint.Range('0', '7').*(1,3) >>> { p => p.flatMap(_.chars.map(Character.digit(_, 16))).reduce((a, d) => a << 4 | d).toChar }
+
+  private lazy val HexadecimalEscapeSequence =
+    "x" ~> HexDigit.*(2) >>> { p => p.flatMap(_.chars.map(Character.digit(_, 16))).reduce((a, d) => a << 4 | d).toChar }
 }

@@ -6,50 +6,36 @@ import org.scalatest.matchers.ShouldMatchers
 import smd.parsing.ParsingContext
 import smd.dom.Expression
 
-class LiteralExpressionProductionsSpec extends FunSpec with ShouldMatchers {
+class LiteralExpressionProductionsSpec extends ProductionSpec {
+  def subject = Grammar.LiteralExpression
+
   describe("NumericLiteralExpression") {
-    Map(
-      "0"      -> 0d,
-      ".0123"  -> 0.0123d,
-      "12.345" -> 12.345d,
-      "12e1"   -> 120d,
-      "12E2"   -> 1200d,
-      "0x1234" -> 0x1234.toDouble
-    ).mapValues(Expression.NumericLiteral(_))
-    .foreach { case (input, product) =>
-      it(s"should parse ${input.literalEncode} as ${product.toString}") {
-        val result = Grammar.NumericLiteralExpression.parse(input)
-        result.product should be (product)
-      }
-    }
-  }
-  describe("StringLiteralCharacter") {
-    it("should parse a regular character") {
-      Grammar.StringLiteralCharacter.parse("a").succeeded should be (true)
-    }
-    it("should parse an escaped newline character") {
-      Grammar.StringLiteralCharacter.parse("\\n").succeeded should be (true)
-    }
-    it("should parse a unicode escape sequence") {
-      Grammar.StringLiteralCharacter.parse("\\u0300").succeeded should be (true)
-    }
+    shouldParse("0")      as Expression.NumericLiteral(0d)
+    shouldParse(".0123")  as Expression.NumericLiteral(0.0123d)
+    shouldParse("12.345") as Expression.NumericLiteral(12.345d)
+    shouldParse("12e1")   as Expression.NumericLiteral(120d)
+    shouldParse("12E2")   as Expression.NumericLiteral(1200d)
+    shouldParse("0x1234") as Expression.NumericLiteral(0x1234.toDouble)
   }
   describe("StringLiteralExpression") {
-    it("should parse an empty double-quoted string literal") {
-      val product =  Grammar.StringLiteralExpression.parse(ParsingContext("\"\"")).product
-      (product) should be (Expression.StringLiteral(""))
-    }
-    it("should parse a non-empty double-quoted string literal") {
-      val product =  Grammar.StringLiteralExpression.parse(ParsingContext("\"a\"")).product
-      (product) should be (Expression.StringLiteral("a"))
-    }
-    it("should parse an empty single-quoted string literal") {
-      val product = Grammar.StringLiteralExpression.parse(ParsingContext("''")).product
-      (product) should be (Expression.StringLiteral(""))
-    }
-    it("should parse a non-empty single-quoted string literal") {
-      val product =  Grammar.StringLiteralExpression.parse(ParsingContext("'a'")).product
-      (product) should be (Expression.StringLiteral("a"))
-    }
+    shouldParse("\"\"")         as Expression.StringLiteral("")
+    shouldParse("''")           as Expression.StringLiteral("")
+    shouldParse("``")           as Expression.StringLiteral("")
+    shouldParse("\"a\"")        as Expression.StringLiteral("a")
+    shouldParse("'a'")          as Expression.StringLiteral("a")
+    shouldParse("`a`")          as Expression.StringLiteral("a")
+    shouldParse("````````````a````````````") as Expression.StringLiteral("a")
+    shouldParse("\"\\0a\"")     as Expression.StringLiteral("\0a")
+    shouldParse("`\\0a`")       as Expression.StringLiteral("\\0a")
+    shouldParse("\"\\000a\"")   as Expression.StringLiteral("\0a")
+    shouldParse("`\\000a`")     as Expression.StringLiteral("\\000a")
+    shouldParse("\"\\x00a\"")   as Expression.StringLiteral("\0a")
+    shouldParse("`\\x00a`")     as Expression.StringLiteral("\\x00a")
+    shouldParse("\"\\x4a\"")    as Expression.StringLiteral("J")
+    shouldParse("`\\x4a`")      as Expression.StringLiteral("\\x4a")
+    shouldParse("\"\\u0000a\"") as Expression.StringLiteral("\0a")
+    shouldParse("`\\u0000a`")   as Expression.StringLiteral("\\u0000a")
+    shouldParse("\"\\u004a\"")  as Expression.StringLiteral("J")
+    shouldParse("`\\u004a`")    as Expression.StringLiteral("\\u004a")
   }
 }

@@ -21,6 +21,12 @@ final class GraphemeInfo(
   /** The length of the grapheme as a UTF-16 string. Note that this is not the number of code points in the grapheme. */
   def length: Int = end - start
 
+  /** Retrieves a [[scala.collection.Seq]] containing the [[scala.Char]] values of the grapheme. */
+  def chars: Seq[Char] = (start until end).map(source.charAt)
+
+  /** Retrieves a [[java.lang.CharSequence]] containing the [[scala.Char]] values of the grapheme. */
+  def charSequence: CharSequence = source.proxySubSequence(start, end)
+
   override def hashCode(): Int = start ^ end ^ codePoints.hashCode()
 
   override def equals(obj: Any): Boolean = obj match {
