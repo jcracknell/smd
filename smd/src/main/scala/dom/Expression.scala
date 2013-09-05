@@ -16,7 +16,7 @@ object Expression {
   case class Addition(lhs: Expression, rhs: Expression) extends Binary
   case class ArrayLiteral(elems: Seq[Expression]) extends Expression
   case class BitwiseAnd(lhs: Expression, rhs: Expression) extends Binary
-  case class BitwiseNot(lhs: Expression, rhs: Expression) extends Binary
+  case class BitwiseNot(expr: Expression) extends Unary
   case class BitwiseOr(lhs: Expression, rhs: Expression) extends Binary
   case class BitwiseXor(lhs: Expression, rhs: Expression) extends Binary
   case class BooleanLiteral(value: Boolean) extends Expression
