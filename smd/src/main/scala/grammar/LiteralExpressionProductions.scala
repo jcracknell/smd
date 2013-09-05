@@ -64,7 +64,7 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
                                      "v"  >>>> '\u000b'
 
   private lazy val OctalEscapeSequence =
-    CodePoint.Range('0', '7').*(1,3) >>> { p => p.flatMap(_.chars.map(Character.digit(_, 16))).reduce((a, d) => a << 4 | d).toChar }
+    CodePoint.Range('0', '7').*(1,3) >>> { p => p.flatMap(_.chars.map(Character.digit(_, 8))).reduce((a, d) => a << 4 | d).toChar }
 
   private lazy val HexadecimalEscapeSequence =
     "x" ~> HexDigit.*(2) >>> { p => p.flatMap(_.chars.map(Character.digit(_, 16))).reduce((a, d) => a << 4 | d).toChar }
