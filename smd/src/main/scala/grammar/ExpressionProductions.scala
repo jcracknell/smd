@@ -8,6 +8,7 @@ trait ExpressionProductions extends CommonProductions
                                with PrimaryExpressionProductions
                                with AtExpressionProductions
                                with LeftHandSideExpressionProductions
+                               with PostfixExpressionProductions
 {
-  def Expression: Parser[Expression] = LeftHandSideExpression
+  def Expression: Parser[Expression] = PostfixExpression
 }
