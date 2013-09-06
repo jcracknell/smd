@@ -6,7 +6,11 @@ trait PrimaryExpressionProductions extends LiteralExpressionProductions
                                       with IdentifierExpressionProductions
 {
   /** A literal, array literal, or object literal expression. */
-  lazy val PrimaryExpression = LiteralExpression | ArrayLiteralExpression | ObjectLiteralExpression
+  lazy val PrimaryExpression: Parser[Expression] =
+    LiteralExpression |
+    ArrayLiteralExpression |
+    ObjectLiteralExpression |
+    "(" ~ ExpressionWhitespace ~> <>(Expression) <~ ExpressionWhitespace ~ ")"
 
   lazy val ArrayLiteralExpression =
     "[" ~ ExpressionWhitespace ~ ArrayElements ~ ExpressionWhitespace ~ "]" >>> { p => $ex.ArrayLiteral(p._3) }
