@@ -18,7 +18,7 @@ object Expression {
   case class BitwiseAnd(lhs: Expression, rhs: Expression) extends Binary
   case class BitwiseNot(expr: Expression) extends Unary
   case class BitwiseOr(lhs: Expression, rhs: Expression) extends Binary
-  case class BitwiseXor(lhs: Expression, rhs: Expression) extends Binary
+  case class BitwiseXOr(lhs: Expression, rhs: Expression) extends Binary
   case class BooleanLiteral(value: Boolean) extends Expression
   case class Call(body: Expression, args: Seq[Expression]) extends Expression
   case class Conditional(cond: Expression, trueExpr: Expression, falseExpr: Expression) extends Expression
@@ -32,7 +32,7 @@ object Expression {
   case class GreaterThanOrEqualTo(lhs: Expression, rhs: Expression) extends Binary
   case class Identifier(name: String) extends Expression
   case class In(lhs: Expression, rhs: Expression) extends Binary
-  case class InstanceOf(expr: Expression) extends Unary
+  case class InstanceOf(lhs: Expression, rhs: Expression) extends Binary
   case class LeftShift(lhs: Expression, rhs: Expression) extends Binary
   case class LessThan(lhs: Expression, rhs: Expression) extends Binary
   case class LessThanOrEqualTo(lhs: Expression, rhs: Expression) extends Binary

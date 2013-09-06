@@ -10,6 +10,8 @@ trait ExpressionProductions extends CommonProductions
                                with LeftHandSideExpressionProductions
                                with PostfixExpressionProductions
                                with UnaryExpressionProductions
+                               with BinaryExpressionProductions
+                               with ConditionalExpressionProductions
 {
-  def Expression: Parser[Expression] = UnaryExpression
+  lazy val Expression: Parser[Expression] = ConditionalExpression
 }
