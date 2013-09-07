@@ -1,4 +1,9 @@
 package object smd {
+  protected trait BufferedReading[A] {
+    def bufferedReadAll(bufferSize: Int, act: (Array[A], Int) => Unit): Unit
+    def bufferedReadAll(act: (Array[A], Int) => Unit): Unit = bufferedReadAll(4096, act);
+  }
+
   implicit class RichCharSequence(val cs: CharSequence) extends AnyVal {
     def proxySubSequence(start: Int, end: Int): CharSequence =
       new smd.util.ProxyCharSequence(cs, start, end)
@@ -14,5 +19,15 @@ package object smd {
 
   implicit class RichString(val s: String) extends AnyVal {
     def literalEncode: String = util.LiteralEncoding.encode(s)
+  }
+
+  implicit class RichReader(val reader: java.io.Reader) extends BufferedReading[Char] {
+    def bufferedReadAll(bufferSize: Int, act: (Array[Char], Int) => Unit): Unit = {
+      val buffer = Array.ofDim[Char](bufferSize)
+      do {
+        val read = reader.read(buffer, 0, bufferSize)
+        if(read < 0) return else act(buffer, read)
+      } while(true)
+    }
   }
 }
