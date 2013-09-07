@@ -40,10 +40,13 @@ trait CommonProductions extends Parsers {
 
   /** A space character or newline sequence. */
   lazy val Whitespace = SpaceChar | NewLine
+  lazy val WhitespaceCharValues = SpaceCharValues ++ NewLineCharValues
   /** A valid newline sequence. */
-  lazy val NewLine =    "\r\n" | CodePoint.Values('\n', '\r', '\u2028', '\u2029')
+  lazy val NewLine =    "\r\n" | CodePoint.Values(NewLineCharValues)
+  lazy val NewLineCharValues = Set('\n', '\r', '\u2028', '\u2029')
   lazy val SpaceChars = SpaceChar.*
   lazy val SpaceChar =  CodePoint.Values(' ', '\t')
+  lazy val SpaceCharValues = Set(' ', '\t')
 
   lazy val UnicodeCharacter = Grapheme.Any
 }
