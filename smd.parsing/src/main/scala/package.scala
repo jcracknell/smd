@@ -4,12 +4,20 @@ package object smd {
     def bufferedReadAll(act: (Array[A], Int) => Unit): Unit = bufferedReadAll(4096, act);
   }
 
-  implicit class RichCharSequence(val cs: CharSequence) extends AnyVal {
+  implicit class UpgrayeddedCharSequence(val cs: CharSequence) extends IndexedSeq[Char] {
     def proxySubSequence(start: Int, end: Int): CharSequence =
       new smd.util.ProxyCharSequence(cs, start, end)
+
+    def length: Int = cs.length
+
+    def apply(idx: Int): Char = cs.charAt(idx)
   }
 
-  implicit class RichSeq[A](val seq: collection.Seq[A]) extends AnyVal {
+  implicit class UpgrayeddedIterator[A](val it: Iterator[A]) extends AnyVal {
+    def nextOption(): Option[A] = if(it.hasNext) Some(it.next()) else None
+  }
+
+  implicit class UpgrayeddedSeq[A](val seq: collection.Seq[A]) extends AnyVal {
     def lengthEq(len: Int): Boolean  = seq.lengthCompare(len) == 0
     def lengthGt(len: Int): Boolean  = seq.lengthCompare(len) >  0
     def lengthGte(len: Int): Boolean = seq.lengthCompare(len) >= 0
@@ -17,11 +25,11 @@ package object smd {
     def lengthLte(len: Int): Boolean = seq.lengthCompare(len) <= 0
   }
 
-  implicit class RichString(val s: String) extends AnyVal {
+  implicit class UpgrayeddedString(val s: String) extends AnyVal {
     def literalEncode: String = util.LiteralEncoding.encode(s)
   }
 
-  implicit class RichReader(val reader: java.io.Reader) extends BufferedReading[Char] {
+  implicit class UpgrayeddedReader(val reader: java.io.Reader) extends BufferedReading[Char] {
     def bufferedReadAll(bufferSize: Int, act: (Array[Char], Int) => Unit): Unit = {
       val buffer = Array.ofDim[Char](bufferSize)
       do {
