@@ -1,6 +1,6 @@
 import sbt._
 
-class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"parsing"/s"SequenceParser$n.scala") {
+class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"smd"/"parsing"/s"SequenceParser$n.scala") {
   private def className(x: Int = n) = s"SequenceParser$x"
   private def qualifiedClassName(x: Int = n) = s"smd.parsing.${className(x)}"
 

@@ -13,12 +13,12 @@ object NamedEntity {
   /** The complete set of named entity values by name. */
   val entities: Map[String, NamedEntity] = {
     val namedEntitiesResourceString: String = {
-      val stream = getClass.getClassLoader.getResourceAsStream("grammar/NamedEntity.json")
+      val stream = getClass.getClassLoader.getResourceAsStream("smd/grammar/NamedEntity.json")
       try {
         val reader = new InputStreamReader(stream, "UTF-8")
         try {
           val sb = new StringBuilder()
-          reader.bufferedReadAll { (buf, n) => sb.appendAll(buf, 0, n); }
+          reader.bufferedReadAll { (buf, n) => sb.appendAll(buf, 0, n) }
           sb.toString()
         } finally { reader.close() }
       } finally { stream.close() }

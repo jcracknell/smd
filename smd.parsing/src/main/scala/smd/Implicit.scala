@@ -1,5 +1,7 @@
 package smd
 
+import scala.language.implicitConversions
+
 /** Encapsulates the result of an implicit conversion, allowing the result type of the conversion to be used for
   * type inferral in an implicit parameter list. */
 trait Implicit[+A] {

@@ -2,6 +2,8 @@ package smd
 package parsing
 
 trait Parsers {
+  import scala.language.implicitConversions
+
   protected val CodePoint =       smd.unicode.CodePointCriteria
   protected val Grapheme =        smd.unicode.GraphemeCriteria
   protected val UnicodeCategory = smd.unicode.UnicodeCategory

@@ -12,6 +12,14 @@ object SmdBuild extends Build {
 
   val baseSettings = Defaults.defaultSettings ++ Seq(
     version :=      "0.1",
+    scalacOptions ++= Seq(
+      "-deprecation",
+      "-feature",
+      "-Xlint",
+      "-Yno-adapted-args",
+      "-Ywarn-all",
+      "-Ywarn-dead-code"
+    ),
     scalaVersion := "2.10.2",
     libraryDependencies <++= (scalaVersion) { sv => Seq(
       scalatest % "test"

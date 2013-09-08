@@ -62,10 +62,6 @@ object UnicodeCategory {
     */
   def map[A](op: UnicodeCategory.type => A): A = op(UnicodeCategory)
 
-  /** An implicit conversion from a [[smd.unicode.UnicodeCategory]] to the corresponding [[scala.Byte]] value used
-    * in Java's unicode mechanisms, for easy interoperability. */
-  implicit def category2Byte(category: UnicodeCategory): Byte = category.value
-
   /** $Cc */ case object Control              extends UnicodeCategory("Cc", Character.CONTROL)
   /** $Cc */    val Cc = Control
   /** $Cf */ case object Format               extends UnicodeCategory("Cf", Character.FORMAT)
