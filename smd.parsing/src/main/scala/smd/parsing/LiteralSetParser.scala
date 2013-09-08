@@ -49,13 +49,6 @@ case class LiteralSetParser[A](literals: Map[String, A]) extends Parser[A] {
 }
 
 object LiteralSetParser {
-  /** Create a new [[smd.parsing.LiteralSetParser]] matching the provided set of literals.
-    *
-    * @param literals the set of literals to be matched by the resulting [[smd.parsing.LiteralSetParser]].
-    */
-  def apply(literals: Iterable[String]): LiteralSetParser[String] =
-    apply(literals.map(x => (x, x)).toMap)
-
   /** Create a new [[smd.parsing.LiteralSetParser]] matching the provided literals.
     *
     * @param lit0 a literal to be matched by the resulting [[smd.parsing.LiteralSetParser]].
@@ -63,7 +56,7 @@ object LiteralSetParser {
     * @param literals additional literals to be matched by the resulting [[smd.parsing.LiteralSetParser]].
     */
   def apply(lit0: String, lit1: String, literals: String*): LiteralSetParser[String] =
-    apply(lit0 +: lit1 +: literals)
+    apply((lit0 +: lit1 +: literals).map(x => (x, x)))
 
   /** Create a new [[smd.parsing.LiteralSetParser]] matching the provided literals.
     *
@@ -73,5 +66,13 @@ object LiteralSetParser {
     * @tparam A the product type.
     */
   def apply[A](lit0: (String, A), lit1: (String, A), literals: (String, A)*): LiteralSetParser[A] =
-    apply((lit0 +: lit1 +: literals).toMap)
+    apply(lit0 +: lit1 +: literals)
+
+  /** Create a new [[smd.parsing.LiteralSetParser]] matching the provided literals.
+    *
+    * @param literals literals and associated products to be matched by the resulting [[smd.parsing.LiteralSetParser]].
+    * @tparam A the product type.
+    */
+  def apply[A](literals: Iterable[(String, A)]): LiteralSetParser[A] =
+    apply(literals.toMap)
 }
