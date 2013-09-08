@@ -1,6 +1,8 @@
 package smd
 package grammar
 
+import smd.parsing.LiteralSetParser
+
 
 trait CommonExpressionProductions extends CommonProductions {
   /** An argument list, including parentheses. */
@@ -10,11 +12,13 @@ trait CommonExpressionProductions extends CommonProductions {
 
   protected lazy val ArgumentSeparator = ExpressionWhitespace ~ "," ~ ExpressionWhitespace ^^^(())
 
-  lazy val Keyword = "break" | "case" | "catch" | "class" | "const" | "continue" | "debugger" |
-                     "default" | "delete" | "do" | "else" | "enum" | "export" | "extends" |
-                     "false" | "finally" | "for" | "function" | "if" | "import" | "instanceof" |
-                     "in" | "new" | "null" | "return" | "super" | "switch" | "this" | "throw" |
-                     "true" | "try" | "typeof" | "var" | "void" | "while" | "with"
+  lazy val Keyword = LiteralSetParser(
+                       "break", "case", "catch", "class", "const", "continue", "debugger",
+                       "default", "delete", "do", "else", "enum", "export", "extends",
+                       "false", "finally", "for", "function", "if", "import", "instanceof",
+                       "in", "new", "null", "return", "super", "switch", "this", "throw",
+                       "true", "try", "typeof", "var", "void", "while", "with"
+                     )
 
   /** Zero or more space characters or comments. */
   lazy val ExpressionWhitespaceNoNewline = (SpaceChar | Comment).*

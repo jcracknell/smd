@@ -10,6 +10,9 @@ trait ParsingContext { context =>
   /** The current index in the input sequence. */
   def index: Int
 
+  /** The length of the input sequence to be parsed. */
+  def length: Int
+
   /** Retrieve the unicode grapheme encompassing the provided index in the input.
     *
     * @param i the index for which the encompassing unicode grapheme should be retrieved.
@@ -51,6 +54,8 @@ object ParsingContext {
   class RootContext(val input: CharSequence, var index: Int) extends ParsingContext { root =>
     protected val graphemeLut = GraphemeInfo.createLookup(input)
 
+    val length = input.length()
+
     def graphemeAt(i: Int): GraphemeInfo = {
       assert(0 <= i, s"Provided index ($i) must be a non-negative integer.")
       assert(i < input.length, s"Provided index ($i) should be less than the input length (${input.length()}).")
@@ -70,6 +75,8 @@ object ParsingContext {
 
     class DependantContext(var index: Int) extends ParsingContext {
       val input: CharSequence = root.input
+
+      val length = input.length()
 
       def graphemeAt(i: Int): GraphemeInfo = root.graphemeLut(i)
 
