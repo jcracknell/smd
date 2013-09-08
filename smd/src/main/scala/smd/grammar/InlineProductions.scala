@@ -2,20 +2,20 @@ package smd
 package grammar
 
 trait InlineProductions extends CommonProductions {
-  def Inline: Parser[$md.Inline] =
+  def Inline: Parser[Inline] =
     Text | LineBreak | Space | Strong | Emphasis
 
-  lazy val Strong = "**" ~> (!:("**") ~> <>(Inline)).+ <~ "**" ^* $md.Strong
+  lazy val Strong = "**" ~> (!:("**") ~> <>(Inline)).+ <~ "**" ^* markdown.Strong
 
-  lazy val Emphasis = "*" ~> (!:("*") ~> <>(Inline) | <>(Strong)).+ <~ "*" ^* $md.Emphasis
+  lazy val Emphasis = "*" ~> (!:("*") ~> <>(Inline) | <>(Strong)).+ <~ "*" ^* markdown.Emphasis
 
   lazy val LineBreak =
-    BlockWhitespaceOrComments ~ "\\" ~ &:(BlankLine) ~ BlockWhitespaceOrComments ^^^ $md.LineBreak()
+    BlockWhitespaceOrComments ~ "\\" ~ &:(BlankLine) ~ BlockWhitespaceOrComments ^^^ markdown.LineBreak()
 
-  lazy val Text = NormalChar.+ ^^ { r => $md.Text(r.parsed.toString) }
+  lazy val Text = NormalChar.+ ^^ { r => markdown.Text(r.parsed.toString) }
 
   /** Any non-empty combination of comments and whitespace not leaving or at the end of a block. */
-  lazy val Space = BlockWhitespaceOrComments ~ !:(BlankLine) ^^^ $md.Space()
+  lazy val Space = BlockWhitespaceOrComments ~ !:(BlankLine) ^^^ markdown.Space()
 
   /** Any non-empty combination of comments and whitespace not consuming a blank line. */
   protected lazy val BlockWhitespaceOrComments =

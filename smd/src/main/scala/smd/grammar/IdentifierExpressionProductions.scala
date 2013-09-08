@@ -2,7 +2,7 @@ package smd
 package grammar
 
 trait IdentifierExpressionProductions extends CommonExpressionProductions {
-  lazy val IdentifierExpression = Identifier ^* { p => $ex.Identifier(p) }
+  lazy val IdentifierExpression = Identifier ^* { p => expression.Identifier(p) }
 
   // TODO: Decode identifier name
   lazy val Identifier = !:(Keyword ~ !:(IdentifierExpressionPart)) ~

@@ -1,46 +1,37 @@
 package smd
 package grammar
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSpec
-import smd.dom.Expression
+class LeftHandSideExpressionProductionsSpec extends ProductionSpec {
+  def subject = Grammar.LeftHandSideExpression
 
-class LeftHandSideExpressionProductionsSpec extends FunSpec with ShouldMatchers {
-  Map(
-    "@a()"      -> Expression.Call(
-                     body = Expression.Identifier("a"),
-                     args = Seq()
-                   ),
-    "@a.b"      -> Expression.StaticProperty(
-                     body = Expression.Identifier("a"),
-                     member = "b"
-                   ),
-    "@a['b']"   -> Expression.DynamicProperty(
-                     body = Expression.Identifier("a"),
-                     member = Expression.StringLiteral("b")
-                   ),
-    "@a.b()"    -> Expression.Call(
-                     body = Expression.StaticProperty(
-                              body = Expression.Identifier("a"),
-                              member = "b"
-                            ),
-                     args = Seq()
-                   ),
-    "@a.b('c')" -> Expression.Call(
-                     body = Expression.StaticProperty(
-                       body = Expression.Identifier("a"),
-                       member = "b"
-                     ),
-                     args = Seq(Expression.StringLiteral("c"))
-                   )
-  ).foreach { case (inputStr, expectedProduct) =>
-    it(s"should parse ${inputStr.toString}") {
-      val result = Grammar.LeftHandSideExpression.parse(inputStr)
+    shouldParse("@a()")      as expression.Call(
+                                  body = expression.Identifier("a"),
+                                  args = Seq()
+                                )
 
-      if(result.failed)
-        fail(s"parsing of ${inputStr.toString} failed")
+    shouldParse("@a.b")      as expression.StaticProperty(
+                                  body = expression.Identifier("a"),
+                                  member = "b"
+                                )
 
-      result.product should be (expectedProduct)
-    }
-  }
+    shouldParse("@a['b']")   as expression.DynamicProperty(
+                                  body = expression.Identifier("a"),
+                                  member = expression.QuotedStringLiteral("b")
+                                )
+
+    shouldParse("@a.b()")    as expression.Call(
+                                  body = expression.StaticProperty(
+                                           body = expression.Identifier("a"),
+                                           member = "b"
+                                         ),
+                                  args = Seq()
+                                )
+
+    shouldParse("@a.b('c')") as expression.Call(
+                                  body = expression.StaticProperty(
+                                    body = expression.Identifier("a"),
+                                    member = "b"
+                                  ),
+                                  args = Seq(expression.QuotedStringLiteral("c"))
+                                )
 }

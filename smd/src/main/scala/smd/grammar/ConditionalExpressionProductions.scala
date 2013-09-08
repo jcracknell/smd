@@ -9,7 +9,7 @@ trait ConditionalExpressionProductions extends BinaryExpressionProductions {
         ExpressionWhitespace ~ ":" ~ ExpressionWhitespace ~
         <>(ConditionalExpression) ^* { p => (p._4, p._8) }
       ).? ^* {
-      case (i, Some((t, e))) => $ex.Conditional(i, t, e)
+      case (i, Some((t, e))) => expression.Conditional(i, t, e)
       case (e, None) => e
     }
 }

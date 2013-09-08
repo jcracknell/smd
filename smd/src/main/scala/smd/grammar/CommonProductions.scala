@@ -4,13 +4,11 @@ package grammar
 import smd.parsing.Parsers
 
 trait CommonProductions extends Parsers {
-  protected type Expression = dom.Expression
-  protected type MarkDown = dom.MarkDown
-  protected val $ex = dom.Expression
-  protected val $md = dom.MarkDown
-
-  def Document: Parser[dom.MarkDown.Document] = ???
-  def Expression: Parser[dom.Expression]
+  type Block = markdown.Block
+  type Inline = markdown.Inline
+  type Expression = expression.Expression
+  def Doc: Parser[markdown.Document] = ???
+  def Expr: Parser[Expression]
 
   /** A single or multi-line comment. */
   lazy val Comment = SingleLineComment | MultiLineComment

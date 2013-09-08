@@ -3,42 +3,42 @@ package grammar
 
 trait BinaryExpressionProductions extends UnaryExpressionProductions {
 
-  lazy val LogicalOrExpression = binOp(LogicalAndExpression, "||" ~ !:("=") ^^^ $ex.LogicalOr)
+  lazy val LogicalOrExpression = binOp(LogicalAndExpression, "||" ~ !:("=") ^^^ expression.LogicalOr)
 
-  lazy val LogicalAndExpression = binOp(BitwiseOrExpression, "&&" ~ !:("=") ^^^ $ex.LogicalAnd)
+  lazy val LogicalAndExpression = binOp(BitwiseOrExpression, "&&" ~ !:("=") ^^^ expression.LogicalAnd)
 
-  lazy val BitwiseOrExpression = binOp(BitwiseXOrExpression, "|" ~ !:("|" | "=") ^^^ $ex.BitwiseOr)
+  lazy val BitwiseOrExpression = binOp(BitwiseXOrExpression, "|" ~ !:("|" | "=") ^^^ expression.BitwiseOr)
 
-  lazy val BitwiseXOrExpression = binOp(BitwiseAndExpression, "^" ~ !:("=") ^^^ $ex.BitwiseXOr)
+  lazy val BitwiseXOrExpression = binOp(BitwiseAndExpression, "^" ~ !:("=") ^^^ expression.BitwiseXOr)
 
-  lazy val BitwiseAndExpression = binOp(EqualityExpression, "&" ~ !:("&" | "=") ^^^ $ex.BitwiseAnd)
+  lazy val BitwiseAndExpression = binOp(EqualityExpression, "&" ~ !:("&" | "=") ^^^ expression.BitwiseAnd)
 
   lazy val EqualityExpression = binOp(RelationalExpression, EqualityOps)
 
   private lazy val EqualityOps =
-    "===" ^^^ $ex.StrictEquals |
-    "=="  ^^^ $ex.Equals |
-    "!==" ^^^ $ex.StrictNotEquals |
-    "!="  ^^^ $ex.NotEquals
+    "===" ^^^ expression.StrictEquals |
+    "=="  ^^^ expression.Equals |
+    "!==" ^^^ expression.StrictNotEquals |
+    "!="  ^^^ expression.NotEquals
 
   lazy val RelationalExpression: Parser[Expression] = binOp(ShiftExpression, RelationalExpressionOps)
 
   private lazy val RelationalExpressionOps =
-    ">="         ^^^ $ex.GreaterThanOrEqualTo |
-    "<="         ^^^ $ex.LessThanOrEqualTo |
-    ">"          ^^^ $ex.GreaterThan |
-    "<"          ^^^ $ex.LessThan |
-    "instanceof" ^^^ $ex.InstanceOf |
-    "in"         ^^^ $ex.In
+    ">="         ^^^ expression.GreaterThanOrEqualTo |
+    "<="         ^^^ expression.LessThanOrEqualTo |
+    ">"          ^^^ expression.GreaterThan |
+    "<"          ^^^ expression.LessThan |
+    "instanceof" ^^^ expression.InstanceOf |
+    "in"         ^^^ expression.In
 
   lazy val ShiftExpression: Parser[Expression] =
-    binOp(AdditiveExpression, ("<<" ^^^ $ex.LeftShift | ">>>" ^^^ $ex.UnsignedRightShift | ">>" ^^^ $ex.RightShift))
+    binOp(AdditiveExpression, ("<<" ^^^ expression.LeftShift | ">>>" ^^^ expression.UnsignedRightShift | ">>" ^^^ expression.RightShift))
 
   lazy val AdditiveExpression: Parser[Expression] =
-    binOp(MultiplicativeExpression, ("+" ^^^ $ex.Addition | "-" ^^^ $ex.Subtraction))
+    binOp(MultiplicativeExpression, ("+" ^^^ expression.Addition | "-" ^^^ expression.Subtraction))
 
   lazy val MultiplicativeExpression: Parser[Expression] =
-    binOp(UnaryExpression, ("*" ^^^ $ex.Multiplication | "/" ^^^ $ex.Division | "%" ^^^ $ex.Modulo))
+    binOp(UnaryExpression, ("*" ^^^ expression.Multiplication | "/" ^^^ expression.Division | "%" ^^^ expression.Modulo))
 
   private def binOp[A](operand: Parser[A], ops: Parser[(A, A) => A]): Parser[A] =
     operand ~ (

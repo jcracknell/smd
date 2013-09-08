@@ -9,14 +9,14 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
                                NumericLiteralExpression |
                                StringLiteralExpression
 
-  lazy val NullLiteralExpression = NullLiteral ^^^($ex.NullLiteral())
+  lazy val NullLiteralExpression = NullLiteral ^^^ expression.NullLiteral()
   lazy val NullLiteral = "null"
 
-  lazy val BooleanLiteralExpression = BooleanLiteral ^* { p => $ex.BooleanLiteral(p) }
+  lazy val BooleanLiteralExpression = BooleanLiteral ^* expression.BooleanLiteral
   lazy val BooleanLiteral = "true"  ^^^ true |
                             "false" ^^^ false
 
-  lazy val NumericLiteralExpression = NumericLiteral ^* { p => $ex.NumericLiteral(p) }
+  lazy val NumericLiteralExpression = NumericLiteral ^* expression.NumericLiteral
   lazy val NumericLiteral = HexIntegerLiteral | DecimalLiteral
 
   // TODO: Parse hex value
@@ -35,15 +35,21 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
 
   // String Literals
 
-  lazy val StringLiteralExpression = StringLiteral ^* { p => $ex.StringLiteral(p) }
+  lazy val StringLiteralExpression: Parser[expression.StringLiteral] = QuotedStringLiteralExpression | VerbatimStringLiteralExpression
 
-  lazy val StringLiteral = DoubleQuotedStringLiteral | SingleQuotedStringLiteral | VerbatimStringLiteral
+  lazy val StringLiteral = QuotedStringLiteral | VerbatimStringLiteral
+
+  lazy val VerbatimStringLiteralExpression = VerbatimStringLiteral ^* expression.VerbatimStringLiteral
 
   lazy val VerbatimStringLiteral = &:("`") ~ OrderedChoiceParser(
                                      (1 to 16).reverse.map(n => new String(Array.fill(n)('`'))).map { ticks =>
                                        ticks ~> ((!:(ticks) ~ UnicodeCharacter).* ^^(_.parsed)) <~ ticks
                                      }
                                    ) ^*(_._2.toString)
+
+  lazy val QuotedStringLiteralExpression = QuotedStringLiteral ^* expression.QuotedStringLiteral
+
+  lazy val QuotedStringLiteral = DoubleQuotedStringLiteral | SingleQuotedStringLiteral
 
   lazy val DoubleQuotedStringLiteral = "\""  ~> (!:("\"") ~> StringPart).* <~ "\""  ^* { p => new String(p.flatten.toArray) }
 
