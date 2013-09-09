@@ -1,14 +1,42 @@
 package smd
 package grammar
 
-import smd.parsing.Parsers
+import smd.parsing.{LiteralSetParser, Parsers}
 
 trait CommonProductions extends Parsers {
   type Block = markdown.Block
   type Inline = markdown.Inline
   type Expression = expression.Expression
+
   def Doc: Parser[markdown.Document] = ???
   def Expr: Parser[Expression]
+  def LeftHandSideExpression: Parser[Expression]
+
+  /** An escape sequence. Yields a sequence of code points. */
+  protected lazy val Escape: Parser[Seq[Int]] =
+    "\\" ~> (
+      (CharacterEscape | NumericEscape | NamedEscape) |
+      (!CodePoint.Values(NewLineCharValues) ^*(_.codePoints.map(_.value))) <~ ";".?
+    )
+
+  private lazy val CharacterEscape = LiteralSetParser(Map(
+                                         "\"" -> '\"',
+                                         "\"" -> '\"',
+                                         "t"  -> '\t',
+                                         "n"  -> '\n',
+                                         "r"  -> '\r',
+                                         "\\" -> '\\',
+                                         "b"  -> '\b',
+                                         "f"  -> '\f',
+                                         "v"  -> '\u000b'
+                                       ).mapValues(c => Seq(c.toInt)))
+
+  private lazy val NamedEscape = LiteralSetParser(NamedEntity.entities.values.map(e => (e.name, e.codePoints))) <~ ";"
+
+  private lazy val NumericEscape =
+    "#" ~> (Digit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 10)) }) <~ ";".? |
+    "#".? ~ ("u" | "x") ~> (HexDigit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 16)) }) <~ ";".?
+
 
   /** A single or multi-line comment. */
   lazy val Comment = SingleLineComment | MultiLineComment

@@ -26,7 +26,4 @@ trait CommonExpressionProductions extends CommonProductions {
   /** Zero or more whitespace characters or comments. */
   lazy val ExpressionWhitespace = (Whitespace | Comment).*
 
-  /** A "u" followed by four hexadecimal digits. This production is shared by Identifier. */
-  protected lazy val UnicodeEscapeSequence =
-    "u" ~> HexDigit.*(4) ^^ { r => r.parsed.toString.map(Character.digit(_, 16)).reduce((a, d) => a << 4 | d).toChar }
 }

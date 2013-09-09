@@ -55,23 +55,5 @@ trait LiteralExpressionProductions extends Parsers with CommonExpressionProducti
 
   lazy val SingleQuotedStringLiteral = "'"  ~> (!:("'") ~> StringPart).* <~ "'"  ^* { p => new String(p.flatten.toArray) }
 
-  private lazy val StringPart = EscapeSequence ^*(Seq(_)) | !CodePoint.Values('\n', '\r', '\u2028', '\u2029') ^*(_.chars)
-
-  lazy val EscapeSequence = "\\" ~> (CharacterEscape | UnicodeEscapeSequence | HexadecimalEscapeSequence | OctalEscapeSequence)
-
-  private lazy val CharacterEscape = "\'" ^^^ '\'' |
-                                     "\"" ^^^ '\"' |
-                                     "t"  ^^^ '\t' |
-                                     "n"  ^^^ '\n' |
-                                     "r"  ^^^ '\r' |
-                                     "\\" ^^^ '\\' |
-                                     "b"  ^^^ '\b' |
-                                     "f"  ^^^ '\f' |
-                                     "v"  ^^^ '\u000b'
-
-  private lazy val OctalEscapeSequence =
-    CodePoint.Range('0', '7').*(1,3) ^* { p => p.flatMap(_.chars.map(Character.digit(_, 8))).reduce((a, d) => a << 4 | d).toChar }
-
-  private lazy val HexadecimalEscapeSequence =
-    "x" ~> HexDigit.*(2) ^* { p => p.flatMap(_.chars.map(Character.digit(_, 16))).reduce((a, d) => a << 4 | d).toChar }
+  private lazy val StringPart = Escape ^*(_.flatMap(Character.toChars(_))) | !CodePoint.Values(NewLineCharValues) ^*(_.chars)
 }

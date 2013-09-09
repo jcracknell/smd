@@ -110,10 +110,6 @@ case class Space() extends Atomic
 case class Symbol(value: String) extends Atomic
 case class Text(value: String) extends Atomic
 
-sealed abstract class Entity extends Atomic
-
-case class NamedEntity(name: String) extends Entity
-case class NumericEntity(value: Int) extends Entity
-
+case class Entity(codePoints: Seq[Int]) extends Atomic
 
 case class ReferenceId(value: String)

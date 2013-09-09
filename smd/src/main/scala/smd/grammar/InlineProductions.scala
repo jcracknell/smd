@@ -3,7 +3,7 @@ package grammar
 
 trait InlineProductions extends CommonProductions {
   def Inline: Parser[Inline] =
-    Text | LineBreak | Space | Strong | Emphasis
+    Text | LineBreak | Space | Strong | Emphasis | Entity | InlineExpression | Symbol
 
   lazy val Strong = "**" ~> (!:("**") ~> <>(Inline)).+ <~ "**" ^* markdown.Strong
 
@@ -16,6 +16,12 @@ trait InlineProductions extends CommonProductions {
 
   /** Any non-empty combination of comments and whitespace not leaving or at the end of a block. */
   lazy val Space = BlockWhitespaceOrComments ~ !:(BlankLine) ^^^ markdown.Space()
+
+  lazy val Entity = Escape ^* markdown.Entity
+
+  lazy val InlineExpression = &:("@") ~> LeftHandSideExpression <~ ";".? ^* markdown.InlineExpression
+
+  lazy val Symbol = CodePoint.Values(SpecialCharValues) ^* { p => markdown.Symbol(p.charSequence.toString) }
 
   /** Any non-empty combination of comments and whitespace not consuming a blank line. */
   protected lazy val BlockWhitespaceOrComments =
