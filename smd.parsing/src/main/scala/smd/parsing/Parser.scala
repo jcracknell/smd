@@ -1,7 +1,7 @@
 package smd
 package parsing
 
-trait Parser[+A] {
+trait Parser[+A] { lhs =>
   def parse(context: ParsingContext): ParsingResult[A]
   def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
 
@@ -10,6 +10,7 @@ trait Parser[+A] {
   def ^* [B](transform: A => B): Parser[B] = ProductTransformParser(this, transform)
 
   def ^^^ [B](transform: => B): Parser[B] = TransformParser(this, (x: ParsingResult[A]) => transform)
+
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
@@ -37,6 +38,20 @@ trait Parser[+A] {
   def *<  (max: Int)          = RepetitionParser(this, None,           Some(max - 1) )
   def *<= (max: Int)          = RepetitionParser(this, None,           Some(max)     )
   def +                       = RepetitionParser(this, Some(1),        None          )
+
+  def ^? [B](f: PartialFunction[ParsingResult[A], B]): Parser[B] = new Parser[B] {
+    def parse(context: ParsingContext): ParsingResult[B] = {
+      val r = lhs.parse(context)
+      if(r.succeeded && f.isDefinedAt(r)) r.copy(f(r)) else ParsingResult.Failure
+    }
+  }
+
+  def ^*? [B](f: PartialFunction[A, B]): Parser[B] = new Parser[B] {
+    def parse(context: ParsingContext): ParsingResult[B] = {
+      val r = lhs.parse(context)
+      if(r.succeeded && f.isDefinedAt(r.product)) r.copy(f(r.product)) else ParsingResult.Failure
+    }
+  }
 }
 
 object Parser {
