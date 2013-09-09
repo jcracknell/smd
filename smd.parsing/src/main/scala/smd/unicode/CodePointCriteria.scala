@@ -6,6 +6,8 @@ import smd.util.HexEncoding
 trait CodePointCriterion { criterion =>
   def isSatisfiedBy(codePoint: CodePointInfo): Boolean
 
+  def isSatisfiedBy(codePoint: Int): Boolean = isSatisfiedBy(CodePointInfo(codePoint))
+
   def &&(rhs: CodePointCriterion): CodePointCriterion = new CodePointCriterion {
     def isSatisfiedBy(codePoint: CodePointInfo): Boolean =
       criterion.isSatisfiedBy(codePoint) && rhs.isSatisfiedBy(codePoint)
