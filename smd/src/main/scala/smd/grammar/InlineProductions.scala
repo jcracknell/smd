@@ -1,9 +1,11 @@
 package smd
 package grammar
 
+import smd.parsing.OrderedChoiceParser
+
 trait InlineProductions extends CommonProductions {
-  def Inline: Parser[Inline] =
-    Text | LineBreak | Space | Strong | Emphasis | Entity | InlineExpression | Symbol
+  lazy val Inline: Parser[Inline] =
+    Text | LineBreak | Space | Strong | Emphasis | Quoted | Code | Entity | InlineExpression | Symbol
 
   lazy val Strong = "**" ~> (!:("**") ~> <>(Inline)).+ <~ "**" ^* markdown.Strong
 
@@ -18,6 +20,26 @@ trait InlineProductions extends CommonProductions {
   lazy val Space = BlockWhitespaceOrComments ~ !:(BlankLine) ^^^ markdown.Space()
 
   lazy val Entity = Escape ^* markdown.Entity
+
+  lazy val Quoted = OrderedChoiceParser(
+    Seq(
+      "\"" -> markdown.Quoted.QuoteKind.Double,
+      "'"  -> markdown.Quoted.QuoteKind.Single
+    ) map { case (quot, kind) =>
+      quot ~> (!:(quot) ~> <>(Inline)).* <~ quot ^* { is => markdown.Quoted(is, kind) }
+    }
+  )
+
+  /** Backtick-enclosed code not leaving a block. */
+  lazy val Code =
+    &:("`") ~> OrderedChoiceParser((1 to 16).reverse.map(n => "".padTo(n, '`')).map { ticks =>
+      ticks ~> (
+        (
+          BlockWhitespace.? ~
+          (!:(Whitespace | ticks) ~ UnicodeCharacter ~ BlockWhitespace.?).*
+        ) ^^(_.parsed)
+      ) <~ ticks
+    }) ^* { p => markdown.Code(p.toString) }
 
   lazy val InlineExpression = &:("@") ~> LeftHandSideExpression <~ ";".? ^* markdown.InlineExpression
 
