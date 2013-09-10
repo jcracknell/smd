@@ -3,7 +3,7 @@ package grammar
 
 
 class PrimaryExpressionProductionsSpec extends ProductionSpec {
-  def subject = Grammar.PrimaryExpression
+  def subject = Grammar.primaryExpression
 
   shouldParse("[]")              as expression.ArrayLiteral(Seq())
   shouldParse("['a']")           as expression.ArrayLiteral(Seq(expression.QuotedStringLiteral("a")))

@@ -3,6 +3,6 @@ package grammar
 
 
 trait AtExpressionProductions extends PrimaryExpressionProductions {
-  lazy val AtExpression: Parser[Expression] = AtExpressionRequired | PrimaryExpression
-  lazy val AtExpressionRequired: Parser[Expression] = "@" ~ (IdentifierExpression | PrimaryExpression) ^*(_._2)
+  lazy val atExpression: Parser[Expression] = atExpressionRequired | primaryExpression
+  lazy val atExpressionRequired: Parser[Expression] = "@" ~ (identifierExpression | primaryExpression) ^*(_._2)
 }

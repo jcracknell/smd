@@ -2,8 +2,8 @@ package smd
 package grammar
 
 trait PostfixExpressionProductions extends LeftHandSideExpressionProductions {
-  lazy val PostfixExpression: Parser[Expression] =
-    LeftHandSideExpression ~ ( ExpressionWhitespaceNoNewline ~>
+  lazy val postfixExpression: Parser[Expression] =
+    leftHandSideExpression ~ ( expressionWhitespaceNoNewline ~>
       "--" ^^^ expression.PostfixDecrement |
       "++" ^^^ expression.PostfixIncrement
     ).? ^* {

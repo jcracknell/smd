@@ -2,7 +2,7 @@ package smd
 package grammar
 
 class LiteralExpressionProductionsSpec extends ProductionSpec {
-  def subject = Grammar.LiteralExpression
+  def subject = Grammar.literalExpression
 
   describe("NumericLiteralExpression") {
     shouldParse("0")      as expression.NumericLiteral(0d)

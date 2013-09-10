@@ -2,7 +2,7 @@ package smd
 package grammar
 
 class BinaryexpressionsProductionsSpec extends ProductionSpec {
-  def subject = Grammar.LogicalOrExpression
+  def subject = Grammar.logicalOrExpression
 
   describe("LogicalOrExpression") {
     shouldParse("@a || @b") as expression.LogicalOr(expression.Identifier("a"), expression.Identifier("b"))

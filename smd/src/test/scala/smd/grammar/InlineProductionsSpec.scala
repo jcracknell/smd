@@ -4,7 +4,7 @@ package grammar
 class InlineProductionsSpec extends ProductionSpec {
   import markdown._
 
-  def subject = Grammar.Inline
+  def subject = Grammar.inline
 
   describe("Code") {
     shouldParse("``") as Code("")

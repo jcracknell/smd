@@ -2,7 +2,7 @@ package smd
 package grammar
 
 class LeftHandSideExpressionProductionsSpec extends ProductionSpec {
-  def subject = Grammar.LeftHandSideExpression
+  def subject = Grammar.leftHandSideExpression
 
     shouldParse("@a()")      as expression.Call(
                                   body = expression.Identifier("a"),

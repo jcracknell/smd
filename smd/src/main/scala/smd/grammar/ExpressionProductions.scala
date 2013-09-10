@@ -13,5 +13,5 @@ trait ExpressionProductions extends CommonProductions
                                with BinaryExpressionProductions
                                with ConditionalExpressionProductions
 {
-  lazy val Expr: Parser[Expression] = ConditionalExpression
+  lazy val expr: Parser[Expression] = conditionalExpression
 }

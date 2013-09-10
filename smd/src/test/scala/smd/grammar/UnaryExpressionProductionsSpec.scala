@@ -2,7 +2,7 @@ package smd
 package grammar
 
 class UnaryExpressionProductionsSpec extends ProductionSpec {
-  def subject = Grammar.UnaryExpression
+  def subject = Grammar.unaryExpression
 
   shouldParse("!true")     as expression.LogicalNot(expression.BooleanLiteral(true))
   shouldParse("--@a")      as expression.PrefixDecrement(expression.Identifier("a"))

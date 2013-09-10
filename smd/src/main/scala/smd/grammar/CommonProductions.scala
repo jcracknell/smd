@@ -8,18 +8,18 @@ trait CommonProductions extends Parsers {
   type Inline = markdown.Inline
   type Expression = expression.Expression
 
-  def Doc: Parser[markdown.Document] = ???
-  def Expr: Parser[Expression]
-  def LeftHandSideExpression: Parser[Expression]
+  def doc: Parser[markdown.Document] = ???
+  def expr: Parser[Expression]
+  def leftHandSideExpression: Parser[Expression]
 
   /** An escape sequence. Yields a sequence of code points. */
-  protected lazy val Escape: Parser[Seq[Int]] =
+  protected lazy val escape: Parser[Seq[Int]] =
     "\\" ~> (
-      (CharacterEscape | NumericEscape | NamedEscape) |
-      (!CodePoint.Values(NewLineCharValues) ^*(_.codePoints.map(_.value))) <~ ";".?
+      (characterEscape | numericEscape | namedEscape) |
+      (!CodePoint.Values(newLineCharValues) ^*(_.codePoints.map(_.value))) <~ ";".?
     )
 
-  private lazy val CharacterEscape = LiteralSetParser(Map(
+  private lazy val characterEscape = LiteralSetParser(Map(
                                          "\"" -> '\"',
                                          "\"" -> '\"',
                                          "t"  -> '\t',
@@ -31,48 +31,50 @@ trait CommonProductions extends Parsers {
                                          "v"  -> '\u000b'
                                        ).mapValues(c => Seq(c.toInt)))
 
-  private lazy val NamedEscape = LiteralSetParser(NamedEntity.entities.values.map(e => (e.name, e.codePoints))) <~ ";"
+  private lazy val namedEscape = LiteralSetParser(NamedEntity.entities.values.map(e => (e.name, e.codePoints))) <~ ";"
 
-  private lazy val NumericEscape =
-    "#" ~> (Digit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 10)) }) <~ ";".? |
-    "#".? ~ ("u" | "x") ~> (HexDigit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 16)) }) <~ ";".?
+  private lazy val numericEscape =
+    "#" ~> (digit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 10)) }) <~ ";".? |
+    "#".? ~ ("u" | "x") ~> (hexDigit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 16)) }) <~ ";".?
 
 
   /** A single or multi-line comment. */
-  lazy val Comment = SingleLineComment | MultiLineComment
-  lazy val MultiLineComment =  "/*" ~ (!:("*/") ~ UnicodeCharacter).* ~ "*/"
-  lazy val SingleLineComment = "//" ~ Line
+  lazy val comment = singleLineComment | multiLineComment
+  private lazy val multiLineComment =  "/*" ~ (!:("*/") ~ unicodeCharacter).* ~ "*/"
+  private lazy val singleLineComment = "//" ~ line
 
   /** The (remainder) of the the current line, including the newline sequence. */
-  lazy val Line = (!:(NewLine) ~ UnicodeCharacter).* ~ NewLine.?
+  protected lazy val line = (!:(newLine) ~ unicodeCharacter).* ~ newLine.?
 
-  lazy val BlankLines = (SpaceChars ~ NewLine).* ~ (SpaceChars ~ EOF).?
+  protected lazy val blankLines = (spaceChars ~ newLine).* ~ (spaceChars ~ EOF).?
+
   /** Zero or more space characters followed by a newline or the end of the input. */
-  lazy val BlankLine = SpaceChars ~ (NewLine | EOF)
+  protected lazy val blankLine = spaceChars ~ (newLine | EOF)
 
   /** A tab or four spaces. */
-  lazy val Indent = "\t" | "    "
+  protected lazy val indent = "\t" | "    "
   /** Up to three space characters. */
-  lazy val NonIndentSpace = " ".*(0,3)
+  protected lazy val nonIndentSpace = " ".*(0,3)
 
 
-  lazy val HexDigit =          CodePoint.Values(('0' to '9') ++ ('a' to 'f') ++ ('A' to 'F'))
-  lazy val Digit =             CodePoint.Values('0' to '9')
-  lazy val NonZeroDigit =      CodePoint.Values('1' to '9')
-  lazy val EnglishAlpha =      EnglishLowerAlpha | EnglishUpperAlpha
-  lazy val EnglishLowerAlpha = CodePoint.Range('a', 'z')
-  lazy val EnglishUpperAlpha = CodePoint.Range('A', 'Z')
+  protected lazy val hexDigit =          CodePoint.Values(('0' to '9') ++ ('a' to 'f') ++ ('A' to 'F'))
+  protected lazy val digit =             CodePoint.Values('0' to '9')
+  protected lazy val nonZeroDigit =      CodePoint.Values('1' to '9')
+  protected lazy val englishAlpha =      englishLowerAlpha | englishUpperAlpha
+  protected lazy val englishLowerAlpha = CodePoint.Range('a', 'z')
+  protected lazy val englishUpperAlpha = CodePoint.Range('A', 'Z')
 
 
   /** A space character or newline sequence. */
-  lazy val Whitespace = SpaceChar | NewLine
-  lazy val WhitespaceCharValues = SpaceCharValues ++ NewLineCharValues
+  protected lazy val whitespace = spaceChar | newLine
+  protected lazy val whitespaceCharValues = spaceCharValues ++ newLineCharValues
   /** A valid newline sequence. */
-  lazy val NewLine =    "\r\n" | CodePoint.Values(NewLineCharValues)
-  lazy val NewLineCharValues = Set('\n', '\r', '\u2028', '\u2029')
-  lazy val SpaceChars = SpaceChar.*
-  lazy val SpaceChar =  CodePoint.Values(' ', '\t')
-  lazy val SpaceCharValues = Set(' ', '\t')
+  protected lazy val newLine =    "\r\n" | CodePoint.Values(newLineCharValues)
+  protected lazy val newLineCharValues = Set('\n', '\r', '\u2028', '\u2029')
+  protected lazy val spaceChars = spaceChar.*
+  protected lazy val spaceChar =  CodePoint.Values(' ', '\t')
+  protected lazy val spaceCharValues = Set(' ', '\t')
 
-  lazy val UnicodeCharacter = Grapheme.Any
+  /** Any single unicode grapheme. */
+  protected lazy val unicodeCharacter = Grapheme.Any
 }

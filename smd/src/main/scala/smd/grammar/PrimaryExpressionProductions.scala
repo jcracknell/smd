@@ -6,32 +6,32 @@ trait PrimaryExpressionProductions extends LiteralExpressionProductions
                                       with IdentifierExpressionProductions
 {
   /** A literal, array literal, or object literal expression. */
-  lazy val PrimaryExpression: Parser[Expression] =
-    LiteralExpression |
-    ArrayLiteralExpression |
-    ObjectLiteralExpression |
-    "(" ~ ExpressionWhitespace ~> <>(Expr) <~ ExpressionWhitespace ~ ")"
+  lazy val primaryExpression: Parser[Expression] =
+    literalExpression |
+    arrayLiteralExpression |
+    objectLiteralExpression |
+    "(" ~ expressionWhitespace ~> <>(expr) <~ expressionWhitespace ~ ")"
 
-  lazy val ArrayLiteralExpression =
-    "[" ~ ExpressionWhitespace ~ ArrayElements ~ ExpressionWhitespace ~ "]" ^* { p => expression.ArrayLiteral(p._3) }
+  lazy val arrayLiteralExpression =
+    "[" ~ expressionWhitespace ~ arrayElements ~ expressionWhitespace ~ "]" ^* { p => expression.ArrayLiteral(p._3) }
 
-  private lazy val ArrayElements =
+  private lazy val arrayElements =
     (
-      <>(Expr) ~ SubsequentArrayElement.* ^* { case (e, ses) => e +: ses.flatten } |
-      SubsequentArrayElement.+                  ^* { p => expression.Elided() +: p.flatten } // initial element elided
-    ).? ~ ArgumentSeparator.* ^*(_._1.getOrElse(Seq()))
+      <>(expr) ~ subsequentArrayElement.* ^* { case (e, ses) => e +: ses.flatten } |
+      subsequentArrayElement.+                  ^* { p => expression.Elided() +: p.flatten } // initial element elided
+    ).? ~ argumentSeparator.* ^*(_._1.getOrElse(Seq()))
 
   /** A non-elided array element preceded by any number of elided elements. */
-  private lazy val SubsequentArrayElement =
-    ArgumentSeparator.+ ~ ExpressionWhitespace ~ <>(Expr) ^* { case (seps, _, e) => seps.tail.map(_ => expression.Elided()) :+ e }
+  private lazy val subsequentArrayElement =
+    argumentSeparator.+ ~ expressionWhitespace ~ <>(expr) ^* { case (seps, _, e) => seps.tail.map(_ => expression.Elided()) :+ e }
 
-  lazy val ObjectLiteralExpression =
-    "{" ~ ExpressionWhitespace ~ ObjectPropertyAssignments.? ~ ExpressionWhitespace ~ "}" ^* { case (_,_,ps,_,_) => expression.ObjectLiteral(ps.getOrElse(Seq())) }
+  lazy val objectLiteralExpression =
+    "{" ~ expressionWhitespace ~ objectPropertyAssignments.? ~ expressionWhitespace ~ "}" ^* { case (_,_,ps,_,_) => expression.ObjectLiteral(ps.getOrElse(Seq())) }
 
-  private lazy val ObjectPropertyAssignments =
-    (ObjectPropertyAssignment ~ (ArgumentSeparator ~ ObjectPropertyAssignment).* ~ ArgumentSeparator.?) ^* { p => p._1 +: p._2.map(_._2) }
+  private lazy val objectPropertyAssignments =
+    (objectPropertyAssignment ~ (argumentSeparator ~ objectPropertyAssignment).* ~ argumentSeparator.?) ^* { p => p._1 +: p._2.map(_._2) }
 
-  private lazy val ObjectPropertyAssignment =
-    (StringLiteral | NumericLiteral ^*(_.toString) | Identifier) ~
-    ExpressionWhitespace ~ ":" ~ ExpressionWhitespace ~ <>(Expr) ^* { p => (p._1, p._5) }
+  private lazy val objectPropertyAssignment =
+    (stringLiteral | numericLiteral ^*(_.toString) | identifier) ~
+    expressionWhitespace ~ ":" ~ expressionWhitespace ~ <>(expr) ^* { p => (p._1, p._5) }
 }
