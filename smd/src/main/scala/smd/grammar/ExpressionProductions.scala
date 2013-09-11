@@ -67,17 +67,21 @@ trait ExpressionProductions extends CommonProductions {
       expressionWhitespace ~ ops ~ expressionWhitespace ~ operand ^* { case (_, op, _, rhs) => (op, rhs) }
     ).* ^* { case (lhs, ops) => (lhs /: ops) { (body, op) => op._1(body, op._2) } }
 
-  lazy val unaryExpression: Parser[Expression] =
-    "!"  ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.LogicalNot      |
-    "--" ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.PrefixDecrement |
-    "-"  ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.Negative        |
-    "++" ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.PrefixIncrement |
-    "+"  ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.Positive        |
-    "~"  ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.BitwiseNot      |
-    "typeof" ~ !:(identifierExpressionPart) ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.Typeof |
-    "delete" ~ !:(identifierExpressionPart) ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.Delete |
-    "void"   ~ !:(identifierExpressionPart) ~ expressionWhitespace ~> <>(unaryExpression) ^* expression.Void |
-    leftHandSideExpression
+  lazy val unaryExpression: Parser[Expression] = (
+    unaryOp("!",                                     expression.LogicalNot)
+  | unaryOp("--",                                    expression.PrefixDecrement)
+  | unaryOp("-",                                     expression.Negative)
+  | unaryOp("++",                                    expression.PrefixIncrement)
+  | unaryOp("+",                                     expression.Positive)
+  | unaryOp("~",                                     expression.BitwiseNot)
+  | unaryOp("typeof" ~ !:(identifierExpressionPart), expression.Typeof)
+  | unaryOp("delete" ~ !:(identifierExpressionPart), expression.Delete)
+  | unaryOp("void"   ~ !:(identifierExpressionPart), expression.Void)
+  | postfixExpression
+  )
+
+  private def unaryOp(op: Parser[Any], builder: Expression => Expression): Parser[Expression] =
+    op ~ expressionWhitespace ~> <>(unaryExpression) ^*(builder(_))
 
   lazy val postfixExpression: Parser[Expression] =
     leftHandSideExpression ~ ( expressionWhitespaceNoNewline ~>
