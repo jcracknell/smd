@@ -32,17 +32,17 @@ object GraphemeCriteria {
     def isSatisfiedBy(grapheme: GraphemeInfo): Boolean = true
   }
 
-  case class Category(categories: Byte*) extends GraphemeCriterion {
-    if(categories.exists(c => c > 30 || 0 > c)) throw new IllegalArgumentException(s"Provided category list contains an invalid category.")
-
-    private val acceptanceMap = Array.fill(31)(false)
-    categories.foreach(acceptanceMap.update(_, true))
+  /** [[smd.unicode.GraphemeCriterion]] which is satisfied by any grapheme in the provided set of categories. */
+  case class Category(categories: Set[UnicodeCategory]) extends GraphemeCriterion {
+    private val acceptanceMap = Array.fill(UnicodeCategory.MaxValue + 1)(false)
+    categories.foreach { cat => acceptanceMap(cat.value) = true }
 
     def isSatisfiedBy(grapheme: GraphemeInfo): Boolean = acceptanceMap(grapheme.category)
   }
 
   object Category {
-    def apply(categories: Iterable[Byte]): Category = Category(categories.toSeq:_*)
+    def apply(c0: UnicodeCategory, cs: UnicodeCategory*): Category = apply(c0 +: cs)
+    def apply(categories: Iterable[UnicodeCategory]): Category = apply(categories.toSet)
   }
 
   /** [[smd.unicode.GraphemeCriterion]] which is never satisfied. */
@@ -57,7 +57,6 @@ object GraphemeCriteria {
     */
   case class SingleCodePoint(criterion: CodePointCriterion) extends GraphemeCriterion {
     def isSatisfiedBy(grapheme: GraphemeInfo): Boolean =
-      // Use isDefinedAt instead of length to avoid having to count in the event that codePoints is a list
-      !grapheme.codePoints.isDefinedAt(1) && criterion.isSatisfiedBy(grapheme.codePoints.head)
+      !grapheme.codePoints.lengthLte(1) && criterion.isSatisfiedBy(grapheme.codePoints.head)
   }
 }
