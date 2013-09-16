@@ -55,14 +55,14 @@ case class StaticProperty(body: Expression, member: String) extends Expression
 case class StrictEquals(lhs: Expression, rhs: Expression) extends Expression with Binary
 case class StrictNotEquals(lhs: Expression, rhs: Expression) extends Expression with Binary
 case class Subtraction(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Typeof(expr: Expression) extends Expression with Unary
+case class TypeOf(expr: Expression) extends Expression with Unary
 case class UnsignedRightShift(lhs: Expression, rhs: Expression) extends Expression with Binary
 case class Void(expr: Expression) extends Expression with Unary
 
-sealed abstract class StringLiteral extends Expression {
+sealed abstract class StringLikeLiteral extends Expression {
   def value: String
 }
 
-case class QuotedStringLiteral(value: String) extends StringLiteral
-case class VerbatimStringLiteral(value: String) extends StringLiteral
-case class IriStringLiteral(value: String) extends StringLiteral
+case class StringLiteral(value: String) extends StringLikeLiteral
+case class VerbatimLiteral(value: String) extends StringLikeLiteral
+case class IriLiteral(value: String) extends StringLikeLiteral

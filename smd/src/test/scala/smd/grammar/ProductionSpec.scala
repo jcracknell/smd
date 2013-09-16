@@ -6,6 +6,8 @@ import org.scalatest.FunSpec
 import smd.parsing.ParsingResult
 
 trait ProductionSpec extends FunSpec with ShouldMatchers {
+  import scala.language.reflectiveCalls
+
   def subject: Parser[_]
 
   def shouldParse(input: String) = new {

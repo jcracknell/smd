@@ -1,7 +1,7 @@
 package smd
 package grammar
 
-import smd.parsing.{LiteralSetParser, OrderedChoiceParser}
+import smd.parsing.{GraphemeParser, LiteralSetParser, OrderedChoiceParser}
 
 trait ExpressionProductions extends CommonProductions {
   def expr: Parser[Expression] = conditionalExpression
@@ -74,7 +74,7 @@ trait ExpressionProductions extends CommonProductions {
   | unaryOp("++",                                    expression.PrefixIncrement)
   | unaryOp("+",                                     expression.Positive)
   | unaryOp("~",                                     expression.BitwiseNot)
-  | unaryOp("typeof" ~ !:(identifierExpressionPart), expression.Typeof)
+  | unaryOp("typeof" ~ !:(identifierExpressionPart), expression.TypeOf)
   | unaryOp("delete" ~ !:(identifierExpressionPart), expression.Delete)
   | unaryOp("void"   ~ !:(identifierExpressionPart), expression.Void)
   | postfixExpression
@@ -137,12 +137,16 @@ trait ExpressionProductions extends CommonProductions {
   }
 
   lazy val objectLiteralExpression: Parser[expression.ObjectLiteral] = {
-    val objectPropertyAssignment = (
-      (stringLiteral | numericLiteral ^*(_.toString) | identifier)
-    ~ expressionWhitespace ~ ":" ~ expressionWhitespace
-    ~ <>(expr)
-    ^* { p => (p._1, p._5) }
+    val propertyName: Parser[String] = (
+      stringLiteralExpression ^*(_.value)
+    | verbatimLiteralExpression ^*(_.value)
+    | iriLiteralExpression ^*(_.value)
+    | numericLiteralExpression ^*(_.value.toString)
+    | identifier
     )
+
+    val objectPropertyAssignment =
+      propertyName ~ expressionWhitespace ~ ":" ~ expressionWhitespace ~ <>(expr) ^* { p => (p._1, p._5) }
 
     val objectPropertyAssignments = (
       objectPropertyAssignment
@@ -197,26 +201,124 @@ trait ExpressionProductions extends CommonProductions {
 
   // Literals
 
-  lazy val literalExpression = (
-    nullLiteralExpression
-  | booleanLiteralExpression
-  | numericLiteralExpression
-  | stringLiteralExpression
+  lazy val literalExpression: Parser[Expression] = (
+    stringLiteralExpression
+  | verbatimLiteralExpression
+  | (numericLiteralExpression | nullLiteralExpression | booleanLiteralExpression) <~ !:(iriAtom)
+  | iriLiteralExpression
   )
 
-  lazy val nullLiteralExpression = nullLiteral ^^^ expression.NullLiteral()
-  lazy val nullLiteral = "null"
+  lazy val iriLiteralExpression: Parser[expression.IriLiteral] = {
+    /** Defines codepoints which may not appear at the beginning of an IRI in order to disambiguate IRIs from other
+      * expression kinds. If you consider how these characters are generally used in a URI, this is not really
+      * restrictive at all. */
+    val illegalStart = GraphemeParser(Grapheme.SingleCodePoint(CodePoint.Values(
+      /* parenthesized expressions: */ '(',
+      /*           string literals: */ '\'', '"',
+      /*            at-expressions: */ '@',
+      /*     elided array elements: */ ',',
+      /*      statement terminator: */ ';',
+      /*       the unary operators: */ '+', '-', '~', '!'
+    )))
 
-  lazy val booleanLiteralExpression = booleanLiteral ^* expression.BooleanLiteral
+    (
+      !:(
+        keyword ~ !:(iriAtom)
+      | commentStart
+      )
+    ~ !:(illegalStart) ~ iriAtom.+
+    ) ^^ { p => expression.IriLiteral(p.parsed.toString) }
+  }
 
-  lazy val booleanLiteral = (
+  /** An indivisible portion of an IRI literal. */
+  protected val iriAtom: Parser[Any] = {
+    val ipv4Address = {
+      val octet = (
+        "25" ~ CodePoint.Range('0', '5')
+      | "2"  ~ CodePoint.Range('0', '4') ~ digit
+      | "1"  ~ digit.*(2)
+      | nonZeroDigit ~ digit
+      | digit
+      )
+
+      octet ~ ("." ~ octet).*(3)
+    }
+
+    val ipv6Address = {
+      val h16: Parser[Any] = hexDigit.*(1,4)
+      val ch16: Parser[Any] = ":" ~ h16
+      val ls32: Parser[Any] = h16 ~ ":" ~ h16 | ipv4Address
+
+      (
+        h16                         ~ ch16.*(5) ~ ":" ~ ls32
+      |                         ":" ~ ch16.*(5) ~ ":" ~ ls32
+      | h16.?                 ~ ":" ~ ch16.*(4) ~ ":" ~ ls32
+      | (h16 ~ ch16.?     ).? ~ ":" ~ ch16.*(3) ~ ":" ~ ls32
+      | (h16 ~ ch16.*(0,2)).? ~ ":" ~ ch16.*(2) ~ ":" ~ ls32
+      | (h16 ~ ch16.*(0,3)).? ~ ":" ~ ch16      ~ ":" ~ ls32
+      | (h16 ~ ch16.*(0,4)).?                  ~ "::" ~ ls32
+      | (h16 ~ ch16.*(0,5)).?                  ~ "::" ~ h16
+      | (h16 ~ ch16.*(0,6)).?                  ~ "::"
+      )
+    }
+
+    val ipvFutureAddress =
+      "v" ~ hexDigit.+ ~ "." ~ CodePoint.Values(
+        ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Set(
+          '-', '.', '_', '~',                                     // unreserved
+          '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=', // sub-delims
+          ':'
+        )
+      ).+
+
+    /** Valid IRI characters as defined in $iriRfc, less those whose location must be controlled in order to make
+      * IRI literals usable in expressions. */
+    val char = GraphemeParser(Grapheme.SingleCodePoint(
+      CodePoint.Values(
+        ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Set(
+        '-', '.', '_', '~',                                    // unreserved
+        /*':',*/ '/', '?', '#', /*'[', ']',*/ '@',                     // gen-delims
+        '!', '$', '&', '\'', /*'(', ')',*/ '*', '+', /*',', ';',*/ '=' // sub-delims
+      ))
+    ||CodePoint.Range(0x000A0, 0x0D7FF)
+    ||CodePoint.Range(0x0F900, 0x0FDCF)
+    ||CodePoint.Range(0x0FDF0, 0x0FFEF)
+    ||CodePoint.Range(0x10000, 0x1FFFD)
+    ||CodePoint.Range(0x20000, 0x2FFFD)
+    ||CodePoint.Range(0x30000, 0x3FFFD)
+    ||CodePoint.Range(0x40000, 0x4FFFD)
+    ||CodePoint.Range(0x50000, 0x5FFFD)
+    ||CodePoint.Range(0x60000, 0x6FFFD)
+    ||CodePoint.Range(0x70000, 0x7FFFD)
+    ||CodePoint.Range(0x80000, 0x8FFFD)
+    ||CodePoint.Range(0x90000, 0x9FFFD)
+    ||CodePoint.Range(0xA0000, 0xAFFFD)
+    ||CodePoint.Range(0xB0000, 0xBFFFD)
+    ||CodePoint.Range(0xC0000, 0xCFFFD)
+    ||CodePoint.Range(0xD0000, 0xDFFFD)
+    ||CodePoint.Range(0xE0000, 0xEFFFD)
+    ))
+
+    /** Valid IRI characters as defined in $iriRfc, but which cannot appear at the end of an IRI expression. */
+    val nonTerminalChar = GraphemeParser(Grapheme.SingleCodePoint(CodePoint.Values(',', ';', ':')))
+
+    (
+      char
+    | nonTerminalChar ~ <>(iriAtom)
+    | "%" ~ hexDigit.*(2)
+    | "(" ~ (<>(iriAtom) | nonTerminalChar).* ~ ")"
+    | "[" ~ (ipv6Address | ipvFutureAddress) ~ "]"
+    )
+  }
+
+  lazy val nullLiteralExpression: Parser[expression.NullLiteral] = "null" ^^^ expression.NullLiteral()
+
+  lazy val booleanLiteralExpression: Parser[expression.BooleanLiteral] = (
     "true"  ^^^ true
   | "false" ^^^ false
-  )
+  ) ^* expression.BooleanLiteral
 
-  lazy val numericLiteralExpression = numericLiteral ^* expression.NumericLiteral
-
-  lazy val numericLiteral = {
+  lazy val numericLiteralExpression: Parser[expression.NumericLiteral] = {
     val decimalLiteral = {
       val signedInteger =         ("+" ^^^ +1d | "-" ^^^ -1d).? ~ (digit.+ ^^(_.parsed)) ^* { p => p._1.getOrElse(1d) * p._2.toString.toDouble }
       val requiredDecimalPart =   "." ~ digit.+ ^^(_.parsed.toString.toDouble)
@@ -232,46 +334,33 @@ trait ExpressionProductions extends CommonProductions {
 
     val hexIntegerLiteral =     "0x" ~ (hexDigit.+ ^^(_.parsed)) ^* { p => java.lang.Long.parseLong(p._2.toString, 16).toDouble }
 
-    decimalLiteral | hexIntegerLiteral
+    (hexIntegerLiteral | decimalLiteral) ^* expression.NumericLiteral
   }
 
 
   // String Literals
 
-  lazy val stringLiteralExpression: Parser[expression.StringLiteral] = (
-    quotedStringLiteralExpression
-  | verbatimStringLiteralExpression
-  )
-
-  protected lazy val stringLiteral = (
-    quotedStringLiteral
-  | verbatimStringLiteral
-  )
-
-  lazy val verbatimStringLiteralExpression = verbatimStringLiteral ^* expression.VerbatimStringLiteral
-
-  protected lazy val verbatimStringLiteral = (
-    &:("`") ~ OrderedChoiceParser(
+  lazy val verbatimLiteralExpression: Parser[expression.VerbatimLiteral] =
+    &:("`") ~> OrderedChoiceParser(
       (1 to 16).reverse.map(n => new String(Array.fill(n)('`'))).map { ticks =>
-        ticks ~> ((!:(ticks) ~ unicodeCharacter).* ^^(_.parsed)) <~ ticks
+        ticks ~> ((!:(ticks) ~> unicodeCharacter).* ^^(_.parsed)) <~ ticks
       }
-    ) ^*(_._2.toString)
-  )
+    ) ^* { p => expression.VerbatimLiteral(p.toString) }
 
-  lazy val quotedStringLiteralExpression = quotedStringLiteral ^* expression.QuotedStringLiteral
-
-  protected lazy val quotedStringLiteral = {
+  lazy val stringLiteralExpression: Parser[expression.StringLiteral] = {
     val stringPart = escape ^*(_.flatMap(Character.toChars(_))) | !CodePoint.Values(newLineCharValues) ^*(_.chars)
 
     OrderedChoiceParser(Seq("\"", "'") map { quot =>
-      quot ~> (!:(quot) ~> stringPart).* <~ quot ^* { p => new String(p.flatten.toArray) }
+      quot ~> (!:(quot) ~> stringPart).* <~ quot ^* { p => expression.StringLiteral(new String(p.flatten.toArray)) }
     })
   }
 
   /** An argument list, including parentheses. */
-  lazy val argumentList: Parser[Seq[Expression]] = "(" ~ expressionWhitespace ~ argumentListArguments.? ~ expressionWhitespace ~ ")" ^*(_._3.getOrElse(Seq()))
+  lazy val argumentList: Parser[Seq[Expression]] = {
+    val argumentListArguments = <>(expr) ~ (argumentSeparator ~ <>(expr)).* ^* { p => p._1 +: p._2.map(_._2) }
 
-  private lazy val argumentListArguments = <>(expr) ~ (argumentSeparator ~ <>(expr)).* ^* { p => p._1 +: p._2.map(_._2) }
+    "(" ~ expressionWhitespace ~ argumentListArguments.? ~ expressionWhitespace ~ ")" ^*(_._3.getOrElse(Seq()))
+  }
 
   protected lazy val argumentSeparator = expressionWhitespace ~ "," ~ expressionWhitespace ^^^(())
 

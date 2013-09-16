@@ -1,7 +1,7 @@
 package smd
 package grammar
 
-import smd.parsing.{LiteralSetParser, Parsers}
+import smd.parsing.{GraphemeParser, LiteralSetParser, Parsers}
 
 trait CommonProductions extends Parsers {
   type Block = markdown.Block
@@ -11,6 +11,7 @@ trait CommonProductions extends Parsers {
   def doc: Parser[markdown.Document] = ???
   def expr: Parser[Expression]
   def leftHandSideExpression: Parser[Expression]
+  def iriLiteralExpression: Parser[Expression]
 
   /** An escape sequence. Yields a sequence of code points. */
   protected lazy val escape: Parser[Seq[Int]] =
@@ -40,6 +41,7 @@ trait CommonProductions extends Parsers {
 
   /** A single or multi-line comment. */
   lazy val comment = singleLineComment | multiLineComment
+  lazy val commentStart = "//" | "/*"
   private lazy val multiLineComment =  "/*" ~ (!:("*/") ~ unicodeCharacter).* ~ "*/"
   private lazy val singleLineComment = "//" ~ line
 

@@ -16,7 +16,7 @@ class LeftHandSideExpressionProductionsSpec extends ProductionSpec {
 
     shouldParse("@a['b']")   as expression.DynamicProperty(
                                   body = expression.Identifier("a"),
-                                  member = expression.QuotedStringLiteral("b")
+                                  member = expression.StringLiteral("b")
                                 )
 
     shouldParse("@a.b()")    as expression.Call(
@@ -32,6 +32,6 @@ class LeftHandSideExpressionProductionsSpec extends ProductionSpec {
                                     body = expression.Identifier("a"),
                                     member = "b"
                                   ),
-                                  args = Seq(expression.QuotedStringLiteral("c"))
+                                  args = Seq(expression.StringLiteral("c"))
                                 )
 }
