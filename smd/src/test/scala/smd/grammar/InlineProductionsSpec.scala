@@ -28,4 +28,8 @@ class InlineProductionsSpec extends ProductionSpec {
     shouldParse("***a***") as Strong(Seq(Emphasis(Seq(Text("a")))))
     shouldParse("***a*b**") as Strong(Seq(Emphasis(Seq(Text("a"))), Text("b")))
   }
+  describe("Text") {
+    shouldParse("pelican") as Text("pelican")
+    shouldParse("pelican's") as Text("pelican's")
+  }
 }

@@ -4,8 +4,18 @@ package grammar
 import smd.parsing.OrderedChoiceParser
 
 trait InlineProductions extends CommonProductions {
-  lazy val inline: Parser[Inline] =
-    text | lineBreak | space | strong | emphasis | quoted | code | entity | inlineExpression | symbol
+  lazy val inline: Parser[Inline] = (
+    text
+  | lineBreak
+  | space
+  | strong
+  | emphasis
+  | quoted
+  | code
+  | entity
+  | inlineExpression
+  | symbol
+  )
 
   lazy val strong = "**" ~> (!:("**") ~> <>(inline)).+ <~ "**" ^* markdown.Strong
 
@@ -14,7 +24,11 @@ trait InlineProductions extends CommonProductions {
   lazy val lineBreak =
     blockWhitespaceOrComments ~ "\\" ~ &:(blankLine) ~ blockWhitespaceOrComments ^^^ markdown.LineBreak()
 
-  lazy val text = normalChar.+ ^^ { r => markdown.Text(r.parsed.toString) }
+  lazy val text: Parser[markdown.Text] = {
+    val apos = "'" ~ Grapheme.Category(UnicodeCategory.Groups.Letter ++ UnicodeCategory.Groups.Number)
+
+    normalChar.+ ~ apos.* ^^ { r => markdown.Text(r.parsed.toString)}
+  }
 
   /** Any non-empty combination of comments and whitespace not leaving or at the end of a block. */
   lazy val space = blockWhitespaceOrComments ~ !:(blankLine) ^^^ markdown.Space()
@@ -56,6 +70,7 @@ trait InlineProductions extends CommonProductions {
     newLine ~ spaceChars ~ !:(blankLine)
 
 
+  /** A normal character; not a special or whitespace character. */
   protected lazy val normalChar = !Grapheme.SingleCodePoint(CodePoint.Values(specialCharValues ++ whitespaceCharValues))
 
   /** A special character; a character which can denote the beginning of a structural element. */
