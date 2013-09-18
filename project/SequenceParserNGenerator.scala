@@ -1,6 +1,8 @@
 import sbt._
 
-class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"smd"/"parsing"/s"SequenceParser$n.scala") {
+class SequenceParserNGenerator(n: Int) extends FileGenerator(_/"smd"/"parsing"/s"SequenceParser$n.scala") {
+  import SequenceParserNGenerator._
+
   private def className(x: Int = n) = s"SequenceParser$x"
   private def qualifiedClassName(x: Int = n) = s"smd.parsing.${className(x)}"
 
@@ -41,7 +43,7 @@ class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"smd"/
     |
     |object SequenceParser$n {
     |$sequencingHeuristic
-    |${(2 to maxN-n).map({ i => s"""
+    |${(2 to MaxN-n).map({ i => s"""
     |
     |  /** Implicit [[smd.parsing.SequencingHeuristic]] which describes how to combine an [[${qualifiedClassName(n)}]]
     |    * on the left-hand side with an [[${qualifiedClassName(i)}]] to its right. */
@@ -56,7 +58,7 @@ class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"smd"/
     """.trim.stripMargin
 
   def sequencingHeuristic: String =
-    if(n == maxN) s"""
+    if(n == MaxN) s"""
     |  implicit def sequencingHeuristic[${lst("L", 1 to n)}, R]: SequencingHeuristic[
     |    /*  left: */ ${className(n)}[${lst("L", 1 to n)}],
     |    /* right: */ Parser[R],
@@ -74,4 +76,8 @@ class SequenceParserNGenerator(n: Int, maxN: Int) extends FileGenerator(_/"smd"/
     |  ] =
     |    SequencingHeuristic.create((l, r) => ${className(n+1)}(${lst("l.p", 1 to n)}, r))
     """.trim.stripMargin
+}
+
+object SequenceParserNGenerator {
+  val MaxN: Int = 16 
 }

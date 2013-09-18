@@ -42,7 +42,7 @@ object SmdBuild extends Build {
 
   lazy val parsing = {
     val generateSourcesTask = generateSources <<= scalaSource.in(Compile) map { (baseDir: File) =>
-      val sequenceParserGenerators = (2 to 16) map { new SequenceParserNGenerator(_, 16) } toList
+      val sequenceParserGenerators = (2 to SequenceParserNGenerator.MaxN) map { new SequenceParserNGenerator(_) } toList
 
       val generators = sequenceParserGenerators
 
