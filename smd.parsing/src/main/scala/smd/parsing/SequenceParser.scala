@@ -1,7 +1,7 @@
 package smd
 package parsing
 
-case class SequenceParser(sequence: IndexedSeq[Parser[Any]]) extends Parser[IndexedSeq[Any]] {
+case class SequenceParser(sequence: IndexedSeq[Parser[Any]]) extends SequenceParserLike[IndexedSeq[Any]] {
   require(sequence.lengthGte(2), "sequence must contain at least two parsers.")
 
   def parse(context: ParsingContext): ParsingResult[IndexedSeq[Any]] = {
@@ -27,7 +27,4 @@ case class SequenceParser(sequence: IndexedSeq[Parser[Any]]) extends Parser[Inde
 object SequenceParser {
   def apply(p0: Parser[Any], pns: Parser[Any]*): SequenceParser =
     SequenceParser((p0 +: pns).toIndexedSeq)
-
-  implicit val sequencingHeuristic: SequencingHeuristic[SequenceParser, Parser[_], SequenceParser] =
-    SequencingHeuristic.create((l, r) => SequenceParser(l.sequence :+ r))
 }

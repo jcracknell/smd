@@ -57,7 +57,4 @@ trait Parser[+A] { lhs =>
 object Parser {
   implicit def orderedChoiceHeuristic[A]: OrderedChoiceHeuristic[Parser[A], Parser[A], OrderedChoiceParser[A]] =
     OrderedChoiceHeuristic.create((l, r) => OrderedChoiceParser(l, r))
-
-  implicit def sequencingHeuristic[L, R]: SequencingHeuristic[Parser[L], Parser[R], SequenceParser2[L, R]] =
-    SequencingHeuristic.create((l, r) => SequenceParser2(l, r))
 }
