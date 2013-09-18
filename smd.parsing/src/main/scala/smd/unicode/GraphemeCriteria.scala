@@ -57,6 +57,6 @@ object GraphemeCriteria {
     */
   case class SingleCodePoint(criterion: CodePointCriterion) extends GraphemeCriterion {
     def isSatisfiedBy(grapheme: GraphemeInfo): Boolean =
-      !grapheme.codePoints.lengthLte(1) && criterion.isSatisfiedBy(grapheme.codePoints.head)
+      grapheme.codePoints.lengthEq(1) && criterion.isSatisfiedBy(grapheme.codePoints.head)
   }
 }
