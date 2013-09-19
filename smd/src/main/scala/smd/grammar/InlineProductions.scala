@@ -11,12 +11,25 @@ trait InlineProductions extends CommonProductions {
   | strong
   | emphasis
   | quoted
+  | link
   | autoLink
   | code
   | entity
   | inlineExpression
   | symbol
   )
+
+  /** A link of the form `[link text][optional refid](url, args)`. */
+  lazy val link: Parser[markdown.Link] = {
+    val label = "[" ~> (!:("]") ~> <>(inline)).* <~ "]"
+
+    label ~ referenceId.? ~ argumentList.? ^~ { (lbl, ref, args) => markdown.Link(lbl, ref, args.getOrElse(Seq())) }
+  }
+
+  /** A reference id enclosed in square brackets. */
+  lazy val referenceId: Parser[markdown.ReferenceId] = (
+    "[" ~> ((!:(CodePoint.Values(newLineCharValues + ']')) ~ unicodeCharacter).* ^^ (_.parsed)) <~ "]"
+  ) ^* { p => markdown.ReferenceId(p.toString) }
 
   lazy val autoLink: Parser[markdown.AutoLink] =
     // TODO: decoding? more forgiving?

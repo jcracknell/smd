@@ -12,6 +12,7 @@ trait CommonProductions extends Parsers {
   def expr: Parser[Expression]
   def leftHandSideExpression: Parser[Expression]
   def iriLiteralExpression: Parser[expression.IriLiteral]
+  def argumentList: Parser[Seq[Expression]]
 
   /** An escape sequence. Yields a sequence of code points. */
   protected lazy val escape: Parser[Seq[Int]] =
