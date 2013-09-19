@@ -45,14 +45,10 @@ trait InlineProductions extends CommonProductions {
   )
 
   /** Backtick-enclosed code not leaving a block. */
-  lazy val code =
-    &:("`") ~> OrderedChoiceParser((1 to 16).reverse.map(n => "".padTo(n, '`')).map { ticks =>
-      ticks ~> (
-        (
-          blockWhitespace.? ~
-          (!:(whitespace | ticks) ~ unicodeCharacter ~ blockWhitespace.?).*
-        ) ^^(_.parsed)
-      ) <~ ticks
+  lazy val code: Parser[markdown.Code] =
+    &:("`") ~> OrderedChoiceParser((1 to 16).map(n => "".padTo(n, '`')).map { ticks =>
+      val content = !:("`") ~ blockWhitespace.? ~ (!:(whitespace | ticks) ~ unicodeCharacter ~ blockWhitespace.?).+
+      ticks ~> (content ^^ { _.parsed }) <~ ticks
     }) ^* { p => markdown.Code(p.toString) }
 
   lazy val inlineExpression = &:("@") ~> leftHandSideExpression <~ ";".? ^* markdown.InlineExpression

@@ -7,9 +7,7 @@ class InlineProductionsSpec extends ProductionSpec {
   def subject = Grammar.inline
 
   describe("Code") {
-    shouldParse("``") as Code("")
     shouldParse("`a`") as Code("a")
-    shouldParse("````````````````````````````````") as Code("")
     shouldParse("````````````````a````````````````") as Code("a")
     shouldParse("`//comment`") as Code("//comment")
   }
