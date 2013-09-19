@@ -111,5 +111,3 @@ case class Symbol(value: String) extends Atomic
 case class Text(value: String) extends Atomic
 
 case class Entity(codePoints: Seq[Int]) extends Atomic
-
-case class ReferenceId(value: String)
