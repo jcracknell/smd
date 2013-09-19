@@ -18,7 +18,7 @@ class SequenceParserNGenerator(n: Int) extends FileGenerator(_/"smd"/"parsing"/s
     |case class ${className(n)}[${lst("+T", 1 to n)}](
     |  ${(1 to n).map(i => s"p$i: Parser[T$i]").mkString(", ")}
     |) extends SequenceParserLike[(${lst("T", 1 to n)})]
-    |{
+    |{ seq =>
     |  lazy val sequence: IndexedSeq[Parser[Any]] = IndexedSeq(${lst("p", 1 to n)})
     |
     |  def parse(context: ParsingContext): ParsingResult[(${lst("T", 1 to n)})] = {
@@ -31,17 +31,29 @@ class SequenceParserNGenerator(n: Int) extends FileGenerator(_/"smd"/"parsing"/s
     |
     |    rb.success((${lst("r", 1 to n, ".product")}))
     |  }
+    |
+    |  /** Apply a transformation to the products of this [[${qualifiedClassName(n)}]] if parsing is successful.
+    |    *
+    |    * @param transform the transformation to be applied to the products of successful parsing attempts.
+    |    * @tparam B the transformed product type.
+    |    */
+    |  def ^~ [B](transform: (${lst("T", 1 to n)}) => B): Parser[B] = new Parser[B] {
+    |    def parse(context: ParsingContext): ParsingResult[B] = {
+    |      val r = seq.parse(context)
+    |      if(r.succeeded) r.copy(transform.tupled(r.product)) else ParsingResult.Failure
+    |    }
+    |  }
     |}
     """.trim.stripMargin
 }
 
 object SequenceParserNGenerator {
-  val MaxN: Int = 16 
+  val MaxN: Int = 16
 
   def className(x: Int) = s"SequenceParser$x"
   def qualifiedClassName(x: Int) = s"smd.parsing.${className(x)}"
 
-  def ordinal(x: Int) = 
+  def ordinal(x: Int) =
     x + IndexedSeq("th","st","nd","rd","th")(if(10 <= x && x <= 19) 4 else math.min(4, x % 10))
 
   def lst(prefix: String, is: Iterable[Int], suffix: String = ""): String = is.map(prefix+_+suffix).mkString(", ")
