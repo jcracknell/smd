@@ -102,7 +102,7 @@ case class Strong(children: Seq[Inline]) extends Span
 
 sealed abstract class Atomic extends Inline
 
-case class AutoLink(uri: String, args: Seq[expression.Expression]) extends Atomic
+case class AutoLink(uri: String) extends Atomic
 case class Code(value: String) extends Atomic
 case class InlineExpression(expr: expression.Expression) extends Atomic
 case class LineBreak() extends Atomic

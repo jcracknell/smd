@@ -6,6 +6,11 @@ class InlineProductionsSpec extends ProductionSpec {
 
   def subject = Grammar.inline
 
+  describe("AutoLink") {
+    shouldParse("<https://github.com>") as AutoLink("https://github.com")
+    shouldParse("<mailto:john.doe@gmail.com>") as AutoLink("mailto:john.doe@gmail.com")
+    shouldParse("<mailto:john.doe@gmail.com?subject=Where+is+my+money+you+bastard>") as AutoLink("mailto:john.doe@gmail.com?subject=Where+is+my+money+you+bastard")
+  }
   describe("Code") {
     shouldParse("`a`") as Code("a")
     shouldParse("````````````````a````````````````") as Code("a")

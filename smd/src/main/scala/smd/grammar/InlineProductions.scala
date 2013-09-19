@@ -11,11 +11,16 @@ trait InlineProductions extends CommonProductions {
   | strong
   | emphasis
   | quoted
+  | autoLink
   | code
   | entity
   | inlineExpression
   | symbol
   )
+
+  lazy val autoLink: Parser[markdown.AutoLink] =
+    // TODO: decoding? more forgiving?
+    "<" ~ &:(englishAlpha.+ ~ ":") ~> (iriLiteralExpression ^* { iri => markdown.AutoLink(iri.value) }) <~ ">"
 
   lazy val strong = "**" ~> (!:("**") ~> <>(inline)).+ <~ "**" ^* markdown.Strong
 
