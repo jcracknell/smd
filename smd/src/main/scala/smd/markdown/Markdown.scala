@@ -13,7 +13,7 @@ sealed abstract class Block extends Markdown
 
 case class Blockquote(children: Seq[Block]) extends Block with Composite[Block]
 case class ExpressionBlock(expr: expression.Expression) extends Block
-case class Heading(children: Seq[Inline], level: Int) extends Block with Composite[Inline]
+case class Heading(level: Int, children: Seq[Inline]) extends Block with Composite[Inline]
 case class Paragraph(children: Seq[Inline]) extends Block with Composite[Inline]
 case class Reference(ref: ReferenceId, args: Seq[expression.Expression]) extends Block
 

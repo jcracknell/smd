@@ -49,6 +49,7 @@ trait CommonProductions extends Parsers {
   /** The (remainder) of the the current line, including the newline sequence. */
   protected lazy val line = (!:(newLine) ~ unicodeCharacter).* ~ newLine.?
 
+  /** Zero or more blank lines. */
   protected lazy val blankLines = (spaceChars ~ newLine).* ~ (spaceChars ~ EOF).?
 
   /** Zero or more space characters followed by a newline or the end of the input. */
