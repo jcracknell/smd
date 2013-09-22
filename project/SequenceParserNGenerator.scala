@@ -26,7 +26,7 @@ class SequenceParserNGenerator(n: Int) extends FileGenerator(_/"smd"/"parsing"/s
     |
     |    ${(1 to n).map({ i => s"""
     |    val r$i = p$i.parse(context)
-    |    if(r$i.failed) return rb.failure
+    |    if(r$i.failed) return Failure
     |    """.trim.stripMargin }).mkString("\n").trim}
     |
     |    rb.success((${lst("r", 1 to n, ".product")}))
@@ -40,7 +40,7 @@ class SequenceParserNGenerator(n: Int) extends FileGenerator(_/"smd"/"parsing"/s
     |  def ^~ [B](transform: (${lst("T", 1 to n)}) => B): Parser[B] = new Parser[B] {
     |    def parse(context: ParsingContext): ParsingResult[B] = {
     |      val r = seq.parse(context)
-    |      if(r.succeeded) r.copy(transform.tupled(r.product)) else ParsingResult.Failure
+    |      if(r.succeeded) r.copy(transform.tupled(r.product)) else Failure
     |    }
     |  }
     |}

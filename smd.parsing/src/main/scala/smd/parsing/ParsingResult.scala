@@ -6,7 +6,7 @@ package parsing
   * @tparam A the type of the product of the parsing result.
   * @define ifSuccessful (if parsing was successful)
   */
-sealed trait ParsingResult[+A] {
+sealed abstract class ParsingResult[+A] {
   /** Returns true if parsing was successful. */
   def succeeded: Boolean
 
@@ -52,35 +52,53 @@ sealed trait ParsingResult[+A] {
 }
 
 object ParsingResult {
-  class Success[+A](val product: A, protected val source: CharSequence, val index: Int, val endIndex: Int) extends ParsingResult[A] {
-    def succeeded: Boolean = true
-    def failed: Boolean = false
-    def length: Int = endIndex - index
-    def parsed: CharSequence = source.proxySubSequence(index, endIndex)
-    def copy[B](replacement: B): ParsingResult[B] = new Success[B](replacement, source, index, endIndex)
-  }
-
   /** Creates a failed [[smd.parsing.ParsingResult]] of the specified type.
     *
     * @tparam A the type of the failed [[smd.parsing.ParsingResult]] to be created.
     * @return a failed [[smd.parsing.ParsingResult]] of the specified type.
     */
   def failure[A]: ParsingResult[A] = Failure.asInstanceOf[ParsingResult[A]]
+}
 
-  case object Failure extends ParsingResult[Nothing] {
-    val succeeded: Boolean = false
-    val failed: Boolean = true
-    def product: Nothing =
-      throw new UnsupportedOperationException("Attempt to access product of failed ParsingResult.")
-    def index: Int =
-      throw new UnsupportedOperationException("Attempt to access index of failed ParsingResult.")
-    def endIndex: Int =
-      throw new UnsupportedOperationException("Attempt to access endIndex of failed ParsingResult.")
-    def length: Int =
-      throw new UnsupportedOperationException("Attempt to access length of failed ParsingResult.")
-    def parsed: CharSequence =
-      throw new UnsupportedOperationException("Attempt to access parsedInput of failed ParsingResult.")
-    def copy[B](replacement: B): ParsingResult[B] =
-      throw new UnsupportedOperationException("Call to copy on failed ParsingResult.")
+/** A successful [[smd.parsing.ParsingResult]]. */
+class Success[+A](val product: A, protected val source: CharSequence, val index: Int, val endIndex: Int) extends ParsingResult[A] {
+  def succeeded: Boolean = true
+  def failed: Boolean = false
+  def length: Int = endIndex - index
+  def parsed: CharSequence = source.proxySubSequence(index, endIndex)
+  def copy[B](replacement: B): ParsingResult[B] = new Success[B](replacement, source, index, endIndex)
+
+  override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode((product, source, index, endIndex))
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case that: Success[_] => this.index   == that.index &&
+                             this.length  == that.length &&
+                             this.product == that.product &&
+                             this.source  == that.source
+    case _ => false
   }
+
+  override def toString: String = s"${getClass.getName}($product)"
+}
+
+object Success {
+  def unapply[A](result: Success[A]): Option[(A)] = Some((result.product))
+}
+
+/** An failed [[smd.parsing.ParsingResult]]. */
+case object Failure extends ParsingResult[Nothing] {
+  val succeeded: Boolean = false
+  val failed: Boolean = true
+  def product: Nothing =
+    throw new UnsupportedOperationException("Attempt to access product of failed ParsingResult.")
+  def index: Int =
+    throw new UnsupportedOperationException("Attempt to access index of failed ParsingResult.")
+  def endIndex: Int =
+    throw new UnsupportedOperationException("Attempt to access endIndex of failed ParsingResult.")
+  def length: Int =
+    throw new UnsupportedOperationException("Attempt to access length of failed ParsingResult.")
+  def parsed: CharSequence =
+    throw new UnsupportedOperationException("Attempt to access parsedInput of failed ParsingResult.")
+  def copy[B](replacement: B): ParsingResult[B] =
+    throw new UnsupportedOperationException("Call to copy on failed ParsingResult.")
 }

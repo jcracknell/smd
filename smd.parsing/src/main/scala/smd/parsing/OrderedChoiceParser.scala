@@ -17,7 +17,7 @@ case class OrderedChoiceParser[+A](choices: IndexedSeq[Parser[A]]) extends Parse
       i += 1
     } while(i < choices.length)
 
-    ParsingResult.Failure
+    Failure
   }
 }
 

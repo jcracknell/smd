@@ -25,4 +25,9 @@ trait ProductionSpec extends FunSpec with ShouldMatchers {
       }
     }
   }
+
+  implicit class TestableParser[+A](parser: Parser[A]) {
+    def shouldParse(input: String): Unit = ???
+    def shouldNotParse(input: String): Unit = ???
+  }
 }

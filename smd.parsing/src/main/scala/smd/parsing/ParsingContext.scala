@@ -41,10 +41,10 @@ trait ParsingContext { context =>
       * @return a successful [[smd.parsing.ParsingResult]] containing the provided product.
       */
     def success[A](product: A): ParsingResult[A] =
-      new ParsingResult.Success[A](product, input, resultIndex, context.index)
+      new Success[A](product, input, resultIndex, endIndex = context.index)
 
     /** Creates an unsuccessful [[smd.parsing.ParsingResult]]. */
-    def failure[A]: ParsingResult[A] = ParsingResult.Failure
+    def failure[A]: ParsingResult[A] = Failure
   }
 }
 
