@@ -52,7 +52,8 @@ trait CommonProductions extends Parsers {
   /** Zero or more blank lines. */
   protected lazy val blankLines = (spaceChars ~ newLine).* ~ (spaceChars ~ EOF).?
 
-  /** Zero or more space characters followed by a newline or the end of the input. */
+  /** Zero or more space characters followed by a newline or the end of the input.
+    * This parser should _never_ be repeated. */
   protected lazy val blankLine = spaceChars ~ (newLine | EOF)
 
   /** A tab or four spaces. */

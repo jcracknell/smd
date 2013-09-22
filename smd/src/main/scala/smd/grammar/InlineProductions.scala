@@ -69,7 +69,7 @@ trait InlineProductions extends CommonProductions {
       ticks ~> (content ^^ { _.parsed }) <~ ticks
     }) ^* { p => markdown.Code(p.toString) }
 
-  lazy val inlineExpression = &:("@") ~> leftHandSideExpression <~ ";".? ^* markdown.InlineExpression
+  lazy val inlineExpression = &:("@") ~> <>(leftHandSideExpression) <~ ";".? ^* markdown.InlineExpression
 
   lazy val symbol = CodePoint.Values(specialCharValues) ^* { p => markdown.Symbol(p.charSequence.toString) }
 
