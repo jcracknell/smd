@@ -50,11 +50,11 @@ trait CommonProductions extends Parsers {
   protected lazy val line = (!:(newLine) ~ unicodeCharacter).* ~ newLine.?
 
   /** Zero or more blank lines. */
-  protected lazy val blankLines = (spaceChars ~ newLine).* ~ (spaceChars ~ EOF).?
+  protected lazy val blankLines = (spaceChars ~ newLine).* ~ (spaceChars ~ EOF).? ^^(_.parsed)
 
   /** Zero or more space characters followed by a newline or the end of the input.
     * This parser should _never_ be repeated. */
-  protected lazy val blankLine = spaceChars ~ (newLine | EOF)
+  protected lazy val blankLine = spaceChars ~ (newLine | EOF) ^^ (_.parsed)
 
   /** A tab or four spaces. */
   protected lazy val indent = "\t" | "    "

@@ -66,7 +66,7 @@ object OrderedList {
   }
 }
 
-sealed abstract class UnorderedList {
+sealed abstract class UnorderedList extends List {
   type Item <: UnorderedList.Item[_ <: Markdown]
 }
 
