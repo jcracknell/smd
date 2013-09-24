@@ -44,22 +44,22 @@ trait CommonProductions extends Parsers {
   lazy val comment = singleLineComment | multiLineComment
   lazy val commentStart = "//" | "/*"
   private lazy val multiLineComment =  "/*" ~ (!:("*/") ~ unicodeCharacter).* ~ "*/"
-  private lazy val singleLineComment = "//" ~ line
+  private lazy val singleLineComment = "//" ~ line_?
 
   /** The (remainder) of the the current line, including the newline sequence. */
-  protected lazy val line = (!:(newLine) ~ unicodeCharacter).* ~ newLine.?
+  protected lazy val line_? = (!:(newLine) ~ unicodeCharacter).* ~ newLine.?
 
   /** Zero or more blank lines. */
-  protected lazy val blankLines = (spaceChars ~ newLine).* ~ (spaceChars ~ EOF).? ^^(_.parsed)
+  protected lazy val blankLines_? = (spaceChars_? ~ newLine).* ~ (spaceChars_? ~ EOF).? ^^(_.parsed)
 
   /** Zero or more space characters followed by a newline or the end of the input.
     * This parser should _never_ be repeated. */
-  protected lazy val blankLine = spaceChars ~ (newLine | EOF) ^^ (_.parsed)
+  protected lazy val blankLine = spaceChars_? ~ (newLine | EOF) ^^ (_.parsed)
 
   /** A tab or four spaces. */
   protected lazy val indent = "\t" | "    "
   /** Up to three space characters. */
-  protected lazy val nonIndentSpace = " ".*(0,3)
+  protected lazy val nonIndentSpace_? = " ".*(0,3)
 
 
   protected lazy val hexDigit =          CodePoint.Values(('0' to '9') ++ ('a' to 'f') ++ ('A' to 'F'))
@@ -76,7 +76,7 @@ trait CommonProductions extends Parsers {
   /** A valid newline sequence. */
   protected lazy val newLine =    "\r\n" | CodePoint.Values(newLineCharValues)
   protected lazy val newLineCharValues = Set('\n', '\r', '\u2028', '\u2029')
-  protected lazy val spaceChars = spaceChar.*
+  protected lazy val spaceChars_? = spaceChar.*
   protected lazy val spaceChar =  CodePoint.Values(' ', '\t')
   protected lazy val spaceCharValues = Set(' ', '\t')
 

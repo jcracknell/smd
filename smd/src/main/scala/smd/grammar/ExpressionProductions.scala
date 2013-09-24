@@ -8,9 +8,9 @@ trait ExpressionProductions extends CommonProductions {
 
   lazy val conditionalExpression: Parser[Expression] = (
     logicalOrExpression
-  ~ ( expressionWhitespace ~ "?" ~ expressionWhitespace
+  ~ ( expressionWhitespace_? ~ "?" ~ expressionWhitespace_?
     ~ <>(conditionalExpression)
-    ~ expressionWhitespace ~ ":" ~ expressionWhitespace
+    ~ expressionWhitespace_? ~ ":" ~ expressionWhitespace_?
     ~ <>(conditionalExpression)
     ^*{ p => (p._4, p._8) }
     ).? ^* {
@@ -64,7 +64,7 @@ trait ExpressionProductions extends CommonProductions {
 
   private def binOp[A](operand: Parser[A], ops: Parser[(A, A) => A]): Parser[A] =
     operand ~ (
-      expressionWhitespace ~ ops ~ expressionWhitespace ~ operand ^* { case (_, op, _, rhs) => (op, rhs) }
+      expressionWhitespace_? ~ ops ~ expressionWhitespace_? ~ operand ^* { case (_, op, _, rhs) => (op, rhs) }
     ).* ^* { case (lhs, ops) => (lhs /: ops) { (body, op) => op._1(body, op._2) } }
 
   lazy val unaryExpression: Parser[Expression] = (
@@ -81,10 +81,10 @@ trait ExpressionProductions extends CommonProductions {
   )
 
   private def unaryOp(op: Parser[Any], builder: Expression => Expression): Parser[Expression] =
-    op ~ expressionWhitespace ~> <>(unaryExpression) ^*(builder(_))
+    op ~ expressionWhitespace_? ~> <>(unaryExpression) ^*(builder(_))
 
   lazy val postfixExpression: Parser[Expression] =
-    leftHandSideExpression ~ ( expressionWhitespaceNoNewline ~>
+    leftHandSideExpression ~ ( expressionWhitespaceNoNewline_? ~>
       "--" ^^^ expression.PostfixDecrement |
       "++" ^^^ expression.PostfixIncrement
     ).? ^* {
@@ -93,10 +93,10 @@ trait ExpressionProductions extends CommonProductions {
     }
 
   lazy val leftHandSideExpression: Parser[Expression] = {
-    val staticProperty =  "." ~ expressionWhitespace ~> identifier
-    val dynamicProperty = "[" ~ expressionWhitespace ~> <>(expr) <~ expressionWhitespace ~ "]"
+    val staticProperty =  "." ~ expressionWhitespace_? ~> identifier
+    val dynamicProperty = "[" ~ expressionWhitespace_? ~> <>(expr) <~ expressionWhitespace_? ~ "]"
 
-    atExpression ~ (expressionWhitespace ~ (
+    atExpression ~ (expressionWhitespace_? ~ (
       // Build a sequence of functions which will construct the appropriate expr when provided a body
       argumentList    ^* { args => (b: Expression) => expression.Call(b, args) } |
       staticProperty  ^* { prop => (b: Expression) => expression.StaticProperty(b, prop) } |
@@ -116,13 +116,13 @@ trait ExpressionProductions extends CommonProductions {
     literalExpression
   | arrayLiteralExpression
   | objectLiteralExpression
-  | "(" ~ expressionWhitespace ~> <>(expr) <~ expressionWhitespace ~ ")"
+  | "(" ~ expressionWhitespace_? ~> <>(expr) <~ expressionWhitespace_? ~ ")"
   )
 
   lazy val arrayLiteralExpression: Parser[expression.ArrayLiteral] = {
     /** A non-elided array element preceded by any number of elided elements. */
     val subsequentArrayElement =
-      argumentSeparator.+ ~ expressionWhitespace ~ <>(expr) ^* { case (seps, _, e) => seps.tail.map(_ => expression.Elided()) :+ e }
+      argumentSeparator.+ ~ expressionWhitespace_? ~ <>(expr) ^* { case (seps, _, e) => seps.tail.map(_ => expression.Elided()) :+ e }
 
     val arrayElements = (
       (
@@ -133,7 +133,7 @@ trait ExpressionProductions extends CommonProductions {
     ^*(_.getOrElse(Seq()))
     )
 
-    "[" ~ expressionWhitespace ~> arrayElements <~ expressionWhitespace ~ "]" ^* expression.ArrayLiteral
+    "[" ~ expressionWhitespace_? ~> arrayElements <~ expressionWhitespace_? ~ "]" ^* expression.ArrayLiteral
   }
 
   lazy val objectLiteralExpression: Parser[expression.ObjectLiteral] = {
@@ -146,7 +146,7 @@ trait ExpressionProductions extends CommonProductions {
     )
 
     val objectPropertyAssignment =
-      propertyName ~ expressionWhitespace ~ ":" ~ expressionWhitespace ~ <>(expr) ^* { p => (p._1, p._5) }
+      propertyName ~ expressionWhitespace_? ~ ":" ~ expressionWhitespace_? ~ <>(expr) ^* { p => (p._1, p._5) }
 
     val objectPropertyAssignments = (
       objectPropertyAssignment
@@ -156,7 +156,7 @@ trait ExpressionProductions extends CommonProductions {
     )
 
     (
-      "{" ~ expressionWhitespace ~> objectPropertyAssignments.? <~ expressionWhitespace ~ "}"
+      "{" ~ expressionWhitespace_? ~> objectPropertyAssignments.? <~ expressionWhitespace_? ~ "}"
     ^*{ ps => expression.ObjectLiteral(ps.getOrElse(Seq())) }
     )
   }
@@ -359,10 +359,10 @@ trait ExpressionProductions extends CommonProductions {
   lazy val argumentList: Parser[Seq[Expression]] = {
     val argumentListArguments = <>(expr) ~ (argumentSeparator ~ <>(expr)).* ^* { p => p._1 +: p._2.map(_._2) }
 
-    "(" ~ expressionWhitespace ~ argumentListArguments.? ~ expressionWhitespace ~ ")" ^*(_._3.getOrElse(Seq()))
+    "(" ~ expressionWhitespace_? ~ argumentListArguments.? ~ expressionWhitespace_? ~ ")" ^*(_._3.getOrElse(Seq()))
   }
 
-  protected lazy val argumentSeparator = expressionWhitespace ~ "," ~ expressionWhitespace ^^^(())
+  protected lazy val argumentSeparator = expressionWhitespace_? ~ "," ~ expressionWhitespace_? ^^^(())
 
   lazy val keyword = LiteralSetParser(
                        "break", "case", "catch", "class", "const", "continue", "debugger",
@@ -373,8 +373,9 @@ trait ExpressionProductions extends CommonProductions {
                      )
 
   /** Zero or more space characters or comments. */
-  lazy val expressionWhitespaceNoNewline = (spaceChar | comment).*
+  lazy val expressionWhitespaceNoNewline_? = (spaceChar | comment).*
 
   /** Zero or more whitespace characters or comments. */
-  lazy val expressionWhitespace = (whitespace | comment).*
+  lazy val expressionWhitespace_? = expressionWhitespace.?
+  lazy val expressionWhitespace = (whitespace | comment).+
 }

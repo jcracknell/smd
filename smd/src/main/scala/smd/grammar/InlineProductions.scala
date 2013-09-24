@@ -74,15 +74,16 @@ trait InlineProductions extends CommonProductions {
   lazy val symbol = CodePoint.Values(specialCharValues) ^* { p => markdown.Symbol(p.charSequence.toString) }
 
   /** Any non-empty combination of comments and whitespace not consuming a blank line. */
-  protected lazy val blockWhitespaceOrComments =
-    blockWhitespace ~ (comment ~ blockWhitespace.?).* |
-    (comment ~ blockWhitespace.?).+
+  protected lazy val blockWhitespaceOrComments = (
+    blockWhitespace ~ (comment ~ blockWhitespace.?).*
+  | (comment ~ blockWhitespace.?).+
+  )
 
   /** Any non-empty amount of whitespace not consuming a blank line. */
-  protected lazy val blockWhitespace =
-    spaceChar.+ ~ (newLine ~ spaceChars ~ !:(blankLine)).? |
-    newLine ~ spaceChars ~ !:(blankLine)
-
+  protected lazy val blockWhitespace = (
+    spaceChar.+ ~ (newLine ~ spaceChars_? ~ !:(blankLine)).?
+  | newLine ~ spaceChars_? ~ !:(blankLine)
+  )
 
   /** A normal character; not a special or whitespace character. */
   protected lazy val normalChar = !Grapheme.SingleCodePoint(CodePoint.Values(specialCharValues ++ whitespaceCharValues))
