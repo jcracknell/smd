@@ -15,6 +15,7 @@ trait BlockProductions extends InlineProductions {
     heading
   | blockquote
   | unorderedList
+  | orderedList
   | paragraph
   )
 
@@ -22,42 +23,83 @@ trait BlockProductions extends InlineProductions {
   lazy val interBlock =
     repSep(1, blankLines_?, spaceChars_? ~ comment) ^^(_.parsed)
 
-  lazy val unorderedList: Parser[markdown.UnorderedList] = {
-    /** A marker must be followed by at least one space to avoid confusion with emphasis, negative numbers, etc. */
-    val marker = nonIndentSpace_? ~ ("*" | "-" | "+") ~ spaceChar.+
+  {
+    val enumerator = digit.+ ~ "." ~ spaceChar.+
 
-    /** A line beginning with a marker. */
-    val markerLine = marker ~> blockLine_?
-    /** A line not beginning with a marker. One leading indent is discarded if it exists. */
-    val noMarkerLine = !:(marker) ~ indent.? ~> blockLine
+  }
+
+  lazy val orderedList: Parser[markdown.OrderedList] = {
+    val enumerator = (
+      nonIndentSpace_? ~> digit.+ <~ "." ~ spaceChar.*
+      ^^ { r => try { Integer.parseInt(r.parsed.toString) } catch { case _: Throwable => 1 } }
+    )
+
+    genList(enumerator)(
+      is => markdown.OrderedList.Tight(
+        is map { case (_, inlines) => markdown.OrderedList.Item(inlines) },
+        markdown.OrderedList.CounterStyle.Arabic
+      ),
+      is => markdown.OrderedList.Loose(
+        is map { case (_, blocks) => markdown.OrderedList.Item(blocks) },
+        markdown.OrderedList.CounterStyle.Arabic
+      )
+    )
+  }
+
+  lazy val unorderedList: Parser[markdown.UnorderedList] = {
+    /** A bullet must be followed by at least one space to avoid confusion with emphasis, negative numbers, etc. */
+    val bullet = nonIndentSpace_? ~ ("*" | "-" | "+") ~ spaceChar.+
+
+    genList(bullet)(
+      is => markdown.UnorderedList.Tight(
+        is map { case (_, inlines) => markdown.UnorderedList.Item(inlines) }
+      ),
+      is => markdown.UnorderedList.Loose(
+        is map { case (_, blocks) => markdown.UnorderedList.Item(blocks) }
+      )
+    )
+  }
+
+  /** Generic grammar for a list.
+    *
+    * @param marker parser for a list marker.
+    * @param tight function for creating a tight list from a sequence of marker-content pairs.
+    * @param loose function for creating a loose list from a sequence of marker-content pairs.
+    * @tparam M product type of the marker parser.
+    * @tparam L resulting list type.
+    */
+  protected def genList[M, L <: markdown.List](marker: Parser[M])(
+    tight: Seq[(M, Seq[markdown.Inline])] => L,
+    loose: Seq[(M, Seq[markdown.Block])] => L
+  ): Parser[L] = {
+    /** A line starting with a list marker. */
+    val markedLine = marker ~ blockLine_?
+    /** A line not starting with a list marker. Consumes an optional indent at the beginning of the line. */
+    val unmarkedLine = !:(marker) ~ indent.? ~> blockLine
+
+    /** The initial block of a list item, beginning with a marker. */
+    val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
+    /** A subsequent block of a list item, indented and not starting with a list marker.
+      * The indent is consumed by noMarkerLine. */
+    val itemSubsequentBlock = interBlock ~ &:(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
 
     /** A 'tight' list item is a list item which contains only a single block. */
-    val itemTight = markerLine ~ noMarkerLine.* ^~ { (a, b) => a +: b }
+    val itemTight = itemInitialBlock
+    /** A 'loose' list item can contain subsequent blocks of content. */
+    val itemLoose = itemInitialBlock ~ itemSubsequentBlock.* ^* { case ((m, a), bs) => (m, a ++ bs.flatten) }
 
-    /** A list item continues if it is followed by interblock content and an indented line.*/
-    val itemContinuesLoose = interBlock ~ &:(indent) ~ noMarkerLine.+ ^~ { (ib, _, ls) => ib +: ls }
-    val itemLoose = itemTight ~ itemContinuesLoose.* ^~ { (a, b) => a ++ b.flatten }
-
-    /** At least one tight list items not followed by valid loose content. */
-    val tight: Parser[markdown.UnorderedList.Tight] = (
-      itemTight.+ <~ !:(itemContinuesLoose | interBlock ~ &:(marker))
-      ^* { items => markdown.UnorderedList.Tight(
-                      items.map(lines => parse(blockInlines_?, lines))
-                      .map(is => markdown.UnorderedList.Item(is))
-                    )
-         }
+    /** A 'tight' list is a sequence of tight list items not followed by loose content. */
+    val tightList = (
+      itemTight.+ <~ !:(interBlock ~ (marker | indent))
+      ^* { items => tight(items map { case (m, ls) => (m, parse(blockInlines_?, ls)) }) }
     )
 
-    val loose: Parser[markdown.UnorderedList.Loose] = (
+    val looseList = (
       repSep(1, itemLoose, interBlock.?)
-      ^* { case (items, _) => markdown.UnorderedList.Loose(
-                                items.map(parse(blocks, _)).map(bs => markdown.UnorderedList.Item(bs))
-                              )
-         }
+      ^* { case (items, _) => loose(items map { case (m, ls) => (m, parse(blocks, ls)) }) }
     )
 
-    /** Tight must be attempted first here, as it as defined as 'a list which is not loose'. */
-    tight | loose
+    tightList | looseList
   }
 
   lazy val blockquote: Parser[markdown.Blockquote] = {
