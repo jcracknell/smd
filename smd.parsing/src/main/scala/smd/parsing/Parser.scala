@@ -5,12 +5,13 @@ trait Parser[+A] { lhs =>
   def parse(context: ParsingContext): ParsingResult[A]
   def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
 
+  /** Apply a transformation to the result of the left-hand parser. */
   def ^^  [B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 
-  def ^* [B](transform: A => B): Parser[B] = ProductTransformParser(this, transform)
+  /** Apply a transformation to the product of the left-hand parser. */
+  def ^*  [B](transform: A => B): Parser[B] = this ^^ { r => transform(r.product) }
 
-  def ^^^ [B](transform: => B): Parser[B] = TransformParser(this, (x: ParsingResult[A]) => transform)
-
+  def ^^^ [B](transform: => B): Parser[B] = this ^^ { r => transform }
 
   def ? : OptionalParser[A] = OptionalParser(this)
 

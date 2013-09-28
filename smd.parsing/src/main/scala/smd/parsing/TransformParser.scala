@@ -8,3 +8,8 @@ case class TransformParser[A, +B](parser: Parser[A], transform: ParsingResult[A]
   }
 }
 
+object TransformParser {
+  def product[A, B](parser: Parser[A], transform: A => B): TransformParser[A, B] =
+    TransformParser(parser, r => transform(r.product))
+}
+

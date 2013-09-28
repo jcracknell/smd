@@ -15,20 +15,14 @@ class ImplicitParserOpsGenerator extends FileGenerator(_/"smd"/"parsing"/"Implic
     |  // TODO: Check if restriction on inner classes in value classes has been lifted
     |${(2 to SequenceParserNGenerator.MaxN).map({ n => s"""
     |  /** Implicit class adding operations to parsers producing [[scala.Tuple${n}]] values. */
-    |  implicit class UpgrayyeddedTupleParser${n}[${lst("T", 1 to n)}](val parser: Parser[(${lst("T", 1 to n)})]) {
+    |  implicit class UpgrayeddedTupleParser${n}[${lst("T", 1 to n)}](val parser: Parser[(${lst("T", 1 to n)})]) {
     |    /** Apply a transformation to the [[scala.Tuple${n}]] produced by the [[smd.parsing.Parser]] if parsing is successful.
     |      *
     |      * @param transform the transformation to be applied to the product [[scala.Tuple${n}]].
     |      * @tparam B the transformed product type.
     |      */
-    |    def ^~ [B](transform: (${lst("T", 1 to n)}) => B): Parser[B] = new Parser[B] {
-    |      private val t = transform.tupled
-
-    |      def parse(context: ParsingContext): ParsingResult[B] = {
-    |        val r = parser.parse(context)
-    |        if(r.succeeded) r.copy(t(r.product)) else Failure
-    |      }
-    |    }
+    |    def ^~ [B](transform: (${lst("T", 1 to n)}) => B): Parser[B] =
+    |      parser ^* transform.tupled
     |  }
     |""".trim.stripMargin}).mkString("\n")}
     |}
