@@ -16,16 +16,23 @@ trait BlockProductions extends InlineProductions {
   | blockquote
   | unorderedList
   | orderedList
+  | reference
   | paragraph
   )
 
   /** Zero or more blank lines interleaved with comments. */
-  lazy val interBlock =
-    repSep(1, blankLines_?, spaceChars_? ~ comment) ^^(_.parsed)
+  lazy val interBlock = repSep(0, blankLines_?, spaceChars_? ~ comment) ^^(_.parsed)
 
-  {
-    val enumerator = digit.+ ~ "." ~ spaceChar.+
+  lazy val reference: Parser[markdown.Reference] = {
+    // Divergence from spec: we accept any number of spaces, as we do not support indented code blocks
+    val ref = spaceChars_? ~> referenceId <~ ":" ~ blockWhitespaceOrComments
 
+    val blockArgumentList: Parser[Seq[Expression]] = {
+      val separator = blockWhitespaceOrComments ~ "," ~ blockWhitespaceOrComments
+      repSep(1, leftHandSideExpression, separator) ^* { case (args, _) => args }
+    }
+
+    ref ~ (blockArgumentList | argumentList) ^~ { (r, as) => markdown.Reference(r, as) }
   }
 
   lazy val orderedList: Parser[markdown.OrderedList] = {

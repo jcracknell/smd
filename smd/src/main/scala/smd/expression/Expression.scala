@@ -44,7 +44,14 @@ case class Negative(expr: Expression) extends Expression with Unary
 case class NotEquals(lhs: Expression, rhs: Expression) extends Expression with Binary
 case class NullLiteral() extends Expression
 case class NumericLiteral(value: Double) extends Expression
+
 case class ObjectLiteral(props: Seq[(String, Expression)]) extends Expression
+
+object ObjectLiteral {
+  def apply(p0: (String, Expression), ps: (String, Expression)*): ObjectLiteral =
+    apply(p0 +: ps)
+}
+
 case class Positive(expr: Expression) extends Expression with Unary
 case class PostfixDecrement(expr: Expression) extends Expression with Unary
 case class PostfixIncrement(expr: Expression) extends Expression with Unary

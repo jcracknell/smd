@@ -12,7 +12,7 @@ final class ReferenceId(val raw: String) {
 
   override def hashCode(): Int = normalized.hashCode
 
-  override def toString: String = s"${getClass.getName}(${normalized.literalEncode})"
+  override def toString: String = s"${getClass.getSimpleName}(${normalized.literalEncode})"
 }
 
 object ReferenceId {
