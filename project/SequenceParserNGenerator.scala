@@ -31,18 +31,6 @@ class SequenceParserNGenerator(n: Int) extends FileGenerator(_/"smd"/"parsing"/s
     |
     |    rb.success((${lst("r", 1 to n, ".product")}))
     |  }
-    |
-    |  /** Apply a transformation to the products of this [[${qualifiedClassName(n)}]] if parsing is successful.
-    |    *
-    |    * @param transform the transformation to be applied to the products of successful parsing attempts.
-    |    * @tparam B the transformed product type.
-    |    */
-    |  def ^~ [B](transform: (${lst("T", 1 to n)}) => B): Parser[B] = new Parser[B] {
-    |    def parse(context: ParsingContext): ParsingResult[B] = {
-    |      val r = seq.parse(context)
-    |      if(r.succeeded) r.copy(transform.tupled(r.product)) else Failure
-    |    }
-    |  }
     |}
     """.trim.stripMargin
 }

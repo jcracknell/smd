@@ -1,7 +1,7 @@
 package smd
 package parsing
 
-trait Parsers {
+trait Parsers extends ImplicitParserOps {
   import scala.language.implicitConversions
 
   protected val CodePoint =       smd.unicode.CodePointCriteria
