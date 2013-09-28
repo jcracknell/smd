@@ -15,12 +15,12 @@ trait Parser[+A] { lhs =>
   def ? : OptionalParser[A] = OptionalParser(this)
 
   def | [L >: this.type <: Parser[_], R <: Parser[_], C <: Parser[_]]
-        (rhs: Implicit[R])
+        (rhs: ParserMagnet[R])
         (implicit heuristic: OrderedChoiceHeuristic[L, R, C]): C =
     heuristic(this, rhs)
 
   def ~ [L >: this.type <: Parser[_], R <: Parser[_], S <: Parser[_]]
-        (rhs: Implicit[R])
+        (rhs: ParserMagnet[R])
         (implicit heuristic: SequencingHeuristic[L, R, S]): S =
     heuristic(this, rhs)
 
