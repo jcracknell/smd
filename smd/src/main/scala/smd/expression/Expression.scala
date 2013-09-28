@@ -48,8 +48,7 @@ case class NumericLiteral(value: Double) extends Expression
 case class ObjectLiteral(props: Seq[(String, Expression)]) extends Expression
 
 object ObjectLiteral {
-  def apply(p0: (String, Expression), ps: (String, Expression)*): ObjectLiteral =
-    apply(p0 +: ps)
+  def apply(props: (String, Expression)*): ObjectLiteral = apply(props.toSeq)
 }
 
 case class Positive(expr: Expression) extends Expression with Unary
