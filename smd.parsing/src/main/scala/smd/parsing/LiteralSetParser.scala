@@ -12,7 +12,7 @@ import smd.util.Trie
   * @param literals a mapping from literals to be matched to their associated products.
   * @tparam A the product type.
   */
-case class LiteralSetParser[A](literals: Map[String, A]) extends Parser[A] {
+case class LiteralSetParser[+A](literals: Map[String, A]) extends Parser[A] {
   require(literals.nonEmpty, "provided literal mapping cannot be empty")
 
   protected val trie = Trie(literals)
