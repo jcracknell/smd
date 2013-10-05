@@ -33,7 +33,19 @@ trait Parsers extends ImplicitParserOps {
     */
   def & [A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
 
-  /** Repeatedly parses an expression interleaved with separators.
+  /** Creates a parser which repeatedly parses the provided parser interleaved with the provided separator parser.
+    * Yields a sequence of [[scala.util.Either]] values wherein `rep` results are represented as [[scala.util.Left]]
+    * instances, and `sep` results are represented as [[scala.util.Right]].
+    *
+    * {{{
+    * repSep(1, argument, ",") ^* { _.collect { case Left(arg) => arg } }
+    * }}}
+    *
+    * You can merge the products of `rep` and `sep` to their least upper bound:
+    *
+    * {{{
+    * repSep(1, a, b) ^* { _.map(_.merge) }
+    * }}}
     *
     * @param n the minimum number of occurrences of the repeated parser.
     * @param rep the repeated parser.
