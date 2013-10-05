@@ -33,12 +33,21 @@ trait Parsers extends ImplicitParserOps {
     */
   def & [A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
 
-  def repSep[A, B](n:Int, rep: Parser[A], sep: Parser[B]): Parser[(Seq[A], Seq[B])] = {
-    require(n >= 0, "repSep requires 0 or more repetitions.")
+  /** Repeatedly parses an expression interleaved with separators.
+    *
+    * @param n the minimum number of occurrences of the repeated parser.
+    * @param rep the repeated parser.
+    * @param sep the separator parser.
+    * @tparam R the product type of the repeated parser.
+    * @tparam S the product type of the separator parser.
+    */
+  def repSep[R, S](n: Int, rep: Parser[R], sep: Parser[S]): Parser[Seq[Either[R, S]]] = {
+    assert(n >= 0, "repSep requires a non-negative number of repetitions")
+
     if(0 == n)
-      (rep ~ (sep ~ rep).*).? ^* { o => o.map(p => (p._1 +: p._2.map(_._2), p._2.map(_._1))).getOrElse((Seq(), Seq())) }
+      repSep(1, rep, sep).? ^* { _.getOrElse(Seq()) }
     else
-      rep ~ (sep ~ rep).*     ^* { p => (p._1 +: p._2.map(_._2), p._2.map(_._1)) }
+      rep ~ (sep ~ rep).*>=(n-1) ^~ { (a, bs) => Left(a) +: (bs flatMap { case (s, r) => Seq(Right(s), Left(r)) }) }
   }
 
   implicit def convertCodePointCriterion2Parser(criterion: smd.unicode.CodePointCriterion): GraphemeParser =

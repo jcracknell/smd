@@ -23,7 +23,8 @@ trait Grammar extends Parsers {
   // BLOCKS
   //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-  lazy val blocks: Parser[Seq[Block]] =  interBlock.? ~> repSep(0, block, interBlock.?) <~ interBlock.? ^*(_._1)
+  lazy val blocks: Parser[Seq[Block]] =
+    interBlock.? ~> repSep(0, block, interBlock.?) <~ interBlock.? ^* { _.collect { case Left(b) => b } }
 
   lazy val block: Parser[Block] = (
     heading
@@ -43,7 +44,7 @@ trait Grammar extends Parsers {
 
     val blockArgumentList: Parser[Seq[Expression]] = {
       val separator = blockWhitespaceOrComments ~ "," ~ blockWhitespaceOrComments
-      repSep(1, leftHandSideExpression, separator) ^* { case (args, _) => args }
+      repSep(1, leftHandSideExpression, separator) ^* { _.collect { case Left(e) => e } }
     }
 
     ref ~ (blockArgumentList | argumentList) ^~ { (r, as) => markdown.Reference(r, as) }
@@ -116,8 +117,7 @@ trait Grammar extends Parsers {
     )
 
     val looseList = (
-      repSep(1, itemLoose, interBlock.?)
-      ^* { case (items, _) => loose(items map { case (m, ls) => (m, parse(blocks, ls)) }) }
+      repSep(1, itemLoose, interBlock.?) ^* { p => loose(p.collect { case Left((m, ls)) => (m, parse(blocks, ls)) }) }
     )
 
     tightList | looseList
@@ -127,7 +127,7 @@ trait Grammar extends Parsers {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
     val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parse(&(blocks), init +: subs) }
 
-    repSep(1, blockquoteBlock, interBlock) ^* { case (bs, _) => markdown.Blockquote(bs.flatten) }
+    repSep(1, blockquoteBlock, interBlock) ^* { p => markdown.Blockquote(p.collect({ case Left(b) => b }).flatten) }
   }
 
   lazy val heading: Parser[markdown.Heading] =
