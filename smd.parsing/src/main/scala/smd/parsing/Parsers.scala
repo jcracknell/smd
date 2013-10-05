@@ -14,10 +14,7 @@ trait Parsers extends ImplicitParserOps {
 
   def !:(parser: Parser[Any]): NotPredicateParser = NotPredicateParser(parser)
 
-  def <>[A](parser: => Parser[A]): Parser[A] = new Parser[A] {
-    protected lazy val _parser = parser
-    def parse(context: ParsingContext): ParsingResult[A] = _parser.parse(context)
-  }
+  def <>[A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
 
   def repSep[A, B](n:Int, rep: Parser[A], sep: Parser[B]): Parser[(Seq[A], Seq[B])] = {
     require(n >= 0, "repSep requires 0 or more repetitions.")
