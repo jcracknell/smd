@@ -15,36 +15,33 @@ trait CommonProductions extends Parsers {
   def argumentList: Parser[Seq[Expression]]
 
   /** An escape sequence. Yields a sequence of code points. */
-  protected lazy val escape: Parser[Seq[Int]] =
-    "\\" ~> (
-      (characterEscape | numericEscape | namedEscape) |
-      (!CodePoint.Values(newLineCharValues) ^*(_.codePoints.map(_.value))) <~ ";".?
+  protected lazy val escape: Parser[Seq[Int]] = {
+    val characterEscape = LiteralSetParser(
+      Map(
+        "\"" -> '\"',    "\"" -> '\"', "t"  -> '\t',    "n"  -> '\n',
+        "r"  -> '\r',    "\\" -> '\\', "b"  -> '\b',    "f"  -> '\f',
+        "v"  -> '\u000b'
+      ) mapValues { c => Seq(c.toInt) }
     )
+    val numericEscape = (
+      "#" ~> (digit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 10)) }) <~ ";".?
+    | "#".? ~ ("u" | "x") ~> (hexDigit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 16)) }) <~ ";".?
+    )
+    val namedEscape = LiteralSetParser(NamedEntity.entities.values.map(e => (e.name, e.codePoints))) <~ ";"
+    val literalEscape = !CodePoint.Values(newLineCharValues) ^* { _.codePoints.map(_.value) }
 
-  private lazy val characterEscape = LiteralSetParser(Map(
-                                         "\"" -> '\"',
-                                         "\"" -> '\"',
-                                         "t"  -> '\t',
-                                         "n"  -> '\n',
-                                         "r"  -> '\r',
-                                         "\\" -> '\\',
-                                         "b"  -> '\b',
-                                         "f"  -> '\f',
-                                         "v"  -> '\u000b'
-                                       ).mapValues(c => Seq(c.toInt)))
-
-  private lazy val namedEscape = LiteralSetParser(NamedEntity.entities.values.map(e => (e.name, e.codePoints))) <~ ";"
-
-  private lazy val numericEscape =
-    "#" ~> (digit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 10)) }) <~ ";".? |
-    "#".? ~ ("u" | "x") ~> (hexDigit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 16)) }) <~ ";".?
-
+    "\\" ~> (characterEscape | numericEscape | namedEscape | literalEscape)
+  }
 
   /** A single or multi-line comment. */
-  lazy val comment = singleLineComment | multiLineComment
+  lazy val comment = {
+    val multiLineComment =  "/*" ~ (!:("*/") ~ unicodeCharacter).* ~ "*/"
+    val singleLineComment = "//" ~ line_?
+
+    singleLineComment | multiLineComment
+  }
+
   lazy val commentStart = "//" | "/*"
-  private lazy val multiLineComment =  "/*" ~ (!:("*/") ~ unicodeCharacter).* ~ "*/"
-  private lazy val singleLineComment = "//" ~ line_?
 
   /** The (remainder) of the the current line, including the newline sequence. */
   protected lazy val line_? = (!:(newLine) ~ unicodeCharacter).* ~ newLine.?
