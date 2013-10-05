@@ -1,7 +1,7 @@
 package smd
 package parsing
 
-trait Parser[+A] { lhs =>
+abstract class Parser[+A] { lhs =>
   /** The type of the product of this parser. */
   type Product = A
 
