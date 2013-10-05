@@ -2,6 +2,9 @@ package smd
 package parsing
 
 trait Parser[+A] { lhs =>
+  /** The type of the product of this parser. */
+  type Product = A
+
   def parse(context: ParsingContext): ParsingResult[A]
   def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
 
@@ -15,14 +18,14 @@ trait Parser[+A] { lhs =>
 
   def ? : OptionalParser[A] = OptionalParser(this)
 
-  def | [L >: this.type <: Parser[_], R <: Parser[_], C <: Parser[_]]
+  def | [R <: Parser[_], C <: Parser[_]]
         (rhs: ParserMagnet[R])
-        (implicit heuristic: OrderedChoiceHeuristic[L, R, C]): C =
+        (implicit heuristic: OrderedChoiceHeuristic[this.type, R, C]): C =
     heuristic(this, rhs)
 
-  def ~ [L >: this.type <: Parser[_], R <: Parser[_], S <: Parser[_]]
+  def ~ [R <: Parser[_], S <: Parser[_]]
         (rhs: ParserMagnet[R])
-        (implicit heuristic: SequencingHeuristic[L, R, S]): S =
+        (implicit heuristic: SequencingHeuristic[this.type, R, S]): S =
     heuristic(this, rhs)
 
   /** Parse two expressions in sequence, discarding the results of the left-hand expression. */
@@ -53,9 +56,4 @@ trait Parser[+A] { lhs =>
       if(r.succeeded && f.isDefinedAt(r.product)) r.copy(f(r.product)) else Failure
     }
   }
-}
-
-object Parser {
-  implicit def orderedChoiceHeuristic[A]: OrderedChoiceHeuristic[Parser[A], Parser[A], OrderedChoiceParser[A]] =
-    OrderedChoiceHeuristic.create((l, r) => OrderedChoiceParser(l, r))
 }

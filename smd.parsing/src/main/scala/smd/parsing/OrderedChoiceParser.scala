@@ -24,8 +24,5 @@ case class OrderedChoiceParser[+A](choices: IndexedSeq[Parser[A]]) extends Parse
 object OrderedChoiceParser {
   def apply[A](choices: Iterable[Parser[A]]): OrderedChoiceParser[A] = apply(choices.toIndexedSeq)
 
-  def apply[A](c0: Parser[A], cns: Parser[A]*): OrderedChoiceParser[A] = apply((c0 +: cns).toIndexedSeq)
-
-  def orderedChoiceHeuristic[A]: OrderedChoiceHeuristic[OrderedChoiceParser[A], Parser[A], OrderedChoiceParser[A]] =
-    OrderedChoiceHeuristic.create((l, r) => OrderedChoiceParser(l.choices :+ r))
+  def apply[A](c0: Parser[A], c1: Parser[A], cns: Parser[A]*): OrderedChoiceParser[A] = apply((c0 +: c1 +: cns).toIndexedSeq)
 }
