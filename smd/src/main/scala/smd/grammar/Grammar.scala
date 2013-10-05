@@ -96,13 +96,13 @@ trait Grammar extends Parsers {
     /** A line starting with a list marker. */
     val markedLine = marker ~ blockLine_?
     /** A line not starting with a list marker. Consumes an optional indent at the beginning of the line. */
-    val unmarkedLine = !:(marker) ~ indent.? ~> blockLine
+    val unmarkedLine = ?!(marker) ~ indent.? ~> blockLine
 
     /** The initial block of a list item, beginning with a marker. */
     val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
     /** A subsequent block of a list item, indented and not starting with a list marker.
       * The indent is consumed by noMarkerLine. */
-    val itemSubsequentBlock = interBlock ~ &:(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
+    val itemSubsequentBlock = interBlock ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
 
     /** A 'tight' list item is a list item which contains only a single block. */
     val itemTight = itemInitialBlock
@@ -111,7 +111,7 @@ trait Grammar extends Parsers {
 
     /** A 'tight' list is a sequence of tight list items not followed by loose content. */
     val tightList = (
-      itemTight.+ <~ !:(interBlock ~ (marker | indent))
+      itemTight.+ <~ ?!(interBlock ~ (marker | indent))
       ^* { items => tight(items map { case (m, ls) => (m, parse(blockInlines_?, ls)) }) }
     )
 
@@ -125,7 +125,7 @@ trait Grammar extends Parsers {
 
   lazy val blockquote: Parser[markdown.Blockquote] = {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
-    val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parse(<>(blocks), init +: subs) }
+    val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parse(&(blocks), init +: subs) }
 
     repSep(1, blockquoteBlock, interBlock) ^* { case (bs, _) => markdown.Blockquote(bs.flatten) }
   }
@@ -142,11 +142,11 @@ trait Grammar extends Parsers {
   lazy val blockInlines_? : Parser[Seq[Inline]] =
     blockWhitespaceOrComments.? ~> (inline.+ <~ blockWhitespaceOrComments.?).* ^*(_.flatten)
 
-  lazy val blockLine = !:(blankLine) ~> blockLine_?
+  lazy val blockLine = ?!(blankLine) ~> blockLine_?
 
   lazy val blockLine_? : Parser[CharSequence] = {
     val atomic = (
-      !:(specialChar) ~ unicodeCharacter
+      ?!(specialChar) ~ unicodeCharacter
     | inlineExpression
     | comment
     | link
@@ -155,7 +155,7 @@ trait Grammar extends Parsers {
     | unicodeCharacter
     )
 
-    (!:(newLine) ~ atomic).* ~ newLine.? ^^(_.parsed)
+    (?!(newLine) ~ atomic).* ~ newLine.? ^^(_.parsed)
   }
 
   //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -179,26 +179,26 @@ trait Grammar extends Parsers {
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[markdown.Link] = {
-    val label = "[" ~> (!:("]") ~> <>(inline)).* <~ "]"
+    val label = "[" ~> (?!("]") ~> &(inline)).* <~ "]"
 
     label ~ referenceId.? ~ argumentList.? ^~ { (lbl, ref, args) => markdown.Link(lbl, ref, args.getOrElse(Seq())) }
   }
 
   /** A reference id enclosed in square brackets. */
   lazy val referenceId: Parser[markdown.ReferenceId] = (
-    "[" ~> ((!:(CodePoint.Values(newLineCharValues + ']')) ~ unicodeCharacter).* ^^ (_.parsed)) <~ "]"
+    "[" ~> ((?!(CodePoint.Values(newLineCharValues + ']')) ~ unicodeCharacter).* ^^ (_.parsed)) <~ "]"
   ) ^* { p => markdown.ReferenceId(p.toString) }
 
   lazy val autoLink: Parser[markdown.AutoLink] =
     // TODO: decoding? more forgiving?
-    "<" ~ &:(englishAlpha.+ ~ ":") ~> (iriLiteralExpression ^* { iri => markdown.AutoLink(iri.value) }) <~ ">"
+    "<" ~ ?=(englishAlpha.+ ~ ":") ~> (iriLiteralExpression ^* { iri => markdown.AutoLink(iri.value) }) <~ ">"
 
-  lazy val strong = "**" ~> (!:("**") ~> <>(inline)).+ <~ "**" ^* markdown.Strong
+  lazy val strong = "**" ~> (?!("**") ~> &(inline)).+ <~ "**" ^* markdown.Strong
 
-  lazy val emphasis = "*" ~> (!:("*") ~> <>(inline) | <>(strong)).+ <~ "*" ^* markdown.Emphasis
+  lazy val emphasis = "*" ~> (?!("*") ~> &(inline) | &(strong)).+ <~ "*" ^* markdown.Emphasis
 
   lazy val lineBreak =
-    blockWhitespaceOrComments ~ "\\" ~ &:(blankLine) ~ blockWhitespaceOrComments ^^^ markdown.LineBreak()
+    blockWhitespaceOrComments ~ "\\" ~ ?=(blankLine) ~ blockWhitespaceOrComments ^^^ markdown.LineBreak()
 
   lazy val text: Parser[markdown.Text] = {
     val apos = "'" ~ Grapheme.Category(UnicodeCategory.Groups.Letter ++ UnicodeCategory.Groups.Number)
@@ -207,7 +207,7 @@ trait Grammar extends Parsers {
   }
 
   /** Any non-empty combination of comments and whitespace not leaving or at the end of a block. */
-  lazy val space = blockWhitespaceOrComments ~ !:(blankLine) ^^^ markdown.Space()
+  lazy val space = blockWhitespaceOrComments ~ ?!(blankLine) ^^^ markdown.Space()
 
   lazy val entity = escape ^* markdown.Entity
 
@@ -216,18 +216,18 @@ trait Grammar extends Parsers {
       "\"" -> markdown.Quoted.QuoteKind.Double,
       "'"  -> markdown.Quoted.QuoteKind.Single
     ) map { case (quot, kind) =>
-      quot ~> (!:(quot) ~> <>(inline)).* <~ quot ^* { is => markdown.Quoted(is, kind) }
+      quot ~> (?!(quot) ~> &(inline)).* <~ quot ^* { is => markdown.Quoted(is, kind) }
     }
   )
 
   /** Backtick-enclosed code not leaving a block. */
   lazy val code: Parser[markdown.Code] =
-    &:("`") ~> OrderedChoiceParser((1 to 16).map(n => "".padTo(n, '`')).map { ticks =>
-      val content = !:("`") ~ blockWhitespace.? ~ (!:(whitespace | ticks) ~ unicodeCharacter ~ blockWhitespace.?).+
+    ?=("`") ~> OrderedChoiceParser((1 to 16).map(n => "".padTo(n, '`')).map { ticks =>
+      val content = ?!("`") ~ blockWhitespace.? ~ (?!(whitespace | ticks) ~ unicodeCharacter ~ blockWhitespace.?).+
       ticks ~> (content ^^ { _.parsed }) <~ ticks
     }) ^* { p => markdown.Code(p.toString) }
 
-  lazy val inlineExpression = &:("@") ~> <>(leftHandSideExpression) <~ ";".? ^* markdown.InlineExpression
+  lazy val inlineExpression = ?=("@") ~> &(leftHandSideExpression) <~ ";".? ^* markdown.InlineExpression
 
   lazy val symbol = CodePoint.Values(specialCharValues) ^* { p => markdown.Symbol(p.charSequence.toString) }
 
@@ -239,8 +239,8 @@ trait Grammar extends Parsers {
 
   /** Any non-empty amount of whitespace not consuming a blank line. */
   protected lazy val blockWhitespace = (
-    spaceChar.+ ~ (newLine ~ spaceChars_? ~ !:(blankLine)).?
-  | newLine ~ spaceChars_? ~ !:(blankLine)
+    spaceChar.+ ~ (newLine ~ spaceChars_? ~ ?!(blankLine)).?
+  | newLine ~ spaceChars_? ~ ?!(blankLine)
   )
 
   /** A normal character; not a special or whitespace character. */
@@ -271,9 +271,9 @@ trait Grammar extends Parsers {
   lazy val conditionalExpression: Parser[Expression] = (
     logicalOrExpression
   ~ ( expressionWhitespace_? ~ "?" ~ expressionWhitespace_?
-    ~ <>(conditionalExpression)
+    ~ &(conditionalExpression)
     ~ expressionWhitespace_? ~ ":" ~ expressionWhitespace_?
-    ~ <>(conditionalExpression)
+    ~ &(conditionalExpression)
     ^*{ p => (p._4, p._8) }
     ).? ^* {
       case (i, Some((t, e))) => expression.Conditional(i, t, e)
@@ -281,15 +281,15 @@ trait Grammar extends Parsers {
     }
   )
 
-  lazy val logicalOrExpression = binOp(logicalAndExpression,  "||" ~ !:("=")       ^^^ expression.LogicalOr)
+  lazy val logicalOrExpression = binOp(logicalAndExpression,  "||" ~ ?!("=")       ^^^ expression.LogicalOr)
 
-  lazy val logicalAndExpression = binOp(bitwiseOrExpression,  "&&" ~ !:("=")       ^^^ expression.LogicalAnd)
+  lazy val logicalAndExpression = binOp(bitwiseOrExpression,  "&&" ~ ?!("=")       ^^^ expression.LogicalAnd)
 
-  lazy val bitwiseOrExpression = binOp(bitwiseXOrExpression,  "|"  ~ !:("|" | "=") ^^^ expression.BitwiseOr)
+  lazy val bitwiseOrExpression = binOp(bitwiseXOrExpression,  "|"  ~ ?!("|" | "=") ^^^ expression.BitwiseOr)
 
-  lazy val bitwiseXOrExpression = binOp(bitwiseAndExpression, "^"  ~ !:("=")       ^^^ expression.BitwiseXOr)
+  lazy val bitwiseXOrExpression = binOp(bitwiseAndExpression, "^"  ~ ?!("=")       ^^^ expression.BitwiseXOr)
 
-  lazy val bitwiseAndExpression = binOp(equalityExpression,   "&"  ~ !:("&" | "=") ^^^ expression.BitwiseAnd)
+  lazy val bitwiseAndExpression = binOp(equalityExpression,   "&"  ~ ?!("&" | "=") ^^^ expression.BitwiseAnd)
 
   lazy val equalityExpression = binOp(relationalExpression,
     "===" ^^^ expression.StrictEquals
@@ -336,14 +336,14 @@ trait Grammar extends Parsers {
   | unaryOp("++",                                    expression.PrefixIncrement)
   | unaryOp("+",                                     expression.Positive)
   | unaryOp("~",                                     expression.BitwiseNot)
-  | unaryOp("typeof" ~ !:(identifierExpressionPart), expression.TypeOf)
-  | unaryOp("delete" ~ !:(identifierExpressionPart), expression.Delete)
-  | unaryOp("void"   ~ !:(identifierExpressionPart), expression.Void)
+  | unaryOp("typeof" ~ ?!(identifierExpressionPart), expression.TypeOf)
+  | unaryOp("delete" ~ ?!(identifierExpressionPart), expression.Delete)
+  | unaryOp("void"   ~ ?!(identifierExpressionPart), expression.Void)
   | postfixExpression
   )
 
   private def unaryOp(op: Parser[Any], builder: Expression => Expression): Parser[Expression] =
-    op ~ expressionWhitespace_? ~> <>(unaryExpression) ^*(builder(_))
+    op ~ expressionWhitespace_? ~> &(unaryExpression) ^*(builder(_))
 
   lazy val postfixExpression: Parser[Expression] =
     leftHandSideExpression ~ ( expressionWhitespaceNoNewline_? ~>
@@ -356,7 +356,7 @@ trait Grammar extends Parsers {
 
   lazy val leftHandSideExpression: Parser[Expression] = {
     val staticProperty =  "." ~ expressionWhitespace_? ~> identifier
-    val dynamicProperty = "[" ~ expressionWhitespace_? ~> <>(expr) <~ expressionWhitespace_? ~ "]"
+    val dynamicProperty = "[" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ "]"
 
     atExpression ~ (expressionWhitespace_? ~ (
       // Build a sequence of functions which will construct the appropriate expr when provided a body
@@ -378,17 +378,17 @@ trait Grammar extends Parsers {
     literalExpression
   | arrayLiteralExpression
   | objectLiteralExpression
-  | "(" ~ expressionWhitespace_? ~> <>(expr) <~ expressionWhitespace_? ~ ")"
+  | "(" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ ")"
   )
 
   lazy val arrayLiteralExpression: Parser[expression.ArrayLiteral] = {
     /** A non-elided array element preceded by any number of elided elements. */
     val subsequentArrayElement =
-      argumentSeparator.+ ~ expressionWhitespace_? ~ <>(expr) ^* { case (seps, _, e) => seps.tail.map(_ => expression.Elided()) :+ e }
+      argumentSeparator.+ ~ expressionWhitespace_? ~ &(expr) ^* { case (seps, _, e) => seps.tail.map(_ => expression.Elided()) :+ e }
 
     val arrayElements = (
       (
-        <>(expr) ~ subsequentArrayElement.* ^* { case (e, ses) => e +: ses.flatten }
+        &(expr) ~ subsequentArrayElement.* ^* { case (e, ses) => e +: ses.flatten }
       | subsequentArrayElement.+            ^* { p => expression.Elided() +: p.flatten } // initial element elided
       ).?
     <~ argumentSeparator.*
@@ -408,7 +408,7 @@ trait Grammar extends Parsers {
     )
 
     val objectPropertyAssignment =
-      propertyName ~ expressionWhitespace_? ~ ":" ~ expressionWhitespace_? ~ <>(expr) ^* { p => (p._1, p._5) }
+      propertyName ~ expressionWhitespace_? ~ ":" ~ expressionWhitespace_? ~ &(expr) ^* { p => (p._1, p._5) }
 
     val objectPropertyAssignments = (
       objectPropertyAssignment
@@ -429,7 +429,7 @@ trait Grammar extends Parsers {
 
   protected lazy val identifier: Parser[String] =
     // Not a keyword: not a keyword followed by something other than an identifier part
-    !:(keyword ~ !:(identifierExpressionPart)) ~>
+    ?!(keyword ~ ?!(identifierExpressionPart)) ~>
     identifierExpressionStart ~ identifierExpressionPart.* ^* { case (s, ps) => (new StringBuilder(s) /: ps.flatten) { (sb, p) => sb.append(p) }.toString }
 
   /** A valid non-initial portion of an identifier. */
@@ -466,7 +466,7 @@ trait Grammar extends Parsers {
   lazy val literalExpression: Parser[Expression] = (
     stringLiteralExpression
   | verbatimLiteralExpression
-  | (numericLiteralExpression | nullLiteralExpression | booleanLiteralExpression) <~ !:(iriAtom)
+  | (numericLiteralExpression | nullLiteralExpression | booleanLiteralExpression) <~ ?!(iriAtom)
   | iriLiteralExpression
   )
 
@@ -484,11 +484,11 @@ trait Grammar extends Parsers {
     )))
 
     (
-      !:(
-        keyword ~ !:(iriAtom)
+      ?!(
+        keyword ~ ?!(iriAtom)
       | commentStart
       )
-    ~ !:(illegalStart) ~ iriAtom.+
+    ~ ?!(illegalStart) ~ iriAtom.+
     ) ^^ { p => expression.IriLiteral(p.parsed.toString) }
   }
 
@@ -566,9 +566,9 @@ trait Grammar extends Parsers {
 
     (
       char
-    | nonTerminalChar ~ <>(iriAtom)
+    | nonTerminalChar ~ &(iriAtom)
     | "%" ~ hexDigit.*(2)
-    | "(" ~ (<>(iriAtom) | nonTerminalChar).* ~ ")"
+    | "(" ~ (&(iriAtom) | nonTerminalChar).* ~ ")"
     | "[" ~ (ipv6Address | ipvFutureAddress) ~ "]"
     )
   }
@@ -603,9 +603,9 @@ trait Grammar extends Parsers {
   // String Literals
 
   lazy val verbatimLiteralExpression: Parser[expression.VerbatimLiteral] =
-    &:("`") ~> OrderedChoiceParser(
+    ?=("`") ~> OrderedChoiceParser(
       (1 to 16).reverse.map(n => new String(Array.fill(n)('`'))).map { ticks =>
-        ticks ~> ((!:(ticks) ~> unicodeCharacter).* ^^(_.parsed)) <~ ticks
+        ticks ~> ((?!(ticks) ~> unicodeCharacter).* ^^(_.parsed)) <~ ticks
       }
     ) ^* { p => expression.VerbatimLiteral(p.toString) }
 
@@ -613,13 +613,13 @@ trait Grammar extends Parsers {
     val stringPart = escape ^*(_.flatMap(Character.toChars(_))) | !CodePoint.Values(newLineCharValues) ^*(_.chars)
 
     OrderedChoiceParser(Seq("\"", "'") map { quot =>
-      quot ~> (!:(quot) ~> stringPart).* <~ quot ^* { p => expression.StringLiteral(new String(p.flatten.toArray)) }
+      quot ~> (?!(quot) ~> stringPart).* <~ quot ^* { p => expression.StringLiteral(new String(p.flatten.toArray)) }
     })
   }
 
   /** An argument list, including parentheses. */
   lazy val argumentList: Parser[Seq[Expression]] = {
-    val argumentListArguments = <>(expr) ~ (argumentSeparator ~ <>(expr)).* ^* { p => p._1 +: p._2.map(_._2) }
+    val argumentListArguments = &(expr) ~ (argumentSeparator ~ &(expr)).* ^* { p => p._1 +: p._2.map(_._2) }
 
     "(" ~ expressionWhitespace_? ~ argumentListArguments.? ~ expressionWhitespace_? ~ ")" ^*(_._3.getOrElse(Seq()))
   }
@@ -666,7 +666,7 @@ trait Grammar extends Parsers {
 
   /** A single or multi-line comment. */
   lazy val comment = {
-    val multiLineComment =  "/*" ~ (!:("*/") ~ unicodeCharacter).* ~ "*/"
+    val multiLineComment =  "/*" ~ (?!("*/") ~ unicodeCharacter).* ~ "*/"
     val singleLineComment = "//" ~ line_?
 
     singleLineComment | multiLineComment
@@ -675,7 +675,7 @@ trait Grammar extends Parsers {
   protected lazy val commentStart = "//" | "/*"
 
   /** The (remainder) of the the current line, including the newline sequence. */
-  protected lazy val line_? = (!:(newLine) ~ unicodeCharacter).* ~ newLine.?
+  protected lazy val line_? = (?!(newLine) ~ unicodeCharacter).* ~ newLine.?
 
   /** Zero or more blank lines. */
   protected lazy val blankLines_? = (spaceChars_? ~ newLine).* ~ (spaceChars_? ~ EOF).? ^^(_.parsed)

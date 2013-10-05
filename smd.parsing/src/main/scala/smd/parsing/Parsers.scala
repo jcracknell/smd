@@ -10,11 +10,28 @@ trait Parsers extends ImplicitParserOps {
 
   val EOF = EndOfInputParser
 
-  def &:[A](parser: Parser[A]): AndPredicateParser[A] = AndPredicateParser(parser)
+  /** Positive lookahead. Creates an [[smd.parsing.AndPredicateParser]], which consumes no input and succeeds if the
+    * provided parser does not succeed.
+    *
+    * @param parser the parser which must succeed for the lookahead to succeed.
+    * @tparam A the product type of the parser.
+    */
+  def ?= [A](parser: Parser[A]): AndPredicateParser[A] = AndPredicateParser(parser)
 
-  def !:(parser: Parser[Any]): NotPredicateParser = NotPredicateParser(parser)
+  /** Negative lookahead. Creates an [[smd.parsing.NotPredicateParser]], which consumes no input and succeeds only if
+    * the provided parser does not succeed.
+    *
+    * @param parser the parser which must fail for the lookahead to succeed.
+    * @tparam A the product type of the parser.
+    */
+  def ?! (parser: Parser[Any]): NotPredicateParser = NotPredicateParser(parser)
 
-  def <>[A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
+  /** Creates a lazily initialized [[smd.parsing.ReferenceParser]] from the provided parser.
+    *
+    * @param parser the parser to be lazily initialized.
+    * @tparam A the product type of the lazily initialized parser.
+    */
+  def & [A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
 
   def repSep[A, B](n:Int, rep: Parser[A], sep: Parser[B]): Parser[(Seq[A], Seq[B])] = {
     require(n >= 0, "repSep requires 0 or more repetitions.")
