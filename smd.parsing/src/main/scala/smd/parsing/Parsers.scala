@@ -1,6 +1,8 @@
 package smd
 package parsing
 
+import scala.collection.mutable.ListBuffer
+
 trait Parsers extends ImplicitParserOps {
   import scala.language.implicitConversions
 
@@ -59,7 +61,9 @@ trait Parsers extends ImplicitParserOps {
     if(0 == n)
       repSep(1, rep, sep).? ^* { _.getOrElse(Seq()) }
     else
-      rep ~ (sep ~ rep).*>=(n-1) ^~ { (a, bs) => Left(a) +: (bs flatMap { case (s, r) => Seq(Right(s), Left(r)) }) }
+      rep ~ (sep ~ rep).*>=(n-1) ^~ { (r, srs) =>
+        (ListBuffer[Either[R, S]](Left(r)) /: srs) { (lb, sr) => lb += Right(sr._1) += Left(sr._2) }.toList
+      }
   }
 
   implicit def convertCodePointCriterion2Parser(criterion: smd.unicode.CodePointCriterion): GraphemeParser =
