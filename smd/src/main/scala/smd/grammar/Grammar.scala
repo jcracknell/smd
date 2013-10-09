@@ -2,16 +2,13 @@ package smd
 package grammar
 
 // TODO: add helpers to eliminate specific parser imports
-import smd.parsing.{Parsers, OrderedChoiceParser, LiteralSetParser, GraphemeParser}
+import smd.parsing.{Parser, Parsers, OrderedChoiceParser, LiteralSetParser, GraphemeParser}
+import smd.markdown.{Block, Inline}
+import smd.expression.Expression
 
 object Grammar extends Grammar
 
 trait Grammar extends Parsers {
-  // Set up some convenient type aliases
-  type Block = markdown.Block
-  type Inline = markdown.Inline
-  type Expression = expression.Expression
-
   protected def parse[A](parser: Parser[A], extents: Seq[CharSequence]): A = {
     // TODO: Performance
     parser.parse(extents.map(_.toString).mkString("")).product

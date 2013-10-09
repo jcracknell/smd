@@ -7,10 +7,8 @@ package util
   * Implementations will escape any character not in the range `~` (tilde) through ` ` (space) for clarity.
   */
 object LiteralEncoding {
-  private val MaxStringEscape = '\\'
-  private val MaxCharEscape   = '\\'
-  private val StringEscapes   = Array.fill(MaxStringEscape + 1)('\0')
-  private val CharEscapes     = Array.fill(MaxCharEscape + 1)('\0')
+  private val StringEscapes   = Array.fill('\\'.toInt + 1)('\u0000')
+  private val CharEscapes     = Array.fill('\\'.toInt + 1)('\u0000')
 
   {
     val baseEscapes = Map(
@@ -19,12 +17,11 @@ object LiteralEncoding {
       '\n' -> 'n',  // linefeed
       '\f' -> 'f',  // formfeed
       '\r' -> 'r',  // carriage return
-      '\\' -> '\\', // backslash
-      '\0' -> '0'   // null
+      '\\' -> '\\' // backslash
     )
 
-    (baseEscapes + ('\"' -> '\"')).foreach { case (c, e) => StringEscapes(c) = e }
-    (baseEscapes + ('\'' -> '\'')).foreach { case (c, e) => CharEscapes(c) = e }
+    (baseEscapes + ('\"' -> '\"')).foreach { case (c, e) => StringEscapes(c.toInt) = e }
+    (baseEscapes + ('\'' -> '\'')).foreach { case (c, e) => CharEscapes(c.toInt) = e }
   }
 
   /** Encode the provided [[scala.Char]] as a Scala character literal, enclosing the character in single quotes and replacing
@@ -34,20 +31,22 @@ object LiteralEncoding {
     * @return the literal representation of the provided [[scala.Char]].
     */
   def encode(c: Char): String =
-    new String(
-      if(c <= MaxCharEscape && '\0' != CharEscapes(c))
-        Array('\'', '\\', CharEscapes(c), '\'')
+    new String({
+      val ci = c.toInt
+
+      if(ci < CharEscapes.length && '\u0000' != CharEscapes(ci))
+        Array('\'', '\\', CharEscapes(ci), '\'')
       else if('~' >= c && c >= ' ')
         Array('\'', c, '\'')
       else Array(
         '\'', '\\', 'u',
-        HexEncoding.encodeDigitLower(c >>> 12),
-        HexEncoding.encodeDigitLower(c >>>  8),
-        HexEncoding.encodeDigitLower(c >>>  4),
-        HexEncoding.encodeDigitLower(c),
+        HexEncoding.encodeDigitLower(ci >>> 12),
+        HexEncoding.encodeDigitLower(ci >>>  8),
+        HexEncoding.encodeDigitLower(ci >>>  4),
+        HexEncoding.encodeDigitLower(ci),
         '\''
       )
-    )
+    })
 
   /** Encode the provided [[scala.Char]] as a Scala character literal, enclosing the character in single quotes and replacing
     * the character with an escape version if necessary.
@@ -57,9 +56,10 @@ object LiteralEncoding {
     * @return the provided [[scala.collection.mutable.StringBuilder]].
     */
   def encode(c: Char, sb: StringBuilder): StringBuilder = {
+    val ci = c.toInt
     sb.append('\'')
-    if(c <= MaxCharEscape && '\0' != CharEscapes(c))
-      sb.append('\\').append(CharEscapes(c))
+    if(ci < CharEscapes.length && '\u0000' != CharEscapes(ci))
+      sb.append('\\').append(CharEscapes(ci))
     else if('~' >= c && c >= ' ')
       sb.append(c)
     else {
@@ -95,8 +95,10 @@ object LiteralEncoding {
 
     sb.append('"')
     for(c <- str) {
-      if(c <= MaxStringEscape && '\0' != StringEscapes(c))
-        sb.append('\\').append(StringEscapes(c))
+      val ci = c.toInt
+
+      if(ci < StringEscapes.length && '\u0000' != StringEscapes(ci))
+        sb.append('\\').append(StringEscapes(ci))
       else if('~' >= c && c >= ' ')
         sb.append(c)
       else {

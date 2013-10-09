@@ -21,7 +21,7 @@ object ReferenceId {
   /** Converts the provided raw string to the corresponding normalized reference id string. */
   def normalize(raw: String): String =
     java.text.Normalizer.normalize(raw, java.text.Normalizer.Form.NFKD)
-    .map(c => if(Character.isAlphabetic(c) || Character.isDigit(c)) c else ' ').trim
+    .map(c => if(Character.isAlphabetic(c.toInt) || Character.isDigit(c.toInt)) c else ' ').trim
     .map(Character.toLowerCase)
     .replaceAll("\\s+", "-")
 }

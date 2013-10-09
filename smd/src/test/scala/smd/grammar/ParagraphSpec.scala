@@ -4,7 +4,7 @@ package grammar
 import smd.markdown._
 
 class ParagraphSpec extends ProductionSpec {
-  def subject: Parser[_] = Grammar.paragraph
+  def subject = Grammar.paragraph
 
   shouldParse("The paragraph.") as (
     Paragraph(Seq(

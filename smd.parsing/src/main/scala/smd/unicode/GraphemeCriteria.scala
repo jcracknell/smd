@@ -35,9 +35,9 @@ object GraphemeCriteria {
   /** [[smd.unicode.GraphemeCriterion]] which is satisfied by any grapheme in the provided set of categories. */
   case class Category(categories: Set[UnicodeCategory]) extends GraphemeCriterion {
     private val acceptanceMap = Array.fill(UnicodeCategory.MaxValue + 1)(false)
-    categories.foreach { cat => acceptanceMap(cat.value) = true }
+    categories.foreach { cat => acceptanceMap(cat.value.toInt) = true }
 
-    def isSatisfiedBy(grapheme: GraphemeInfo): Boolean = acceptanceMap(grapheme.category)
+    def isSatisfiedBy(grapheme: GraphemeInfo): Boolean = acceptanceMap(grapheme.category.toInt)
   }
 
   object Category {

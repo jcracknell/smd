@@ -2,9 +2,6 @@ package smd
 package parsing
 
 abstract class Parser[+A] { lhs =>
-  /** The type of the product of this parser. */
-  type Product = A
-
   def parse(context: ParsingContext): ParsingResult[A]
   def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
 

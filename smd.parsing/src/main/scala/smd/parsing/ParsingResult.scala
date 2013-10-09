@@ -39,7 +39,7 @@ sealed abstract class ParsingResult[+A] {
 
   /** The range of input indices which was consumed. */
   @throws[UnsupportedOperationException]
-  def range: Range = index until endIndex
+  def range: Range = index to endIndex
 
   /** Creates a copy of this [[smd.parsing.ParsingResult]] with the provided replacement product.
     *

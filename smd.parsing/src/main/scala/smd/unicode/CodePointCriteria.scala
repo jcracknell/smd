@@ -39,9 +39,9 @@ object CodePointCriteria {
 
     // Create an array lookup table for better performance
     private val satisfyingCategories = Array.fill(UnicodeCategory.MaxValue + 1)(false)
-    categories.foreach { c => satisfyingCategories(c.value) = true }
+    categories.foreach { c => satisfyingCategories(c.value.toInt) = true }
 
-    def isSatisfiedBy(codePoint: CodePointInfo): Boolean = satisfyingCategories(codePoint.category)
+    def isSatisfiedBy(codePoint: CodePointInfo): Boolean = satisfyingCategories(codePoint.category.toInt)
   }
 
   object Category {

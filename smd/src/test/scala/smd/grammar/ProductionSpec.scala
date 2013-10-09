@@ -3,7 +3,7 @@ package grammar
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSpec
-import smd.parsing.ParsingResult
+import smd.parsing.{Parser, ParsingResult}
 
 trait ProductionSpec extends FunSpec with ShouldMatchers {
   import scala.language.reflectiveCalls

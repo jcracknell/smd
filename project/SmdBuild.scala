@@ -1,29 +1,30 @@
 import sbt._
 import Keys._
 
-object Dependencies {
-  def scalatest = "org.scalatest" %% "scalatest" % "1.9+"
-}
-
 object SmdBuild extends Build {
-  import Dependencies._
-
   val generateSources = TaskKey[Unit]("generate-sources", "Generate dynamically generated source files used by the project.")
 
   val baseSettings = Defaults.defaultSettings ++ Seq(
     version :=      "0.1",
+    scalaVersion := "2.11.0-M5",
     scalacOptions ++= Seq(
       "-deprecation",
       "-feature",
+      //"-Xfatal-warnings",
       "-Xlint",
-      "-Yno-adapted-args",
-      "-Ywarn-all",
-      "-Ywarn-dead-code"
+      "-Ywarn-adapted-args",
+      "-Ywarn-dead-code",
+      "-Ywarn-inaccessible",
+      "-Ywarn-nullary-override",
+      "-Ywarn-nullary-unit",
+      "-Ywarn-numeric-widen"  
     ),
-    scalaVersion := "2.10.2",
-    libraryDependencies <++= (scalaVersion) { sv => Seq(
-      scalatest % "test"
-    ) }
+    libraryDependencies <++= (scalaVersion) { sv =>
+      Seq(
+        "org.scala-lang.modules" %% "scala-parser-combinators" % "latest.snapshot",
+        "org.scalatest" %% "scalatest" % "latest.snapshot" % "test"
+      )
+    }
   )
 
   lazy val smd = Project(

@@ -15,7 +15,7 @@ class LiteralEncodingSpec extends FunSpec with ShouldMatchers {
       resultOfApplyingTo('\f') should be ("'\\f'")
       resultOfApplyingTo('\r') should be ("'\\r'")
       resultOfApplyingTo('\\') should be ("'\\\\'")
-      resultOfApplyingTo('\0') should be ("'\\0'")
+      resultOfApplyingTo('\u0000') should be ("'\\u0000'")
       resultOfApplyingTo('\'') should be ("'\\''")
     }
     it("should not escape double quotes") {
@@ -29,7 +29,7 @@ class LiteralEncodingSpec extends FunSpec with ShouldMatchers {
     def resultOfApplyingTo(str: String) = LiteralEncoding.encode(str)
 
     it("should escape characters requiring escape sequences") {
-      resultOfApplyingTo("\b\t\n\f\r\"\\\0") should be ("\"\\b\\t\\n\\f\\r\\\"\\\\\\0\"")
+      resultOfApplyingTo("\b\t\n\f\r\"\\\u0000") should be ("\"\\b\\t\\n\\f\\r\\\"\\\\\\u0000\"")
     }
     it("should not escape single quotes") {
       resultOfApplyingTo("'") should be ("\"'\"")

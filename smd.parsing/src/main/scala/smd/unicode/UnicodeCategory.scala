@@ -165,7 +165,7 @@ object UnicodeCategory {
   private val categoryLookup: Array[UnicodeCategory] = {
     val lut = Array.ofDim[UnicodeCategory](MaxValue + 1)
     for(c <- AllCategories)
-      lut(c.value) = c
+      lut(c.value.toInt) = c
     lut
   }
 
@@ -176,7 +176,7 @@ object UnicodeCategory {
     */
   def get(category: Byte): UnicodeCategory = {
     require(0 <= category && category <= MaxValue, s"the provided category ($category) is invalid.")
-    categoryLookup(category)
+    categoryLookup(category.toInt)
   }
 
   /** Retrieve the [[smd.unicode.UnicodeCategory]] value for the provided UTF-16 character. */

@@ -12,7 +12,7 @@ object HexEncoding {
   /** Lookup table for decoding hexadecimal digits. */
   private val DecodeOption: Array[Option[Int]] = Array.fill('f'+1)(Option.empty[Int])
               "0123456789AaBbCcDdEeFf".foreach { c =>
-                DecodeOption(c) = Some((0x0F & c) + ((0x40 & c) >>> 6) * 9)
+                DecodeOption(c.toInt) = Some((0x0F & c) + ((0x40 & c) >>> 6) * 9)
               }
 
   // There is no reason to implement additional overloads of these methods, as integer conversion
@@ -37,7 +37,7 @@ object HexEncoding {
     * @param digit the digit for which the associated value should be retrieved.
     * @return `Some(value)` if `digit` is a valid hexadecimal digit, `None` otherwise.
     */
-  @inline def decodeDigit(digit: Char) = if(digit <= 'f') DecodeOption(digit) else None
+  @inline def decodeDigit(digit: Char) = if(digit <= 'f') DecodeOption(digit.toInt) else None
 
   /** Retrieve the lowercase hexadecimal string representation of the provided value.
     *
@@ -101,9 +101,11 @@ object HexEncoding {
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeLower(value: Byte, sb: StringBuilder) =
-    sb.append(encodeDigitLower(value >>> 4))
-      .append(encodeDigitLower(value))
+  @inline def encodeLower(value: Byte, sb: StringBuilder) = {
+    val iv = value.toInt
+    sb.append(encodeDigitLower(iv >>> 4))
+      .append(encodeDigitLower(iv))
+  }
 
   /** Append the uppercase hexadecimal string representation of the provided value to the provided [[scala.collection.mutable.StringBuilder]].
     *
@@ -111,9 +113,11 @@ object HexEncoding {
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeUpper(value: Byte, sb: StringBuilder) =
-    sb.append(encodeDigitUpper(value >>> 4))
-      .append(encodeDigitUpper(value))
+  @inline def encodeUpper(value: Byte, sb: StringBuilder) = {
+    val iv = value.toInt
+    sb.append(encodeDigitUpper(iv >>> 4))
+      .append(encodeDigitUpper(iv))
+  }
 
   /** Append the lowercase hexadecimal string representation of the provided value to the provided [[scala.collection.mutable.StringBuilder]].
     *
@@ -121,11 +125,13 @@ object HexEncoding {
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeLower(value: Short, sb: StringBuilder) =
-    sb.append(encodeDigitLower(value >>> 12))
-      .append(encodeDigitLower(value >>>  8))
-      .append(encodeDigitLower(value >>>  4))
-      .append(encodeDigitLower(value))
+  @inline def encodeLower(value: Short, sb: StringBuilder) = {
+    val iv = value.toInt
+    sb.append(encodeDigitLower(iv >>> 12))
+      .append(encodeDigitLower(iv >>>  8))
+      .append(encodeDigitLower(iv >>>  4))
+      .append(encodeDigitLower(iv))
+  }
 
   /** Append the uppercase hexadecimal string representation of the provided value to the provided [[scala.collection.mutable.StringBuilder]].
     *
@@ -133,11 +139,13 @@ object HexEncoding {
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeUpper(value: Short, sb: StringBuilder) =
-    sb.append(encodeDigitUpper(value >>> 12))
-      .append(encodeDigitUpper(value >>>  8))
-      .append(encodeDigitUpper(value >>>  4))
-      .append(encodeDigitUpper(value))
+  @inline def encodeUpper(value: Short, sb: StringBuilder) = {
+    val iv = value.toInt
+    sb.append(encodeDigitUpper(iv >>> 12))
+      .append(encodeDigitUpper(iv >>>  8))
+      .append(encodeDigitUpper(iv >>>  4))
+      .append(encodeDigitUpper(iv))
+  }
 
   /** Append the lowercase hexadecimal string representation of the provided value to the provided [[scala.collection.mutable.StringBuilder]].
     *
@@ -145,15 +153,17 @@ object HexEncoding {
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeLower(value: Int, sb: StringBuilder) =
-    sb.append(encodeDigitLower(value >>> 28))
-      .append(encodeDigitLower(value >>> 24))
-      .append(encodeDigitLower(value >>> 20))
-      .append(encodeDigitLower(value >>> 16))
-      .append(encodeDigitLower(value >>> 12))
-      .append(encodeDigitLower(value >>>  8))
-      .append(encodeDigitLower(value >>>  4))
-      .append(encodeDigitLower(value))
+  @inline def encodeLower(value: Int, sb: StringBuilder) = {
+    val iv = value.toInt
+    sb.append(encodeDigitLower(iv >>> 28))
+      .append(encodeDigitLower(iv >>> 24))
+      .append(encodeDigitLower(iv >>> 20))
+      .append(encodeDigitLower(iv >>> 16))
+      .append(encodeDigitLower(iv >>> 12))
+      .append(encodeDigitLower(iv >>>  8))
+      .append(encodeDigitLower(iv >>>  4))
+      .append(encodeDigitLower(iv))
+  }
 
   /** Append the uppercase hexadecimal string representation of the provided value to the provided [[scala.collection.mutable.StringBuilder]].
     *
@@ -161,15 +171,17 @@ object HexEncoding {
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeUpper(value: Int, sb: StringBuilder) =
-    sb.append(encodeDigitUpper(value >>> 28))
-      .append(encodeDigitUpper(value >>> 24))
-      .append(encodeDigitUpper(value >>> 20))
-      .append(encodeDigitUpper(value >>> 16))
-      .append(encodeDigitUpper(value >>> 12))
-      .append(encodeDigitUpper(value >>>  8))
-      .append(encodeDigitUpper(value >>>  4))
-      .append(encodeDigitUpper(value))
+  @inline def encodeUpper(value: Int, sb: StringBuilder) = {
+    val iv = value.toInt
+    sb.append(encodeDigitUpper(iv >>> 28))
+      .append(encodeDigitUpper(iv >>> 24))
+      .append(encodeDigitUpper(iv >>> 20))
+      .append(encodeDigitUpper(iv >>> 16))
+      .append(encodeDigitUpper(iv >>> 12))
+      .append(encodeDigitUpper(iv >>>  8))
+      .append(encodeDigitUpper(iv >>>  4))
+      .append(encodeDigitUpper(iv))
+  }
 
   /** Append the lowercase hexadecimal string representation of the provided value to the provided [[scala.collection.mutable.StringBuilder]].
     *
@@ -177,45 +189,51 @@ object HexEncoding {
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeLower(value: Long, sb: StringBuilder) =
-    sb.append(encodeDigitLower((value >>> 60).toInt))
-      .append(encodeDigitLower((value >>> 56).toInt))
-      .append(encodeDigitLower((value >>> 52).toInt))
-      .append(encodeDigitLower((value >>> 48).toInt))
-      .append(encodeDigitLower((value >>> 44).toInt))
-      .append(encodeDigitLower((value >>> 40).toInt))
-      .append(encodeDigitLower((value >>> 36).toInt))
-      .append(encodeDigitLower((value >>> 32).toInt))
-      .append(encodeDigitLower((value >>> 28).toInt))
-      .append(encodeDigitLower((value >>> 24).toInt))
-      .append(encodeDigitLower((value >>> 20).toInt))
-      .append(encodeDigitLower((value >>> 16).toInt))
-      .append(encodeDigitLower((value >>> 12).toInt))
-      .append(encodeDigitLower((value >>>  8).toInt))
-      .append(encodeDigitLower((value >>>  4).toInt))
-      .append(encodeDigitLower((value).toInt))
-
+  @inline def encodeLower(value: Long, sb: StringBuilder) = {
+    val hi = (value >>> 32).toInt
+    val lo = (value & 0xFFFFFFFF).toInt
+    sb.append(encodeDigitLower(hi >>>  28))
+      .append(encodeDigitLower(hi >>>  24))
+      .append(encodeDigitLower(hi >>>  20))
+      .append(encodeDigitLower(hi >>>  16))
+      .append(encodeDigitLower(hi >>>  12))
+      .append(encodeDigitLower(hi >>>   8))
+      .append(encodeDigitLower(hi >>>   4))
+      .append(encodeDigitLower(hi        ))
+      .append(encodeDigitLower(lo >>>  28))
+      .append(encodeDigitLower(lo >>>  24))
+      .append(encodeDigitLower(lo >>>  20))
+      .append(encodeDigitLower(lo >>>  16))
+      .append(encodeDigitLower(lo >>>  12))
+      .append(encodeDigitLower(lo >>>   8))
+      .append(encodeDigitLower(lo >>>   4))
+      .append(encodeDigitLower(lo        ))
+  }
+  
   /** Append the uppercase hexadecimal string representation of the provided value to the provided [[scala.collection.mutable.StringBuilder]].
     *
     * @param value the value whose hexadecimal string representation is to be appended to the [[scala.collection.mutable.StringBuilder]].
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the hexadecimal encoding should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]], sb.
     */
-  @inline def encodeUpper(value: Long, sb: StringBuilder) =
-    sb.append(encodeDigitUpper((value >>> 60).toInt))
-      .append(encodeDigitUpper((value >>> 56).toInt))
-      .append(encodeDigitUpper((value >>> 52).toInt))
-      .append(encodeDigitUpper((value >>> 48).toInt))
-      .append(encodeDigitUpper((value >>> 44).toInt))
-      .append(encodeDigitUpper((value >>> 40).toInt))
-      .append(encodeDigitUpper((value >>> 36).toInt))
-      .append(encodeDigitUpper((value >>> 32).toInt))
-      .append(encodeDigitUpper((value >>> 28).toInt))
-      .append(encodeDigitUpper((value >>> 24).toInt))
-      .append(encodeDigitUpper((value >>> 20).toInt))
-      .append(encodeDigitUpper((value >>> 16).toInt))
-      .append(encodeDigitUpper((value >>> 12).toInt))
-      .append(encodeDigitUpper((value >>>  8).toInt))
-      .append(encodeDigitUpper((value >>>  4).toInt))
-      .append(encodeDigitUpper((value).toInt))
+  @inline def encodeUpper(value: Long, sb: StringBuilder) = {
+    val hi = (value >>> 32).toInt
+    val lo = (value & 0xFFFFFFFF).toInt
+    sb.append(encodeDigitUpper(hi >>>  28))
+      .append(encodeDigitUpper(hi >>>  24))
+      .append(encodeDigitUpper(hi >>>  20))
+      .append(encodeDigitUpper(hi >>>  16))
+      .append(encodeDigitUpper(hi >>>  12))
+      .append(encodeDigitUpper(hi >>>   8))
+      .append(encodeDigitUpper(hi >>>   4))
+      .append(encodeDigitUpper(hi        ))
+      .append(encodeDigitUpper(lo >>>  28))
+      .append(encodeDigitUpper(lo >>>  24))
+      .append(encodeDigitUpper(lo >>>  20))
+      .append(encodeDigitUpper(lo >>>  16))
+      .append(encodeDigitUpper(lo >>>  12))
+      .append(encodeDigitUpper(lo >>>   8))
+      .append(encodeDigitUpper(lo >>>   4))
+      .append(encodeDigitUpper(lo        ))
+  }
 }
