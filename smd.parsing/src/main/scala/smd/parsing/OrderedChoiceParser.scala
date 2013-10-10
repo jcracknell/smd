@@ -9,7 +9,7 @@ case class OrderedChoiceParser[+A](choices: IndexedSeq[Parser[A]]) extends Parse
     do {
       val choiceContext = context.copy
       val choiceResult = choices(i).parse(choiceContext)
-      if(choiceResult.succeeded) {
+      if(choiceResult.accepted) {
         context.advanceBy(choiceResult.length)
         return choiceResult
       }
@@ -17,7 +17,7 @@ case class OrderedChoiceParser[+A](choices: IndexedSeq[Parser[A]]) extends Parse
       i += 1
     } while(i < choices.length)
 
-    Failure
+    Rejected
   }
 }
 

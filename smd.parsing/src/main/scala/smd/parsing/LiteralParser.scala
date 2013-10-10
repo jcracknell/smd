@@ -12,12 +12,12 @@ case class LiteralParser(literal: String) extends Parser[String] {
     val rb = context.resultBuilder
 
     if(context.input.length - context.index < literal.length)
-      return rb.failure
+      return rb.reject
 
     var i = 0
     do {
       if(literal.charAt(i) != context.input.charAt(context.index + i))
-        return rb.failure
+        return rb.reject
       i += 1
     } while(i != literal.length)
 
@@ -26,9 +26,9 @@ case class LiteralParser(literal: String) extends Parser[String] {
     // in the input is followed by additional combining marks.
     val finalContextGrapheme = context.graphemeAt(context.index + lastGrapheme.start)
     if(lastGrapheme.length != finalContextGrapheme.length)
-      return rb.failure
+      return rb.reject
 
     context.advanceBy(literal.length)
-    rb.success(literal)
+    rb.accept(literal)
   }
 }

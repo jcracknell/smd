@@ -7,14 +7,14 @@ case class GraphemeParser(criterion: GraphemeCriterion) extends Parser[GraphemeI
   def parse(context: ParsingContext): ParsingResult[GraphemeInfo] = {
     val rb = context.resultBuilder
     if(context.index >= context.input.length)
-      return rb.failure
+      return rb.reject
 
     val grapheme = context.graphemeAt(context.index)
     if(criterion.isSatisfiedBy(grapheme)) {
       context.advanceBy(grapheme.length)
-      rb.success(grapheme)
+      rb.accept(grapheme)
     } else {
-      rb.failure
+      rb.reject
     }
   }
 }

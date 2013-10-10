@@ -20,14 +20,14 @@ case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[I
     do {
       val iterationContext = context.copy
       val iterationResult = body.parse(iterationContext)
-      if(iterationResult.succeeded) {
+      if(iterationResult.accepted) {
         context.advanceTo(iterationContext.index)
         products.append(iterationResult.product)
       } else {
-        return if(n >= minCount) rb.success(products.toList) else rb.failure
+        return if(n >= minCount) rb.accept(products.toList) else rb.reject
       }
       n += 1
     } while(n != maxCount)
-    rb.success(products.toList)
+    rb.accept(products.toList)
   }
 }

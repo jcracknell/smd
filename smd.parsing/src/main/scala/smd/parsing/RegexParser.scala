@@ -13,7 +13,7 @@ case class RegexParser(regex: Regex) extends Parser[Regex.Match] {
     val matchResult = regex.findPrefixMatchOf(remainingInput)
 
     if(matchResult.isEmpty)
-      return rb.failure
+      return rb.reject
 
     val m = matchResult.get
 
@@ -22,9 +22,9 @@ case class RegexParser(regex: Regex) extends Parser[Regex.Match] {
     val matchEnd = context.index + m.end
     if(matchEnd == context.index || matchEnd == context.graphemeAt(matchEnd - 1).end) {
       context.advanceTo(matchEnd)
-      rb.success(m)
+      rb.accept(m)
     } else {
-      rb.failure
+      rb.reject
     }
   }
 }

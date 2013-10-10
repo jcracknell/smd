@@ -11,16 +11,16 @@ case class SequenceParser(sequence: IndexedSeq[Parser[Any]]) extends SequencePar
 
     do {
       val r = sequence(i).parse(context)
-      if(r.succeeded){
+      if(r.accepted){
         products(i) = r.product
       } else {
-        return rb.failure
+        return rb.reject
       }
 
       i += 1
     } while(i < sequence.length)
 
-    rb.success(products)
+    rb.accept(products)
   }
 }
 

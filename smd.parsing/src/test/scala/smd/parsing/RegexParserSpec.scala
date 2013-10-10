@@ -8,7 +8,7 @@ import smd.unicode.GraphemeExemplars
 class RegexParserSpec extends FunSpec with ShouldMatchers with GraphemeExemplars {
   object SuccessAt {
     def unapply[A](pr: ParsingResult[A]): Option[(A, Int, Int)] =
-      if(pr.failed) None else Some((pr.product, pr.index, pr.length))
+      if(pr.rejected) None else Some((pr.product, pr.index, pr.length))
   }
 
   it("should match") {
@@ -24,9 +24,9 @@ class RegexParserSpec extends FunSpec with ShouldMatchers with GraphemeExemplars
     }) should be (true)
   }
   it("should only match a prefix") {
-    (RegexParser("[a-z]+").parse(ParsingContext("1a")).succeeded) should be (false)
+    (RegexParser("[a-z]+").parse(ParsingContext("1a")).accepted) should be (false)
   }
   it("should not match a partial grapheme") {
-    (RegexParser("[a-z]+".r).parse(ParsingContext(s"a${g.combining_acute_accent}")).succeeded) should be (false)
+    (RegexParser("[a-z]+".r).parse(ParsingContext(s"a${g.combining_acute_accent}")).accepted) should be (false)
   }
 }

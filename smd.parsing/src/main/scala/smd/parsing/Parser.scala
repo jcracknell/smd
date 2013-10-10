@@ -43,14 +43,14 @@ abstract class Parser[+A] { lhs =>
   def ^? [B](f: PartialFunction[ParsingResult[A], B]): Parser[B] = new Parser[B] {
     def parse(context: ParsingContext): ParsingResult[B] = {
       val r = lhs.parse(context)
-      if(r.succeeded && f.isDefinedAt(r)) r.copy(f(r)) else Failure
+      if(r.accepted && f.isDefinedAt(r)) r.copy(f(r)) else Rejected
     }
   }
 
   def ^*? [B](f: PartialFunction[A, B]): Parser[B] = new Parser[B] {
     def parse(context: ParsingContext): ParsingResult[B] = {
       val r = lhs.parse(context)
-      if(r.succeeded && f.isDefinedAt(r.product)) r.copy(f(r.product)) else Failure
+      if(r.accepted && f.isDefinedAt(r.product)) r.copy(f(r.product)) else Rejected
     }
   }
 }

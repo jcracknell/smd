@@ -6,9 +6,9 @@ case class LeftParser[+A, +B](left: Parser[A], right: Parser[B]) extends Parser[
     val rb = context.resultBuilder
 
     val lr = left.parse(context)
-    if(lr.failed) return rb.failure
+    if(lr.rejected) return rb.reject
 
     val rr = right.parse(context)
-    if(rr.succeeded) rb.success(lr.product) else rb.failure
+    if(rr.accepted) rb.accept(lr.product) else rb.reject
   }
 }

@@ -17,7 +17,7 @@ trait ProductionSpec extends FunSpec with ShouldMatchers {
       it(s"should parse ${input.literalEncode} as $expected") {
         result = subject.asInstanceOf[Parser[A]].parse(input)
 
-        if(result.failed) fail(s"Parsing failed.")
+        if(result.rejected) fail(s"Parsing failed.")
 
         if(result.length != input.length) fail(s"Production did not consume entire input.")
 

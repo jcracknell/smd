@@ -7,11 +7,11 @@ case class OptionalParser[+A](parser: Parser[A]) extends Parser[Option[A]] {
     val c = context.copy
     val r = parser.parse(c)
 
-    if(r.succeeded) {
+    if(r.accepted) {
       context.advanceTo(c.index)
-      rb.success(Some(r.product))
+      rb.accept(Some(r.product))
     } else {
-      rb.success(None)
+      rb.accept(None)
     }
   }
 }

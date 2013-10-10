@@ -34,17 +34,17 @@ trait ParsingContext { context =>
   class ResultBuilder {
     protected val resultIndex = context.index
 
-    /** Creates a successful [[smd.parsing.ParsingResult]] containing the provided product.
+    /** Creates an accepting [[smd.parsing.ParsingResult]] with the provided product.
       *
       * @param product the product contained by the resulting [[smd.parsing.ParsingResult]].
       * @tparam A the type of the product.
       * @return a successful [[smd.parsing.ParsingResult]] containing the provided product.
       */
-    def success[A](product: A): ParsingResult[A] =
-      new Success[A](product, input, resultIndex, endIndex = context.index)
+    def accept[A](product: A): ParsingResult[A] =
+      new Accepted[A](product, input, resultIndex, endIndex = context.index)
 
-    /** Creates an unsuccessful [[smd.parsing.ParsingResult]]. */
-    def failure[A]: ParsingResult[A] = Failure
+    /** Creates a rejecting [[smd.parsing.ParsingResult]]. */
+    def reject[A]: ParsingResult[A] = Rejected
   }
 }
 

@@ -26,10 +26,10 @@ class SequenceParserNGenerator(n: Int) extends FileGenerator(_/"smd"/"parsing"/s
     |
     |    ${(1 to n).map({ i => s"""
     |    val r$i = p$i.parse(context)
-    |    if(r$i.failed) return Failure
+    |    if(r$i.rejected) return rb.reject
     |    """.trim.stripMargin }).mkString("\n").trim}
     |
-    |    rb.success((${lst("r", 1 to n, ".product")}))
+    |    rb.accept((${lst("r", 1 to n, ".product")}))
     |  }
     |}
     """.trim.stripMargin

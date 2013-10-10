@@ -36,13 +36,13 @@ case class LiteralSetParser[+A](literals: Map[String, A]) extends Parser[A] {
 
     val rb = context.resultBuilder
     longestMatch(trie, context.index) match {
-      case None => rb.failure
+      case None => rb.reject
       case Some((product, matchEnd)) =>
         if(matchEnd == context.index || matchEnd == context.graphemeAt(matchEnd - 1).end) {
           context.advanceTo(matchEnd)
-          rb.success(product)
+          rb.accept(product)
         } else {
-          rb.failure
+          rb.reject
         }
     }
   }
