@@ -6,7 +6,7 @@ object SmdBuild extends Build {
 
   val baseSettings = Defaults.defaultSettings ++ Seq(
     version :=      "0.1",
-    scalaVersion := "2.11.0-M5",
+    scalaVersion := "2.10.2",
     scalacOptions ++= Seq(
       "-deprecation",
       "-feature",
@@ -21,7 +21,6 @@ object SmdBuild extends Build {
     ),
     libraryDependencies <++= (scalaVersion) { sv =>
       Seq(
-        "org.scala-lang.modules" %% "scala-parser-combinators" % "latest.snapshot",
         "org.scalatest" %% "scalatest" % "latest.snapshot" % "test"
       )
     }
