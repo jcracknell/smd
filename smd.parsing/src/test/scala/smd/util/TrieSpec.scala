@@ -1,10 +1,9 @@
 package smd
 package util
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 
-class TrieSpec extends FunSpec with ShouldMatchers {
+class TrieSpec extends FunSpec with Matchers {
   describe("construction") {
     it("should yield the expected structure") {
       Trie("" -> 1, "at" -> 2, "bat" -> 3, "a" -> 4) should be(

@@ -1,10 +1,9 @@
 package smd
 package markdown
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 
-class ReferenceIdSpec extends FunSpec with ShouldMatchers {
+class ReferenceIdSpec extends FunSpec with Matchers {
   describe("normalization") {
     Map(
       "A"         -> "a",

@@ -1,11 +1,10 @@
 package smd
 package parsing
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 import smd.unicode.GraphemeExemplars
 
-class RegexParserSpec extends FunSpec with ShouldMatchers with GraphemeExemplars {
+class RegexParserSpec extends FunSpec with Matchers with GraphemeExemplars {
   object SuccessAt {
     def unapply[A](pr: ParsingResult[A]): Option[(A, Int, Int)] =
       if(pr.rejected) None else Some((pr.product, pr.index, pr.length))

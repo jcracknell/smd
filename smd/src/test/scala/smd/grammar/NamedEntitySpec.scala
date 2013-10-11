@@ -1,10 +1,9 @@
 package smd
 package grammar
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 
-class NamedEntitySpec extends FunSpec with ShouldMatchers {
+class NamedEntitySpec extends FunSpec with Matchers {
   Map(
     "eacute" -> Seq(233),
     "Aacute" -> Seq(193),      // first entry

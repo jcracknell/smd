@@ -1,10 +1,9 @@
 package smd
 package parsing
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSpec
+import org.scalatest.{Matchers, FunSpec}
 
-class LiteralSetParserSpec extends FunSpec with ShouldMatchers {
+class LiteralSetParserSpec extends FunSpec with Matchers {
   it("should match the longest literal") {
     LiteralSetParser("foo", "foobar").parse("foobared").product should be ("foobar")
   }

@@ -1,10 +1,9 @@
 package smd
 package unicode
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 
-class CodePointCriteriaSpecs extends FunSpec with ShouldMatchers {
+class CodePointCriteriaSpecs extends FunSpec with Matchers {
   import CodePointCriteria._
 
   def satisfyingCodePoints(criterion: CodePointCriterion): Set[CodePointInfo] =

@@ -1,10 +1,9 @@
 package smd
 package unicode
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 
-class GraphemeInfoSpec extends FunSpec with ShouldMatchers with GraphemeExemplars {
+class GraphemeInfoSpec extends FunSpec with Matchers with GraphemeExemplars {
   describe("at method") {
     def test[A](str: String, index: Int = 0)(assert: PartialFunction[GraphemeInfo, A]): Unit = {
       it(s"should produce the expected result for ${str.literalEncode} at index $index") {

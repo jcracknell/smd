@@ -1,11 +1,10 @@
 package smd
 package parsing
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSpec
+import org.scalatest.{Matchers, FunSpec}
 import smd.parsing
 
-class SequencingHeuristicSpec extends FunSpec with ShouldMatchers with Parsers {
+class SequencingHeuristicSpec extends FunSpec with Matchers with Parsers {
   it("Parser[A] ~ Parser[B] => SequenceParser2[A, B]") {
     val a = OptionalParser(LiteralParser("a"))
     val b = LiteralParser("b")

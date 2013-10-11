@@ -1,11 +1,10 @@
 package smd
 package grammar
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FunSpec
+import org.scalatest.{Matchers, FunSpec}
 import smd.parsing.{Parser, ParsingResult}
 
-trait ProductionSpec extends FunSpec with ShouldMatchers {
+trait ProductionSpec extends FunSpec with Matchers {
   import scala.language.reflectiveCalls
 
   def subject: Parser[_]

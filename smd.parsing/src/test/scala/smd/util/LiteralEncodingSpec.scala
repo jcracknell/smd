@@ -1,10 +1,9 @@
 package smd
 package util
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 
-class LiteralEncodingSpec extends FunSpec with ShouldMatchers {
+class LiteralEncodingSpec extends FunSpec with Matchers {
   describe("encode(c:Char):String") {
     def resultOfApplyingTo(c:Char) = LiteralEncoding.encode(c)
 

@@ -1,10 +1,9 @@
 package smd
 package util
 
-import org.scalatest.FunSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, FunSpec}
 
-class HexEncodingSpec extends FunSpec with ShouldMatchers {
+class HexEncodingSpec extends FunSpec with Matchers {
   describe("encodeDigitLower") {
     it("should encode correctly") {
       (Array(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)).map(HexEncoding.encodeDigitLower) should be ("0123456789abcdef".toCharArray)
