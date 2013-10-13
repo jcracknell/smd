@@ -4,23 +4,23 @@ package grammar
 import smd.markdown._
 
 class HeadingSpec extends ProductionSpec {
-  def subject = Grammar.heading
+  import Grammar.heading
 
-  shouldParse(
+  parsing(
     """
     |# Heading 1
     """.trim.stripMargin
-  ) as (
+  ) as heading should produce (
     Heading(1, Seq(
       Text("Heading"), Space(), Text("1")
     ))
   )
 
-  shouldParse(
+  parsing(
     """
     |## Heading 2
     """.trim.stripMargin
-  ) as (
+  ) as heading should produce (
     Heading(2, Seq(
       Text("Heading"), Space(), Text("2")
     ))

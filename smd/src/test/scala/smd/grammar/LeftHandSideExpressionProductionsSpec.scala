@@ -1,37 +1,49 @@
 package smd
 package grammar
 
+import smd.expression._
+
 class LeftHandSideExpressionProductionsSpec extends ProductionSpec {
-  def subject = Grammar.leftHandSideExpression
+  import Grammar.leftHandSideExpression
 
-    shouldParse("@a()")      as expression.Call(
-                                  body = expression.Identifier("a"),
-                                  args = Seq()
-                                )
+  parsing("@a()") as leftHandSideExpression should produce (
+    Call(
+      body = Identifier("a"),
+      args = Seq()
+    )
+  )
 
-    shouldParse("@a.b")      as expression.StaticProperty(
-                                  body = expression.Identifier("a"),
-                                  member = "b"
-                                )
+  parsing("@a.b") as leftHandSideExpression should produce (
+    StaticProperty(
+      body = Identifier("a"),
+      member = "b"
+    )
+  )
 
-    shouldParse("@a['b']")   as expression.DynamicProperty(
-                                  body = expression.Identifier("a"),
-                                  member = expression.StringLiteral("b")
-                                )
+  parsing("@a['b']") as leftHandSideExpression should produce (
+    DynamicProperty(
+      body = Identifier("a"),
+      member = StringLiteral("b")
+    )
+  )
 
-    shouldParse("@a.b()")    as expression.Call(
-                                  body = expression.StaticProperty(
-                                           body = expression.Identifier("a"),
-                                           member = "b"
-                                         ),
-                                  args = Seq()
-                                )
+  parsing("@a.b()") as leftHandSideExpression should produce (
+    Call(
+      body = StaticProperty(
+               body = Identifier("a"),
+               member = "b"
+             ),
+      args = Seq()
+    )
+  )
 
-    shouldParse("@a.b('c')") as expression.Call(
-                                  body = expression.StaticProperty(
-                                    body = expression.Identifier("a"),
-                                    member = "b"
-                                  ),
-                                  args = Seq(expression.StringLiteral("c"))
-                                )
+  parsing("@a.b('c')") as leftHandSideExpression should produce (
+    Call(
+      body = StaticProperty(
+        body = Identifier("a"),
+        member = "b"
+      ),
+      args = Seq(StringLiteral("c"))
+    )
+  )
 }

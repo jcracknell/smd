@@ -5,28 +5,28 @@ import markdown._
 import smd.expression.{StringLiteral, ObjectLiteral, IriLiteral}
 
 class ReferenceSpec extends ProductionSpec {
-  def subject = Grammar.reference
+  import Grammar.reference
 
-  shouldParse("[google]: http://www.google.com") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
-  shouldParse("[google]: (http://www.google.com)") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
-  shouldParse(" [google]: http://www.google.com") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
-  shouldParse(" [google]: (http://www.google.com)") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
-  shouldParse("  [google]: http://www.google.com") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
-  shouldParse("  [google]: (http://www.google.com)") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
-  shouldParse("   [google]: http://www.google.com") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
-  shouldParse("   [google]: (http://www.google.com)") as Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
+  parsing("[google]: http://www.google.com") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
+  parsing("[google]: (http://www.google.com)") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
+  parsing(" [google]: http://www.google.com") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
+  parsing(" [google]: (http://www.google.com)") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
+  parsing("  [google]: http://www.google.com") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
+  parsing("  [google]: (http://www.google.com)") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
+  parsing("   [google]: http://www.google.com") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
+  parsing("   [google]: (http://www.google.com)") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
 
-  shouldParse(
+  parsing(
     "[my github account]: https://github.com/jcracknell , { 'class': 'special' }"
-  ) as (
+  ) as reference should produce (
     Reference(ReferenceId("my github account"), Seq(
       IriLiteral("https://github.com/jcracknell"),
       ObjectLiteral("class" -> StringLiteral("special"))
     ))
   )
-  shouldParse(
+  parsing(
     "[my github account]: (https://github.com/jcracknell , { 'class': 'special' })"
-  ) as (
+  ) as reference should produce (
     Reference(ReferenceId("my github account"), Seq(
       IriLiteral("https://github.com/jcracknell"),
       ObjectLiteral("class" -> StringLiteral("special"))

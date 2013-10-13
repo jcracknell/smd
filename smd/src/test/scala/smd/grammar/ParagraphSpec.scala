@@ -4,17 +4,18 @@ package grammar
 import smd.markdown._
 
 class ParagraphSpec extends ProductionSpec {
-  def subject = Grammar.paragraph
-
-  shouldParse("The paragraph.") as (
+  import Grammar.paragraph
+  
+  parsing("The paragraph.") as paragraph should produce (
     Paragraph(Seq(
       Text("The"), Space(), Text("paragraph.")
     ))
   )
-  shouldParse("""
+
+  parsing("""
   |Line1
   |Line2
-  """.trim.stripMargin) as (
+  """.trim.stripMargin) as paragraph should produce (
     Paragraph(Seq(
       Text("Line1"), Space(), Text("Line2")
     ))

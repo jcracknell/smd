@@ -1,6 +1,8 @@
 package smd
 package parsing
 
+import scala.util.Success
+
 /** The result of applying an [[smd.parsing.Parser]] to an [[smd.parsing.ParsingContext]].
   *
   * @tparam A the type of the product of the parsing result.
@@ -77,6 +79,27 @@ class Accepted[+A](val product: A, protected val source: CharSequence, val index
   }
 
   override def toString: String = s"${getClass.getName}($product)"
+}
+
+object Accepted {
+  def unapply[A](parsingResult: ParsingResult[A]): Option[(A, Int, Int)] = parsingResult match {
+    case p: Accepted[A] => Some((p.product, p.index, p.length))
+    case _ => None
+  }
+
+  object Consuming {
+    def unapply(parsingResult: ParsingResult[_]): Option[CharSequence] = parsingResult match {
+      case p: Accepted[_] => Some(p.parsed)
+      case _ => None
+    }
+  }
+
+  object Producing {
+    def unapply[A](parsingResult: ParsingResult[A]): Option[A] = parsingResult match {
+      case a: Accepted[A] => Some(a.product)
+      case _ => None
+    }
+  }
 }
 
 /** The singleton rejected [[smd.parsing.ParsingResult]]. */

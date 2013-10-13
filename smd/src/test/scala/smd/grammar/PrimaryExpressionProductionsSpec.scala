@@ -1,22 +1,33 @@
 package smd
 package grammar
 
+import smd.expression._
 
 class PrimaryExpressionProductionsSpec extends ProductionSpec {
-  def subject = Grammar.primaryExpression
+  import Grammar.primaryExpression
 
-  shouldParse("[]")              as expression.ArrayLiteral(Seq())
-  shouldParse("['a']")           as expression.ArrayLiteral(Seq(expression.StringLiteral("a")))
-  shouldParse("['a',42]")        as expression.ArrayLiteral(Seq(expression.StringLiteral("a"), expression.NumericLiteral(42d)))
-  shouldParse("[,]")             as expression.ArrayLiteral(Seq())
-  shouldParse("[,'a']")          as expression.ArrayLiteral(Seq(expression.Elided(), expression.StringLiteral("a")))
-  shouldParse("[,,'a','b',,,,]") as expression.ArrayLiteral(Seq(
-                                   expression.Elided(),
-                                   expression.Elided(),
-                                   expression.StringLiteral("a"),
-                                   expression.StringLiteral("b")
-                                 ))
-  shouldParse("{}")              as expression.ObjectLiteral(Seq())
-  shouldParse("{'a':42}")        as expression.ObjectLiteral(Seq("a" -> expression.NumericLiteral(42d)))
-  shouldParse("(@a || true)")    as expression.LogicalOr(expression.Identifier("a"), expression.BooleanLiteral(true))
+  parsing("[]") as primaryExpression should produce (ArrayLiteral(Seq()))
+
+  parsing("['a']") as primaryExpression should produce (ArrayLiteral(Seq(StringLiteral("a"))))
+
+  parsing("['a',42]") as primaryExpression should produce (ArrayLiteral(Seq(StringLiteral("a"), NumericLiteral(42d))))
+
+  parsing("[,]") as primaryExpression should produce (ArrayLiteral(Seq()))
+
+  parsing("[,'a']") as primaryExpression should produce (ArrayLiteral(Seq(Elided(), StringLiteral("a"))))
+
+  parsing("[,,'a','b',,,,]") as primaryExpression should produce (
+    ArrayLiteral(Seq(
+      Elided(),
+      Elided(),
+      StringLiteral("a"),
+      StringLiteral("b")
+    ))
+  )
+
+  parsing("{}") as primaryExpression should produce (ObjectLiteral())
+
+  parsing("{'a':42}") as primaryExpression should produce (ObjectLiteral("a" -> NumericLiteral(42d)))
+
+  parsing("(@a || true)") as primaryExpression should produce ( LogicalOr(Identifier("a"), BooleanLiteral(true)))
 }

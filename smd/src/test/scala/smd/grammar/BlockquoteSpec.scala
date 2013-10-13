@@ -4,13 +4,11 @@ package grammar
 import smd.markdown._
 
 class BlockquoteSpec extends ProductionSpec {
-  def subject = Grammar.blockquote
+  import Grammar.blockquote
 
-  shouldParse(
-    """
+  parsing("""
     |> Blockquote
-    """.trim.stripMargin
-  ) as (
+  """.trim.stripMargin) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote")
@@ -18,12 +16,10 @@ class BlockquoteSpec extends ProductionSpec {
     ))
   )
 
-  shouldParse(
-    """
+  parsing( """
     |> Blockquote
     |> line 2
-    """.trim.stripMargin
-  ) as (
+  """.trim.stripMargin) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote"), Space(), Text("line"), Space(), Text("2")
@@ -31,12 +27,12 @@ class BlockquoteSpec extends ProductionSpec {
     ))
   )
 
-  shouldParse(
+  parsing(
     """
     |> Blockquote
     |line 2
     """.trim.stripMargin
-  ) as (
+  ) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote"), Space(), Text("line"), Space(), Text("2")
@@ -44,13 +40,13 @@ class BlockquoteSpec extends ProductionSpec {
     ))
   )
 
-  shouldParse(
+  parsing(
     """
     |> Blockquote
     |
     |> continues
     """.trim.stripMargin
-  ) as (
+  ) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote")

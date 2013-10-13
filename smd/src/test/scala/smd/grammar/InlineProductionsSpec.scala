@@ -3,46 +3,51 @@ package grammar
 
 class InlineProductionsSpec extends ProductionSpec {
   import markdown._
-
-  def subject = Grammar.inline
+  import Grammar.inline
 
   describe("AutoLink") {
-    shouldParse("<https://github.com>") as AutoLink("https://github.com")
-    shouldParse("<mailto:john.doe@gmail.com>") as AutoLink("mailto:john.doe@gmail.com")
-    shouldParse("<mailto:john.doe@gmail.com?subject=Where+is+my+money+you+bastard>") as AutoLink("mailto:john.doe@gmail.com?subject=Where+is+my+money+you+bastard")
+    parsing("<https://github.com>") as inline should produce (AutoLink("https://github.com"))
+    parsing("<mailto:john.doe@gmail.com>") as inline should produce (AutoLink("mailto:john.doe@gmail.com"))
+    parsing("<mailto:john.doe@gmail.com?subject=Where+is+my+money+you+bastard>") as inline should produce (
+      AutoLink("mailto:john.doe@gmail.com?subject=Where+is+my+money+you+bastard")
+    )
   }
   describe("Code") {
-    shouldParse("`a`") as Code("a")
-    shouldParse("````````````````a````````````````") as Code("a")
-    shouldParse("`//comment`") as Code("//comment")
+    parsing("`a`") as inline should produce (Code("a"))
+    parsing("````````````````a````````````````") as inline should produce (Code("a"))
+    parsing("`//comment`") as inline should produce (Code("//comment"))
   }
   describe("Emphasis") {
-    shouldParse("*a*") as Emphasis(Seq(Text("a")))
-    shouldParse("***a**b*") as Emphasis(Seq(Strong(Seq(Text("a"))), Text("b")))
+    parsing("*a*") as inline should produce (Emphasis(Seq(Text("a"))))
+    parsing("***a**b*") as inline should produce (Emphasis(Seq(Strong(Seq(Text("a"))), Text("b"))))
   }
   describe("Link") {
-    shouldParse("[foo](baz)") as Link(Seq(Text("foo")), None, Seq(expression.IriLiteral("baz")))
-    shouldParse("[foo][bar]") as Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq())
-    shouldParse("[foo][bar](baz)") as Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq(expression.IriLiteral("baz")))
-    shouldParse("[Slashdot: News for nerds](http://www.slashdot.org)") as Link(
-      Seq(Text("Slashdot:"), Space(), Text("News"), Space(), Text("for"), Space(), Text("nerds")),
-      None,
-      Seq(expression.IriLiteral("http://www.slashdot.org"))
+    parsing("[foo](baz)") as inline should produce (Link(Seq(Text("foo")), None, Seq(expression.IriLiteral("baz"))))
+    parsing("[foo][bar]") as inline should produce (Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq()))
+    parsing("[foo][bar](baz)") as inline should produce (
+      Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq(expression.IriLiteral("baz")))
+    )
+    parsing("[Slashdot: News for nerds](http://www.slashdot.org)") as inline should produce (
+      Link(
+        Seq(Text("Slashdot:"), Space(), Text("News"), Space(), Text("for"), Space(), Text("nerds")),
+        None,
+        Seq(expression.IriLiteral("http://www.slashdot.org"))
+      )
     )
   }
   describe("Quoted") {
-    shouldParse("''") as Quoted(Seq(), Quoted.QuoteKind.Single)
-    shouldParse("\"\"") as Quoted(Seq(), Quoted.QuoteKind.Double)
-    shouldParse("'a'") as Quoted(Seq(Text("a")), Quoted.QuoteKind.Single)
-    shouldParse("\"a\"") as Quoted(Seq(Text("a")), Quoted.QuoteKind.Double)
+    parsing("''") as inline should produce (Quoted(Seq(), Quoted.QuoteKind.Single))
+    parsing("\"\"") as inline should produce (Quoted(Seq(), Quoted.QuoteKind.Double))
+    parsing("'a'") as inline should produce (Quoted(Seq(Text("a")), Quoted.QuoteKind.Single))
+    parsing("\"a\"") as inline should produce (Quoted(Seq(Text("a")), Quoted.QuoteKind.Double))
   }
   describe("Strong") {
-    shouldParse("**a**") as Strong(Seq(Text("a")))
-    shouldParse("***a***") as Strong(Seq(Emphasis(Seq(Text("a")))))
-    shouldParse("***a*b**") as Strong(Seq(Emphasis(Seq(Text("a"))), Text("b")))
+    parsing("**a**") as inline should produce (Strong(Seq(Text("a"))))
+    parsing("***a***") as inline should produce (Strong(Seq(Emphasis(Seq(Text("a"))))))
+    parsing("***a*b**") as inline should produce (Strong(Seq(Emphasis(Seq(Text("a"))), Text("b"))))
   }
   describe("Text") {
-    shouldParse("pelican") as Text("pelican")
-    shouldParse("pelican's") as Text("pelican's")
+    parsing("pelican") as inline should produce (Text("pelican"))
+    parsing("pelican's") as inline should produce (Text("pelican's"))
   }
 }
