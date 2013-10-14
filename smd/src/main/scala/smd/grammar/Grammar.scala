@@ -9,10 +9,9 @@ import smd.expression.Expression
 object Grammar extends Grammar
 
 trait Grammar extends Parsers {
-  protected def parse[A](parser: Parser[A], extents: Seq[CharSequence]): A = {
-    // TODO: Performance
-    parser.parse(extents.map(_.toString).mkString("")).product
-  }
+  protected def parse[A](parser: Parser[A], extents: Seq[CharSequence]): A =
+    // TODO: error checking
+    parser.parse(extents).product
 
   lazy val document: Parser[markdown.Document] = blocks ^* markdown.Document
 

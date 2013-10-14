@@ -1,9 +1,12 @@
 package smd
 package parsing
 
+import smd.util.CompositeCharSequence
+
 abstract class Parser[+A] { lhs =>
   def parse(context: ParsingContext): ParsingResult[A]
   def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
+  def parse(inputParts: Seq[CharSequence]): ParsingResult[A] = parse(CompositeCharSequence.weighted(inputParts))
 
   /** Apply a transformation to the result of the left-hand parser. */
   def ^^  [B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
