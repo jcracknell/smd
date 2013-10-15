@@ -7,6 +7,7 @@ package util
   * Implementations will escape any character not in the range `~` (tilde) through ` ` (space) for clarity.
   */
 object LiteralEncoding {
+  private val Hex = "0123456789abcdef".toArray
   private val StringEscapes   = Array.fill('\\'.toInt + 1)('\u0000')
   private val CharEscapes     = Array.fill('\\'.toInt + 1)('\u0000')
 
@@ -17,7 +18,7 @@ object LiteralEncoding {
       '\n' -> 'n',  // linefeed
       '\f' -> 'f',  // formfeed
       '\r' -> 'r',  // carriage return
-      '\\' -> '\\' // backslash
+      '\\' -> '\\'  // backslash
     )
 
     (baseEscapes + ('\"' -> '\"')).foreach { case (c, e) => StringEscapes(c.toInt) = e }
@@ -40,10 +41,10 @@ object LiteralEncoding {
         Array('\'', c, '\'')
       else Array(
         '\'', '\\', 'u',
-        HexEncoding.encodeDigitLower(ci >>> 12),
-        HexEncoding.encodeDigitLower(ci >>>  8),
-        HexEncoding.encodeDigitLower(ci >>>  4),
-        HexEncoding.encodeDigitLower(ci),
+        Hex(ci >>> 12 & 0xF),
+        Hex(ci >>>  8 & 0xF),
+        Hex(ci >>>  4 & 0xF),
+        Hex(ci        & 0xF),
         '\''
       )
     })
@@ -53,7 +54,6 @@ object LiteralEncoding {
     *
     * @param c the [[scala.Char]] to be encoded as an equivalent character literal.
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the literal representation of the provided [[scala.Char]] should be appended.
-    * @return the provided [[scala.collection.mutable.StringBuilder]].
     */
   def encode(c: Char, sb: StringBuilder): StringBuilder = {
     val ci = c.toInt
@@ -62,49 +62,53 @@ object LiteralEncoding {
       sb.append('\\').append(CharEscapes(ci))
     else if('~' >= c && c >= ' ')
       sb.append(c)
-    else {
+    else
       sb.append('\\').append('u')
-      HexEncoding.encodeLower(c.toShort, sb)
-    }
+        .append(Hex(ci >>> 12 & 0xF))
+        .append(Hex(ci >>>  8 & 0xF))
+        .append(Hex(ci >>>  4 & 0xF))
+        .append(Hex(ci        & 0xF))
     sb.append('\'')
   }
 
-  /** Encode the provided [[java.lang.String]] as a Scala string literal, enclosing the string in double quotes and replacing
+  /** Encode the provided [[java.lang.CharSequence]] as a Scala string literal, enclosing the string in double quotes and replacing
     * characters with escape sequences as necessary.
     *
-    * @param str the [[java.lang.String]] to be encoded as an equivalent string literal.
-    * @return the literal representation of the provided [[java.lang.String]].
+    * @param str the [[java.lang.CharSequence]] to be encoded as an equivalent string literal.
     */
-  def encode(str: String): String = {
+  def encode(str: CharSequence): String = {
     if(null == str) return "null";
 
-    val sb = new StringBuilder(str.length + 2)
-    encode(str, sb)
-    sb.toString
+    encode(str, new StringBuilder(str.length + 2)).toString
   }
 
-  /** Encode the provided [[java.lang.String]] as a Scala string literal, enclosing the string in double quotes and replacing
+  /** Encode the provided [[java.lang.CharSequence]] as a Scala string literal, enclosing the string in double quotes and replacing
     * characters with escape sequences as necessary.
     *
-    * @param str the [[java.lang.String]] to be encoded as an equivalent string literal.
+    * @param str the [[java.lang.CharSequence]] to be encoded as an equivalent string literal.
     * @param sb the [[scala.collection.mutable.StringBuilder]] to which the literal representation of the provided string should be appended.
     * @return the provided [[scala.collection.mutable.StringBuilder]].
     */
-  def encode(str: String, sb: StringBuilder): StringBuilder = {
+  def encode(str: CharSequence, sb: StringBuilder): StringBuilder = {
     if(null == str) return sb.append("null");
 
     sb.append('"')
-    for(c <- str) {
+    var i = 0
+    while(i < str.length) {
+      val c = str.charAt(i)
       val ci = c.toInt
 
       if(ci < StringEscapes.length && '\u0000' != StringEscapes(ci))
         sb.append('\\').append(StringEscapes(ci))
       else if('~' >= c && c >= ' ')
         sb.append(c)
-      else {
+      else
         sb.append('\\').append('u')
-        HexEncoding.encodeLower(c.toShort, sb)
-      }
+          .append(Hex(ci >>> 12 & 0xF))
+          .append(Hex(ci >>>  8 & 0xF))
+          .append(Hex(ci >>>  4 & 0xF))
+          .append(Hex(ci        & 0xF))
+      i += 1
     }
     sb.append('"')
   }

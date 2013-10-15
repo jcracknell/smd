@@ -3,6 +3,8 @@ package object smd {
     def subSequenceProxy(start: Int, end: Int = cs.length()): CharSequence =
       new smd.util.ProxyCharSequence(cs, start, end)
 
+    def literalEncode: String = util.LiteralEncoding.encode(cs)
+
     def length: Int = cs.length
 
     def apply(idx: Int): Char = cs.charAt(idx)
@@ -18,10 +20,6 @@ package object smd {
     def lengthGte(len: Int): Boolean = seq.lengthCompare(len) >= 0
     def lengthLt(len: Int): Boolean  = seq.lengthCompare(len) <  0
     def lengthLte(len: Int): Boolean = seq.lengthCompare(len) <= 0
-  }
-
-  implicit class UpgrayeddedString(val s: String) extends AnyVal {
-    def literalEncode: String = util.LiteralEncoding.encode(s)
   }
 
   implicit class UpgrayeddedReader(val reader: java.io.Reader) {
