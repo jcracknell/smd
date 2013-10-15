@@ -26,16 +26,16 @@ object SmdBuild extends Build {
     }
   )
 
-  lazy val all = Project(
-    id =           "all",
-    base =         file("."),
-    settings =     baseSettings,
-    aggregate =    Seq(`smd`, `smd.parsing`)
-  )
-
   lazy val `smd` = Project(
     id =           "smd",
-    base =         file("smd"),
+    base =         file("."),
+    settings =     baseSettings,
+    aggregate =    Seq(`smd.core`, `smd.parsing`)
+  )
+
+  lazy val `smd.core` = Project(
+    id =           "core",
+    base =         file("core"),
     dependencies = Seq(`smd.parsing` % "compile->compile;test->test"),
     settings =     baseSettings
   )
@@ -50,8 +50,8 @@ object SmdBuild extends Build {
     }
 
     Project(
-      id =         "smd-parsing",
-      base =       file("smd.parsing"),
+      id =         "parsing",
+      base =       file("parsing"),
       settings =   baseSettings ++ Seq(generateSourcesTask)
     )
   }
