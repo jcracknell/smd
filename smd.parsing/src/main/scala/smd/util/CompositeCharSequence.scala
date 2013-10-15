@@ -15,8 +15,6 @@ class CompositeCharSequence(val left: CharSequence, val right: CharSequence) ext
   // Calculate and store the length for performance
   private val _length = left.length + right.length
 
-  protected def indices = 0 until _length
-
   def length(): Int = _length
 
   def charAt(i: Int): Char = if(i < split) left.charAt(i) else right.charAt(i - split)
@@ -51,7 +49,7 @@ class CompositeCharSequence(val left: CharSequence, val right: CharSequence) ext
   override def equals(obj: Any): Boolean = obj match {
     case that: CharSequence =>
       this.length == that.length &&
-      indices.forall(i => this.charAt(i) == that.charAt(i))
+      (0 until length).forall(i => this.charAt(i) == that.charAt(i))
     case _ => false
   }
 }
@@ -79,16 +77,16 @@ class CompositeCharSequence(val left: CharSequence, val right: CharSequence) ext
   *   instances 
   *
   * @define balancedRuntime
-  *   O(ln ''n''), where ''n'' is the number of [[java.lang.CharSequence]] instances to be concatenated        
+  *   O(n), where n is the number of [[java.lang.CharSequence]] instances to be concatenated
   *
   * @define weightedDesc
   *   internal representation is that of a weighted binary search tree on the provided [[java.lang.CharSequence]]
   *   instances, in which the weight of a branch is the number of characters stored by the branch
   *
   * @define weightedRuntime 
-  *   O((ln ''n'')^2^ - (ln ''t'')^2^ + ''n'') or approximately O((ln ''n'')^2^ + ''n'') where ''n'' is the number of
-  *   [[java.lang.CharSequence]] instances to be concatenated, and ''t'' is the specified threshold on tree size
-  *   beneath which balanced construction is employed
+  *   O(n/t⋅(ln n) + n) < O(n⋅(ln n)), where ''n'' is the number of [[java.lang.CharSequence]] instances
+  *   to be concatenated, and ''t'' is the specified threshold on tree size beneath which balanced construction is
+  *   employed
   */
 object CompositeCharSequence {
   /** Creates a new [[smd.util.CompositeCharSequence]] combining the two provided [[java.lang.CharSequence]] values.
