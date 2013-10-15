@@ -1,6 +1,6 @@
 package object smd {
   implicit class UpgrayeddedCharSequence(val cs: CharSequence) extends IndexedSeq[Char] {
-    def proxySubSequence(start: Int, end: Int = cs.length()): CharSequence =
+    def subSequenceProxy(start: Int, end: Int = cs.length()): CharSequence =
       new smd.util.ProxyCharSequence(cs, start, end)
 
     def length: Int = cs.length

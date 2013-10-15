@@ -25,7 +25,7 @@ final class GraphemeInfo(
   def chars: Seq[Char] = (start until end).map(source.charAt)
 
   /** Retrieves a [[java.lang.CharSequence]] containing the [[scala.Char]] values of the grapheme. */
-  def charSequence: CharSequence = source.proxySubSequence(start, end)
+  def charSequence: CharSequence = source.subSequenceProxy(start, end)
 
   override def hashCode(): Int = start ^ end ^ codePoints.hashCode()
 

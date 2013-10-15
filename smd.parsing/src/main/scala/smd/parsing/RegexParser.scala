@@ -9,7 +9,7 @@ case class RegexParser(regex: Regex) extends Parser[Regex.Match] {
     // TODO: Verify this is our most performant option for matching at a specific index
     val rb = context.resultBuilder
 
-    val remainingInput = context.input.proxySubSequence(context.index, context.input.length)
+    val remainingInput = context.input.subSequenceProxy(context.index, context.input.length)
     val matchResult = regex.findPrefixMatchOf(remainingInput)
 
     if(matchResult.isEmpty)

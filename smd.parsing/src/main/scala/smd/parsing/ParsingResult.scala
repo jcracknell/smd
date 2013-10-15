@@ -65,7 +65,7 @@ class Accepted[+A](val product: A, protected val source: CharSequence, val index
   def accepted: Boolean = true
   def rejected: Boolean = false
   def length: Int = endIndex - index
-  def parsed: CharSequence = source.proxySubSequence(index, endIndex)
+  def parsed: CharSequence = source.subSequenceProxy(index, endIndex)
   def copy[B](replacement: B): ParsingResult[B] = new Accepted[B](replacement, source, index, endIndex)
 
   override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode((product, source, index, endIndex))
