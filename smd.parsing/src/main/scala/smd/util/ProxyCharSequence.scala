@@ -2,39 +2,38 @@ package smd
 package util
 
 /** Ultra-lightweight implementation of [[java.lang.CharSequence]] which proxies to the provided underlying
-  * instance instead of copying character data.
-  * This implementation is as lazy as possible and performs no error checking whatsoever - you have been warned.
+  * instance instead of copying character data. This implementation is as lightweight as possible and performs
+  * no error checking whatsoever.
   *
-  * @param underlying the underlying [[java.lang.CharSequence]].
-  * @param start the start index of proxied range from the underlying sequence, inclusive.
-  * @param end the end index of the proxied range from the underlying sequence, exclusive.
+  * @param proxied the underlying [[java.lang.CharSequence]] to which this instance proxies.
+  * @param proxiedStart the start index of proxied range from the underlying sequence, inclusive.
+  * @param proxiedEnd the end index of the proxied range from the underlying sequence, exclusive.
   */
 class ProxyCharSequence(
-  protected val underlying: CharSequence,
-  protected val start: Int,
-  protected val end: Int
+  val proxied: CharSequence,
+  val proxiedStart: Int,
+  val proxiedEnd: Int
 ) extends CharSequence {
-  @inline private def mapIndex(i: Int) = start + i
+  @inline private def mapIndex(i: Int) = proxiedStart + i
 
-  def length(): Int = end - start
+  private val _length = proxiedEnd - proxiedStart
+  def length(): Int = _length
 
-  def charAt(i: Int): Char = underlying.charAt(mapIndex(i))
+  def charAt(i: Int): Char = proxied.charAt(mapIndex(i))
 
-  def subSequence(from: Int, to: Int): CharSequence =
-    new ProxyCharSequence(underlying, mapIndex(from), mapIndex(to))
+  def subSequence(start: Int, end: Int): CharSequence =
+    new ProxyCharSequence(proxied, mapIndex(start), mapIndex(end))
 
-  override def hashCode(): Int = underlying.hashCode() ^ start ^ end
+  override def hashCode(): Int = proxied.hashCode() ^ proxiedStart ^ proxiedEnd
 
   override def equals(obj: Any): Boolean = obj match {
-    case that: ProxyCharSequence =>
-      this.start == that.start && this.end == that.end && this.underlying == that.underlying
     case that: CharSequence =>
       this.length() == that.length() &&
-      (0 until length).forall(i => underlying.charAt(mapIndex(i)) == that.charAt(i))
+      (0 until _length).forall(i => this.charAt(i) == that.charAt(i))
     case _ => false
   }
 
 
   override def toString: String =
-    new String(Array.tabulate[Char](length)(i => underlying.charAt(mapIndex(i))))
+    new String(Array.tabulate(length)(i => charAt(i)))
 }
