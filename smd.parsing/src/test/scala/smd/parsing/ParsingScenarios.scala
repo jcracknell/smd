@@ -1,9 +1,9 @@
 package smd
-package grammar
+package parsing
 
 import org.scalatest.FunSpec
 
-trait ProductionSpec extends FunSpec {
+trait ParsingScenarios extends FunSpec {
   // Nifty aliases
   type Parser[+A]        = smd.parsing.Parser[A]
   type ParsingResult[+A] = smd.parsing.ParsingResult[A]

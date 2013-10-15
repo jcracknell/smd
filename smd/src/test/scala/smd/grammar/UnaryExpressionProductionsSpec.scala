@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.expression._
+import smd.parsing.ParsingScenarios
 
-class UnaryExpressionProductionsSpec extends ProductionSpec {
+class UnaryExpressionProductionsSpec extends ParsingScenarios {
   import Grammar.unaryExpression
 
   parsing("!true") as unaryExpression should produce (LogicalNot(BooleanLiteral(true)))

@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.markdown._
+import smd.parsing.ParsingScenarios
 
-class ParagraphSpec extends ProductionSpec {
+class ParagraphSpec extends ParsingScenarios {
   import Grammar.paragraph
   
   parsing("The paragraph.") as paragraph should produce (

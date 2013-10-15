@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.expression._
+import smd.parsing.ParsingScenarios
 
-class PrimaryExpressionProductionsSpec extends ProductionSpec {
+class PrimaryExpressionProductionsSpec extends ParsingScenarios {
   import Grammar.primaryExpression
 
   parsing("[]") as primaryExpression should produce (ArrayLiteral(Seq()))

@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.markdown._
+import smd.parsing.ParsingScenarios
 
-class BlockquoteSpec extends ProductionSpec {
+class BlockquoteSpec extends ParsingScenarios {
   import Grammar.blockquote
 
   parsing("""

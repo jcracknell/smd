@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.expression._
+import smd.parsing.ParsingScenarios
 
-class LiteralExpressionProductionsSpec extends ProductionSpec {
+class LiteralExpressionProductionsSpec extends ParsingScenarios {
   def subject = Grammar.literalExpression
   import Grammar.literalExpression
 

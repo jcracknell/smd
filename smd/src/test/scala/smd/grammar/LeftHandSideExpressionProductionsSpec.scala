@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.expression._
+import smd.parsing.ParsingScenarios
 
-class LeftHandSideExpressionProductionsSpec extends ProductionSpec {
+class LeftHandSideExpressionProductionsSpec extends ParsingScenarios {
   import Grammar.leftHandSideExpression
 
   parsing("@a()") as leftHandSideExpression should produce (

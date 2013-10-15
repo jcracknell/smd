@@ -1,7 +1,9 @@
 package smd
 package grammar
 
-class InlineProductionsSpec extends ProductionSpec {
+import smd.parsing.ParsingScenarios
+
+class InlineProductionsSpec extends ParsingScenarios {
   import markdown._
   import Grammar.inline
 

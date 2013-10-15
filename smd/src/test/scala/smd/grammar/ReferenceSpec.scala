@@ -3,8 +3,9 @@ package grammar
 
 import markdown._
 import smd.expression.{StringLiteral, ObjectLiteral, IriLiteral}
+import smd.parsing.ParsingScenarios
 
-class ReferenceSpec extends ProductionSpec {
+class ReferenceSpec extends ParsingScenarios {
   import Grammar.reference
 
   parsing("[google]: http://www.google.com") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))

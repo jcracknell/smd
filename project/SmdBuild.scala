@@ -26,21 +26,21 @@ object SmdBuild extends Build {
     }
   )
 
-  lazy val smd = Project(
-    id =           "smd",
+  lazy val all = Project(
+    id =           "all",
     base =         file("."),
     settings =     baseSettings,
-    aggregate =    Seq(main, parsing)
+    aggregate =    Seq(`smd`, `smd.parsing`)
   )
 
-  lazy val main = Project(
-    id =           "smd-main",
+  lazy val `smd` = Project(
+    id =           "smd",
     base =         file("smd"),
-    dependencies = Seq(parsing),
+    dependencies = Seq(`smd.parsing` % "compile->compile;test->test"),
     settings =     baseSettings
   )
 
-  lazy val parsing = {
+  lazy val `smd.parsing` = {
     val generateSourcesTask = generateSources <<= scalaSource.in(Compile) map { (baseDir: File) =>
       (
         (2 to SequenceParserNGenerator.MaxN map { new SequenceParserNGenerator(_) } toList) :::

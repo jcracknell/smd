@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.markdown._
+import smd.parsing.ParsingScenarios
 
-class HeadingSpec extends ProductionSpec {
+class HeadingSpec extends ParsingScenarios {
   import Grammar.heading
 
   parsing(

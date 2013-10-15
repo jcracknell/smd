@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.markdown._
+import smd.parsing.ParsingScenarios
 
-class UnorderedListSpec extends ProductionSpec {
+class UnorderedListSpec extends ParsingScenarios {
   import Grammar.unorderedList
 
   parsing(

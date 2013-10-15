@@ -2,8 +2,9 @@ package smd
 package grammar
 
 import smd.expression._
+import smd.parsing.ParsingScenarios
 
-class BinaryExpressionsProductionsSpec extends ProductionSpec {
+class BinaryExpressionsProductionsSpec extends ParsingScenarios {
   import Grammar.logicalOrExpression
 
   describe("LogicalOrExpression") {
