@@ -7,11 +7,10 @@ import smd.parsing.ParsingScenarios
 class UnorderedListSpec extends ParsingScenarios {
   import Grammar.unorderedList
 
-  parsing(
-    """ * Item 1
-      | * Item 2
-    """.trim.stripMargin
-  ) as unorderedList should produce (
+  parsing("""
+  | * Item 1
+  | * Item 2
+  """) as unorderedList should produce (
     UnorderedList.Tight(Seq(
       UnorderedList.Item(Seq(
         Text("Item"), Space(), Text("1")
@@ -22,12 +21,11 @@ class UnorderedListSpec extends ParsingScenarios {
     ))
   )
 
-  parsing(
-    """ * Item 1
-      |continues
-      | * Item 2
-    """.trim.stripMargin
-  ) as unorderedList should produce (
+  parsing( """
+  |* Item 1
+  |continues
+  | * Item 2
+  """) as unorderedList should produce (
     UnorderedList.Tight(Seq(
       UnorderedList.Item(Seq(
         Text("Item"), Space(), Text("1"), Space(), Text("continues")
@@ -39,12 +37,11 @@ class UnorderedListSpec extends ParsingScenarios {
   )
 
 
-  parsing(
-    """ * Item 1
-      |
-      | * Item 2
-    """.trim.stripMargin
-  ) as unorderedList should produce (
+  parsing("""
+  | * Item 1
+  |
+  | * Item 2
+  """) as unorderedList should produce (
     UnorderedList.Loose(Seq(
       UnorderedList.Item(Seq(
         Paragraph(Seq(
@@ -59,13 +56,12 @@ class UnorderedListSpec extends ParsingScenarios {
     ))
   )
 
-  parsing(
-    """  * Item 1
-      |  * Item 2
-      |
-      |    continues
-    """.trim.stripMargin
-  ) as unorderedList should produce (
+  parsing("""
+  |  * Item 1
+  |  * Item 2
+  |
+  |    continues
+  """) as unorderedList should produce (
     UnorderedList.Loose(Seq(
       UnorderedList.Item(Seq(
         Paragraph(Seq(

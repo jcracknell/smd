@@ -16,7 +16,7 @@ class ParagraphSpec extends ParsingScenarios {
   parsing("""
   |Line1
   |Line2
-  """.trim.stripMargin) as paragraph should produce (
+  """) as paragraph should produce (
     Paragraph(Seq(
       Text("Line1"), Space(), Text("Line2")
     ))

@@ -12,10 +12,11 @@ trait ParsingScenarios extends FunSpec {
 
   //region ParsingScenario
 
-  def parsing(input: String): ParsingScenarioInput = ParsingScenarioInput(input)
+  def parsing(input: String): ParsingScenarioInput =
+    new ParsingScenarioInput(if(input.indexOf('\n') != -1) input.trim.stripMargin else input)
 
-  case class ParsingScenarioInput(input: String) {
-    def as[A](parser: Parser[A]): ParsingScenario[A] = ParsingScenario(input, parser)
+  class ParsingScenarioInput(input: String) {
+    def as[A](parser: Parser[A]): ParsingScenario[A] = new ParsingScenario(input, parser)
   }
 
   case class ParsingScenario[+A](input: String, parser: Parser[A]) {

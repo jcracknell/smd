@@ -8,8 +8,8 @@ class BlockquoteSpec extends ParsingScenarios {
   import Grammar.blockquote
 
   parsing("""
-    |> Blockquote
-  """.trim.stripMargin) as blockquote should produce (
+  |> Blockquote
+  """) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote")
@@ -17,10 +17,10 @@ class BlockquoteSpec extends ParsingScenarios {
     ))
   )
 
-  parsing( """
-    |> Blockquote
-    |> line 2
-  """.trim.stripMargin) as blockquote should produce (
+  parsing("""
+  |> Blockquote
+  |> line 2
+  """) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote"), Space(), Text("line"), Space(), Text("2")
@@ -28,12 +28,10 @@ class BlockquoteSpec extends ParsingScenarios {
     ))
   )
 
-  parsing(
-    """
-    |> Blockquote
-    |line 2
-    """.trim.stripMargin
-  ) as blockquote should produce (
+  parsing("""
+  |> Blockquote
+  |line 2
+  """) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote"), Space(), Text("line"), Space(), Text("2")
@@ -41,13 +39,11 @@ class BlockquoteSpec extends ParsingScenarios {
     ))
   )
 
-  parsing(
-    """
-    |> Blockquote
-    |
-    |> continues
-    """.trim.stripMargin
-  ) as blockquote should produce (
+  parsing("""
+  |> Blockquote
+  |
+  |> continues
+  """) as blockquote should produce (
     Blockquote(Seq(
       Paragraph(Seq(
         Text("Blockquote")
