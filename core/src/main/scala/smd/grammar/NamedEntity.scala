@@ -1,8 +1,7 @@
 package smd
 package grammar
 
-import java.io.InputStreamReader
-import scala.util.parsing.json.JSON
+import java.io.BufferedInputStream
 
 sealed case class NamedEntity(name: String, codePoints: Seq[Int], chars: String)
 
@@ -10,32 +9,29 @@ sealed case class NamedEntity(name: String, codePoints: Seq[Int], chars: String)
   * Loads data from the official entity list available from http://www.w3.org/html/wg/drafts/html/master/entities.json
   */
 object NamedEntity {
-  /** The complete set of named entity values by name. */
   val entities: Map[String, NamedEntity] = {
-    val namedEntitiesResourceString: String = {
-      val stream = getClass.getClassLoader.getResourceAsStream("smd/grammar/NamedEntity.json")
-      try {
-        val reader = new InputStreamReader(stream, "UTF-8")
-        try {
-          val sb = new StringBuilder()
-          reader.bufferedReadAll { (buf, n) => sb.appendAll(buf, 0, n) }
-          sb.toString()
-        } finally { reader.close() }
-      } finally { stream.close() }
+    @inline def readCodepoint(in: BufferedInputStream): Int =
+      in.read() << 24 | in.read() << 16 | in.read() << 8 | in.read()
+
+    @inline def readNamedEntities(in: BufferedInputStream) = unfold {
+      val nameLength = in.read()
+      Option.when(nameLength >= 0) {
+        val name = (nameLength :/ { n => Option.when(n > 0) { (in.read().toChar, n - 1) } })
+                   .foldLeft(new StringBuilder)((sb, c) => sb.append(c))
+                   .toString
+        val codePoints = (in.read() :/ { n => Option.when(n > 0) { (readCodepoint(in), n - 1)} })
+                         .toArray
+        val str = ((new StringBuilder /: codePoints) { (sb, cp) => sb.appendAll(Character.toChars(cp)) })
+                  .toString
+
+        NamedEntity(name, codePoints, str)
+      }
     }
 
-    // The entity resource file is JSON-formatted as follows:
-    // { "&Aacute;": { "codepoints": [193], "characters": "\u00C1" }, ... }
-    JSON.parseFull(namedEntitiesResourceString).get.asInstanceOf[Map[String, Map[String, Any]]]
-    // Strip duplicate entries for entities where the trailing semicolon is optional (apparently?)
-    .filterKeys(k => ';' == k.charAt(k.length - 1))
-    .map({ case (entity, data) =>
-      val entityName = entity.substring(1, entity.length - 1)
-      entityName -> NamedEntity(
-                      name = entityName,
-                      codePoints = data("codepoints").asInstanceOf[Seq[Double]].map(_.toInt),
-                      chars = data("characters").toString
-                    )
-    })
+    using(getClass.getClassLoader.getResourceAsStream("smd/grammar/NamedEntities.bin")) { in =>
+      using(new BufferedInputStream(in)) { in =>
+        readNamedEntities(in).map(e => (e.name, e)).toMap
+      }
+    }
   }
 }

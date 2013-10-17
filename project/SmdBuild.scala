@@ -3,6 +3,7 @@ import Keys._
 
 object SmdBuild extends Build {
   val generateSources = TaskKey[Unit]("generate-sources", "Generate dynamically generated source files used by the project.")
+  val generateResources = TaskKey[Unit]("generate-resources", "Generate dynamically generate resource files used by the project.")
 
   val baseSettings = Defaults.defaultSettings ++ Seq(
     version :=      "0.1",
@@ -33,26 +34,31 @@ object SmdBuild extends Build {
     aggregate =    Seq(`smd.core`, `smd.parsing`)
   )
 
-  lazy val `smd.core` = Project(
+  lazy val `smd.core` =  Project(
     id =           "core",
     base =         file("core"),
     dependencies = Seq(`smd.parsing` % "compile->compile;test->test"),
-    settings =     baseSettings
+    settings = baseSettings ++ Seq(
+      generateResources <<= resourceDirectory in Compile map { (baseDir: File) =>
+        NamedEntitiesGenerator.generate(baseDir)
+      }
+    )
   )
 
-  lazy val `smd.parsing` = {
-    val generateSourcesTask = generateSources <<= scalaSource.in(Compile) map { (baseDir: File) =>
-      (
-        (2 to SequenceParserNGenerator.MaxN map { new SequenceParserNGenerator(_) } toList) :::
-        new SequencingHeuristicsGenerator ::
-        new ImplicitParserOpsGenerator :: Nil
-      ) foreach(_.generate(baseDir))
-    }
+  lazy val `smd.parsing` =  Project(
+    id =         "parsing",
+    base =       file("parsing"),
+    settings = baseSettings ++ Seq(
+      generateSources <<= scalaSource in Compile map { (baseDir: File) =>
+        val generators = Seq(
+          new SequencingHeuristicsGenerator,
+          new ImplicitParserOpsGenerator
+        ) ++ (
+          (2 to SequenceParserNGenerator.MaxN).map(new SequenceParserNGenerator(_)).toList
+        )
 
-    Project(
-      id =         "parsing",
-      base =       file("parsing"),
-      settings =   baseSettings ++ Seq(generateSourcesTask)
+        generators foreach { _.generate(baseDir) }
+      }
     )
-  }
+  )
 }
