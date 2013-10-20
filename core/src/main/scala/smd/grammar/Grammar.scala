@@ -39,11 +39,13 @@ trait Grammar extends Parsers {
     val ref = spaceChars_? ~> referenceId <~ ":" ~ blockWhitespaceOrComments
 
     val blockArgumentList: Parser[Seq[Expression]] = {
-      val separator = blockWhitespaceOrComments ~ "," ~ blockWhitespaceOrComments
+      val separator = blockWhitespaceOrComments.? ~ "," ~ blockWhitespaceOrComments.?
       repSep(1, leftHandSideExpression, separator) ^* { _.collect { case Left(e) => e } }
     }
 
-    ref ~ (blockArgumentList | argumentList) ^~ { (r, as) => markdown.Reference(r, as) }
+    ref ~ (blockArgumentList | argumentList) <~ blockWhitespaceOrComments.? ~ blankLine ^~ {
+      (r, as) => markdown.Reference(r, as)
+    }
   }
 
   lazy val orderedList: Parser[markdown.OrderedList] = {
