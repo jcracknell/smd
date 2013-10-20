@@ -1,6 +1,8 @@
 package smd
 package dom
 
+case class Document(content: Seq[Block])
+
 sealed abstract class Node
 
 sealed abstract class Markdown extends Node
