@@ -1,4 +1,10 @@
+import scala.annotation.tailrec
+
 package object smd {
+  implicit class UpgrayeddedAny[A](val self: A) extends UnfoldOps[A] {
+    protected def repr: A = self
+  }
+
   implicit class UpgrayeddedCharSequence(val cs: CharSequence) extends IndexedSeq[Char] {
     def subSequenceProxy(start: Int, end: Int = cs.length()): CharSequence =
       new smd.util.ProxyCharSequence(cs, start, end)
@@ -32,6 +38,44 @@ package object smd {
     }
     def bufferedReadAll(dataHandler: (Array[Char], Int) => Unit): Unit = bufferedReadAll(4096, dataHandler)
   }
+
+  //region unfold
+
+  /** Generate a [[scala.collection.immutable.Stream]] of values from an initial seed value.
+    *
+    * @param seed the initial seed value.
+    * @param unspool operation generating an element to appear in the resulting stream. Returning `None`
+    *                halts the unfolding process.
+    * @tparam A the seed type.
+    * @tparam B the element type of the output [[scala.collection.immutable.Stream]].
+    */
+  def unfoldRight[A, B](seed: A)(unspool: A => Option[(B, A)]): Stream[B] =
+    unspool(seed) match {
+      case Some((elem, sprout)) => elem #:: unfoldRight(sprout)(unspool)
+      case None                 => Stream.empty[B]
+    }
+
+  trait UnfoldOps[A] {
+    protected def repr: A
+
+    /** Generate a stream of values from the initial seed value. Alias for `unfoldRight`.
+      *
+      * @param unspool operation generating an output value from the current seed value. Returning `None` halts
+      *                the unfolding process.
+      * @tparam B element type of the resulting [[scala.collection.immutable.Stream]].
+      */
+    def :/[B](unspool: A => Option[(B, A)]): Stream[B] = smd.unfoldRight(repr)(unspool)
+
+    /** Generate a stream of values from the initial seed value. Alias for `:/`.
+      *
+      * @param unspool operation generating an output value from the current seed value. Returning `None` halts
+      *                the unfolding process.
+      * @tparam B element type of the resulting [[scala.collection.immutable.Stream]].
+      */
+    def unfoldRight[B](unspool: A => Option[(B, A)]): Stream[B] = smd.unfoldRight(repr)(unspool)
+  }
+
+  //endregion
 
   //region using
 
