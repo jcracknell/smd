@@ -51,6 +51,11 @@ package object smd {
 
   //region unfold
 
+  def unfold[B](unspool: => Option[B]): Stream[B] = unspool match {
+    case Some(elem) => elem #:: unfold(unspool)
+    case None       => Stream.empty[B]
+  }
+
   /** Generate a [[scala.collection.immutable.Stream]] of values from an initial seed value.
     *
     * @param seed the initial seed value.
