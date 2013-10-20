@@ -32,4 +32,25 @@ package object smd {
     }
     def bufferedReadAll(dataHandler: (Array[Char], Int) => Unit): Unit = bufferedReadAll(4096, dataHandler)
   }
+
+  //region using
+
+  /** Use and safely dispose of the provided `resource`. */
+  def using[A <% Disposable, B](resource: A)(act: A => B): B =
+    try { act(resource) } finally { resource.dispose() }
+
+  /** Trait describing a resource or object which requires safe disposal. */
+  trait Disposable {
+    def dispose(): Unit
+  }
+
+  object Disposable {
+    implicit def javaAutoCloseable2Disposable(c: java.lang.AutoCloseable): Disposable =
+      new Disposable { def dispose(): Unit = c.close() }
+
+    implicit def javaCloseable2Disposable(c: java.io.Closeable): Disposable =
+      new Disposable { def dispose(): Unit = c.close() }
+  }
+
+  //endregion
 }
