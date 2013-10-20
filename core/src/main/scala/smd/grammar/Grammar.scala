@@ -15,9 +15,7 @@ trait Grammar extends Parsers {
 
   lazy val document: Parser[markdown.Document] = blocks ^* markdown.Document
 
-  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // BLOCKS
-  //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+  //region Blocks
 
   lazy val blocks: Parser[Seq[Block]] =
     interBlock.? ~> repSep(0, block, interBlock.?) <~ interBlock.? ^* { _.collect { case Left(b) => b } }
@@ -156,9 +154,9 @@ trait Grammar extends Parsers {
     (?!(newLine) ~ atomic).* ~ newLine.? ^^(_.parsed)
   }
 
-  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // INLINES
-  //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+  //endregion
+
+  //region Inlines
 
   lazy val inline: Parser[Inline] = (
     text
@@ -260,9 +258,9 @@ trait Grammar extends Parsers {
     '@'         // expression start
   )
 
-  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // EXPRESSIONS
-  //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+  //endregion
+
+  //region Expressions
 
   def expr: Parser[Expression] = conditionalExpression
 
@@ -468,6 +466,8 @@ trait Grammar extends Parsers {
   | iriLiteralExpression
   )
 
+  //region IriLiteral
+
   lazy val iriLiteralExpression: Parser[expression.IriLiteral] = {
     /** Defines codepoints which may not appear at the beginning of an IRI in order to disambiguate IRIs from other
       * expression kinds. If you consider how these characters are generally used in a URI, this is not really
@@ -571,6 +571,8 @@ trait Grammar extends Parsers {
     )
   }
 
+  //endregion
+
   lazy val nullLiteralExpression: Parser[expression.NullLiteral] = "null" ^^^ expression.NullLiteral()
 
   lazy val booleanLiteralExpression: Parser[expression.BooleanLiteral] = (
@@ -598,7 +600,7 @@ trait Grammar extends Parsers {
   }
 
 
-  // String Literals
+  //region String Literals
 
   lazy val verbatimLiteralExpression: Parser[expression.VerbatimLiteral] =
     ?=("`") ~> OrderedChoiceParser(
@@ -614,6 +616,8 @@ trait Grammar extends Parsers {
       quot ~> (?!(quot) ~> stringPart).* <~ quot ^* { p => expression.StringLiteral(new String(p.flatten.toArray)) }
     })
   }
+
+  //endregion
 
   /** An argument list, including parentheses. */
   lazy val argumentList: Parser[Seq[Expression]] = {
@@ -639,9 +643,9 @@ trait Grammar extends Parsers {
   lazy val expressionWhitespace_? = expressionWhitespace.?
   lazy val expressionWhitespace = (whitespace | comment).+
 
-  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // COMMON PRODUCTIONS
-  //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+  //endregion
+
+  //region Common Productions
 
   /** An escape sequence. Yields a sequence of code points. */
   lazy val escape: Parser[Seq[Int]] = {
@@ -706,4 +710,6 @@ trait Grammar extends Parsers {
 
   /** Any single unicode grapheme. */
   protected lazy val unicodeCharacter = Grapheme.Any
+
+  //endregion
 }
