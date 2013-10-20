@@ -13,7 +13,7 @@ object NamedEntity {
     @inline def readCodepoint(in: BufferedInputStream): Int =
       in.read() << 24 | in.read() << 16 | in.read() << 8 | in.read()
 
-    @inline def readNamedEntities(in: BufferedInputStream) = unfold {
+    @inline def readNamedEntities(in: BufferedInputStream) = Stream.options {
       val nameLength = in.read()
       Option.when(nameLength >= 0) {
         val name = (nameLength :/ { n => Option.when(n > 0) { (in.read().toChar, n - 1) } })

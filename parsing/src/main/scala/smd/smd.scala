@@ -1,8 +1,29 @@
 import scala.annotation.tailrec
 
 package object smd {
-  implicit class UpgrayeddedAny[A](val self: A) extends UnfoldOps[A] {
-    protected def repr: A = self
+
+  implicit class Unfoldable[A](val self: A) {
+    @inline private def unfoldRight[B](seed: A, unspool: A => Option[(B, A)]): Stream[B] =
+      unspool(seed) match {
+        case Some((elem, sprout)) => elem #:: unfoldRight(sprout, unspool)
+        case None                 => Stream.Empty
+      }
+
+    /** Generate a stream of values from the initial seed value. Alias for `unfoldRight`.
+      *
+      * @param unspool operation generating an output value from the current seed value. Returning `None` halts
+      *                the unfolding process.
+      * @tparam B element type of the resulting [[scala.collection.immutable.Stream]].
+      */
+    def :/[B](unspool: A => Option[(B, A)]): Stream[B] = unfoldRight(self, unspool)
+
+    /** Generate a stream of values from the initial seed value. Alias for `:/`.
+      *
+      * @param unspool operation generating an output value from the current seed value. Returning `None` halts
+      *                the unfolding process.
+      * @tparam B element type of the resulting [[scala.collection.immutable.Stream]].
+      */
+    def unfoldRight[B](unspool: A => Option[(B, A)]): Stream[B] = unfoldRight(self, unspool)
   }
 
   implicit class UpgrayeddedCharSequence(val cs: CharSequence) extends IndexedSeq[Char] {
@@ -38,6 +59,13 @@ package object smd {
     def lengthLte(len: Int): Boolean = seq.lengthCompare(len) <= 0
   }
 
+  implicit class UpgrayeddedStreamCompanion(val self: Stream.type) extends AnyVal {
+    def options[A](unspool: => Option[A]): Stream[A] = unspool match {
+      case Some(elem) => elem #:: options(unspool)
+      case None       => Stream.empty
+    }
+  }
+
   implicit class UpgrayeddedReader(val reader: java.io.Reader) {
     def bufferedReadAll(bufferSize: Int, dataHandler: (Array[Char], Int) => Unit): Unit = {
       val buffer = Array.ofDim[Char](bufferSize)
@@ -48,49 +76,6 @@ package object smd {
     }
     def bufferedReadAll(dataHandler: (Array[Char], Int) => Unit): Unit = bufferedReadAll(4096, dataHandler)
   }
-
-  //region unfold
-
-  def unfold[B](unspool: => Option[B]): Stream[B] = unspool match {
-    case Some(elem) => elem #:: unfold(unspool)
-    case None       => Stream.empty[B]
-  }
-
-  /** Generate a [[scala.collection.immutable.Stream]] of values from an initial seed value.
-    *
-    * @param seed the initial seed value.
-    * @param unspool operation generating an element to appear in the resulting stream. Returning `None`
-    *                halts the unfolding process.
-    * @tparam A the seed type.
-    * @tparam B the element type of the output [[scala.collection.immutable.Stream]].
-    */
-  def unfoldRight[A, B](seed: A)(unspool: A => Option[(B, A)]): Stream[B] =
-    unspool(seed) match {
-      case Some((elem, sprout)) => elem #:: unfoldRight(sprout)(unspool)
-      case None                 => Stream.empty[B]
-    }
-
-  trait UnfoldOps[A] {
-    protected def repr: A
-
-    /** Generate a stream of values from the initial seed value. Alias for `unfoldRight`.
-      *
-      * @param unspool operation generating an output value from the current seed value. Returning `None` halts
-      *                the unfolding process.
-      * @tparam B element type of the resulting [[scala.collection.immutable.Stream]].
-      */
-    def :/[B](unspool: A => Option[(B, A)]): Stream[B] = smd.unfoldRight(repr)(unspool)
-
-    /** Generate a stream of values from the initial seed value. Alias for `:/`.
-      *
-      * @param unspool operation generating an output value from the current seed value. Returning `None` halts
-      *                the unfolding process.
-      * @tparam B element type of the resulting [[scala.collection.immutable.Stream]].
-      */
-    def unfoldRight[B](unspool: A => Option[(B, A)]): Stream[B] = smd.unfoldRight(repr)(unspool)
-  }
-
-  //endregion
 
   /** Use and safely dispose of the provided `resource`. */
   def using[A <% smd.util.Disposable, B](resource: A)(act: A => B): B =
