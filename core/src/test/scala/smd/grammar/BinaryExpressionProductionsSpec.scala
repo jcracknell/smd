@@ -1,7 +1,7 @@
 package smd
 package grammar
 
-import smd.expression._
+import smd.dom._
 import smd.parsing.ParsingScenarios
 
 class BinaryExpressionsProductionsSpec extends ParsingScenarios {
@@ -61,9 +61,6 @@ class BinaryExpressionsProductionsSpec extends ParsingScenarios {
     )
     parsing("42 >= 7") as logicalOrExpression should produce (
       GreaterThanOrEqualTo(NumericLiteral(42), NumericLiteral(7))
-    )
-    parsing("42 in 7") as logicalOrExpression should produce (
-      In(NumericLiteral(42), NumericLiteral(7))
     )
     parsing("42 instanceof 7") as logicalOrExpression should produce (
       InstanceOf(NumericLiteral(42), NumericLiteral(7))

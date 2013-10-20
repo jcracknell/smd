@@ -1,7 +1,7 @@
 package smd
-package markdown
+package dom
 
-import org.scalatest.{Matchers, FunSpec}
+import org.scalatest.{FunSpec, Matchers}
 
 class ReferenceIdSpec extends FunSpec with Matchers {
   describe("normalization") {

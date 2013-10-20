@@ -1,5 +1,5 @@
 package smd
-package markdown
+package dom
 
 final class ReferenceId(val raw: String) {
   /** The normalized string value of this reference id. */

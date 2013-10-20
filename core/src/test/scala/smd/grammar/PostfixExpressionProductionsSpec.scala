@@ -1,7 +1,7 @@
 package smd
 package grammar
 
-import smd.expression._
+import smd.dom._
 import smd.parsing.ParsingScenarios
 
 class PostfixExpressionProductionsSpec extends ParsingScenarios {

@@ -1,7 +1,7 @@
 package smd
 package grammar
 
-import smd.markdown._
+import smd.dom._
 import smd.parsing.ParsingScenarios
 
 class BlockquoteSpec extends ParsingScenarios {

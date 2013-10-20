@@ -1,10 +1,10 @@
 package smd
 package grammar
 
+import smd.dom._
 import smd.parsing.ParsingScenarios
 
 class InlineProductionsSpec extends ParsingScenarios {
-  import markdown._
   import Grammar.inline
 
   describe("AutoLink") {
@@ -24,16 +24,16 @@ class InlineProductionsSpec extends ParsingScenarios {
     parsing("***a**b*") as inline should produce (Emphasis(Seq(Strong(Seq(Text("a"))), Text("b"))))
   }
   describe("Link") {
-    parsing("[foo](baz)") as inline should produce (Link(Seq(Text("foo")), None, Seq(expression.IriLiteral("baz"))))
+    parsing("[foo](baz)") as inline should produce (Link(Seq(Text("foo")), None, Seq(IriLiteral("baz"))))
     parsing("[foo][bar]") as inline should produce (Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq()))
     parsing("[foo][bar](baz)") as inline should produce (
-      Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq(expression.IriLiteral("baz")))
+      Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq(IriLiteral("baz")))
     )
     parsing("[Slashdot: News for nerds](http://www.slashdot.org)") as inline should produce (
       Link(
         Seq(Text("Slashdot:"), Space(), Text("News"), Space(), Text("for"), Space(), Text("nerds")),
         None,
-        Seq(expression.IriLiteral("http://www.slashdot.org"))
+        Seq(IriLiteral("http://www.slashdot.org"))
       )
     )
   }

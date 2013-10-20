@@ -1,8 +1,7 @@
 package smd
 package grammar
 
-import markdown._
-import smd.expression.{StringLiteral, ObjectLiteral, IriLiteral}
+import smd.dom._
 import smd.parsing.ParsingScenarios
 
 class ReferenceSpec extends ParsingScenarios {
