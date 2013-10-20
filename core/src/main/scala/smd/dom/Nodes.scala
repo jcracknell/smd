@@ -1,18 +1,106 @@
 package smd
 package dom
 
+import scala.language.higherKinds
+
 case class Document(content: Seq[Block])
 
-sealed abstract class Node
+trait Visitable[-V[_]] {
+  def accept[A](visitor: V[A]): A
+}
 
-sealed abstract class Markdown extends Node
-sealed abstract class Expression extends Node
+sealed abstract class Node extends Visitable[Node.Visitor]
+
+object Node {
+  trait Visitor[+A] extends Expression.Visitor[A] with Markdown.Visitor[A]
+}
+
+sealed abstract class Markdown extends Node with Visitable[Markdown.Visitor]
+
+object Markdown {
+  trait Visitor[+A] extends Block.Visitor[A] with Inline.Visitor[A]
+}
+
+sealed abstract class Expression extends Node with Visitable[Expression.Visitor]
+
+object Expression {
+  trait Visitor[+A] {
+    def visit(node: ArrayLiteral): A
+    def visit(node: BooleanLiteral): A
+    def visit(node: DocumentLiteral): A
+    def visit(node: NullLiteral): A
+    def visit(node: NumericLiteral): A
+    def visit(node: ObjectLiteral): A
+    def visit(node: StringLiteral): A
+    def visit(node: VerbatimLiteral): A
+    def visit(node: IriLiteral): A
+    def visit(node: Addition): A
+    def visit(node: BitwiseAnd): A
+    def visit(node: BitwiseNot): A
+    def visit(node: BitwiseOr): A
+    def visit(node: BitwiseXOr): A
+    def visit(node: Call): A
+    def visit(node: Conditional): A
+    def visit(node: Delete): A
+    def visit(node: Division): A
+    def visit(node: DynamicProperty): A
+    def visit(node: Elided): A
+    def visit(node: Equals): A
+    def visit(node: GreaterThan): A
+    def visit(node: GreaterThanOrEqualTo): A
+    def visit(node: Identifier): A
+    def visit(node: InstanceOf): A
+    def visit(node: LeftShift): A
+    def visit(node: LessThan): A
+    def visit(node: LessThanOrEqualTo): A
+    def visit(node: LogicalAnd): A
+    def visit(node: LogicalNot): A
+    def visit(node: LogicalOr): A
+    def visit(node: Modulo): A
+    def visit(node: Multiplication): A
+    def visit(node: Negative): A
+    def visit(node: NotEquals): A
+    def visit(node: Positive): A
+    def visit(node: PostfixDecrement): A
+    def visit(node: PostfixIncrement): A
+    def visit(node: PrefixDecrement): A
+    def visit(node: PrefixIncrement): A
+    def visit(node: RightShift): A
+    def visit(node: StaticProperty): A
+    def visit(node: StrictEquals): A
+    def visit(node: StrictNotEquals): A
+    def visit(node: Subtraction): A
+    def visit(node: TypeOf): A
+    def visit(node: UnsignedRightShift): A
+    def visit(node: Void): A
+  }
+}
 
 //region Markdown
 
-sealed abstract class Block extends Markdown
+sealed abstract class Block extends Markdown with Visitable[Block.Visitor]
 
-sealed abstract class Inline extends Markdown
+object Block {
+  trait Visitor[+A] {
+    def visit(node: Blockquote): A
+    def visit(node: ExpressionBlock): A
+    def visit(node: Heading): A
+    def visit(node: Paragraph): A
+    def visit(node: Reference): A
+    def visit(node: DefinitionList.Loose): A
+    def visit(node: DefinitionList.Tight): A
+    def visit(node: OrderedList.Loose): A
+    def visit(node: OrderedList.Tight): A
+    def visit(node: UnorderedList.Loose): A
+    def visit(node: UnorderedList.Tight): A
+  }
+}
+
+sealed abstract class Inline extends Markdown with Visitable[Inline.Visitor]
+
+object Inline {
+  trait Visitor[+A] extends Atomic.Visitor[A] with Span.Visitor[A]
+}
 
 
 trait Composite[+A] {
@@ -21,15 +109,25 @@ trait Composite[+A] {
 
 //region Block
 
-case class Blockquote(children: Seq[Block]) extends Block with Composite[Block]
+case class Blockquote(children: Seq[Block]) extends Block with Composite[Block] {
+  def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+}
 
-case class ExpressionBlock(expr: Expression) extends Block
+case class ExpressionBlock(expr: Expression) extends Block {
+  def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+}
 
-case class Heading(level: Int, children: Seq[Inline]) extends Block with Composite[Inline]
+case class Heading(level: Int, children: Seq[Inline]) extends Block with Composite[Inline] {
+  def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+}
 
-case class Paragraph(children: Seq[Inline]) extends Block with Composite[Inline]
+case class Paragraph(children: Seq[Inline]) extends Block with Composite[Inline] {
+  def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+}
 
-case class Reference(ref: ReferenceId, args: Seq[Expression]) extends Block
+case class Reference(ref: ReferenceId, args: Seq[Expression]) extends Block {
+  def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+}
 
 sealed abstract class List extends Block {
   type Item
@@ -45,10 +143,12 @@ sealed abstract class DefinitionList extends List {
 object DefinitionList {
   case class Loose(items: Seq[DefinitionList.Item[Block]]) extends DefinitionList {
     type Item = DefinitionList.Item[Block]
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
   case class Tight(items: Seq[DefinitionList.Item[Inline]]) extends DefinitionList {
     type Item = DefinitionList.Item[Inline]
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
   case class Item[+A](term: Term[A], defs: Definition[A]*)
@@ -62,12 +162,14 @@ sealed abstract class OrderedList extends List {
 }
 
 object OrderedList {
-  case class Tight(items: Seq[OrderedList.Item[Inline]], counterStyle: CounterStyle) extends OrderedList {
-    type Item = OrderedList.Item[Inline]
-  }
-
   case class Loose(items: Seq[OrderedList.Item[Block]], counterStyle: CounterStyle) extends OrderedList {
     type Item = OrderedList.Item[Block]
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+  }
+
+  case class Tight(items: Seq[OrderedList.Item[Inline]], counterStyle: CounterStyle) extends OrderedList {
+    type Item = OrderedList.Item[Inline]
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
   case class Item[+A](children: Seq[A]) extends Composite[A]
@@ -89,10 +191,12 @@ sealed abstract class UnorderedList extends List {
 object UnorderedList {
   case class Loose(items: Seq[UnorderedList.Item[Block]]) extends UnorderedList {
     type Item = UnorderedList.Item[Block]
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
   case class Tight(items: Seq[UnorderedList.Item[Inline]]) extends UnorderedList {
     type Item = UnorderedList.Item[Inline]
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
   case class Item[+A](children: Seq[A]) extends Composite[A]
@@ -104,27 +208,83 @@ object UnorderedList {
 
 //region Inline
 
-sealed abstract class Atomic extends Inline
-sealed abstract class Span extends Inline with Composite[Inline]
+sealed abstract class Atomic extends Inline with Visitable[Atomic.Visitor] {
+}
+
+object Atomic {
+  trait Visitor[+A] {
+    def visit(node: AutoLink): A
+    def visit(node: Code): A
+    def visit(node: InlineExpression): A
+    def visit(node: LineBreak): A
+    def visit(node: Space): A
+    def visit(node: Symbol): A
+    def visit(node: Text): A
+    def visit(node: Entity): A
+  }
+}
+
+sealed abstract class Span extends Inline with Composite[Inline] with Visitable[Span.Visitor] {
+}
+
+object Span {
+  trait Visitor[+A] {
+    def visit(node: Emphasis): A
+    def visit(node: Link): A
+    def visit(node: Quoted): A
+    def visit(node: Strong): A
+  }
+}
 
 //region Atomic
 
-case class AutoLink(uri: String) extends Atomic
-case class Code(value: String) extends Atomic
-case class InlineExpression(expr: Expression) extends Atomic
-case class LineBreak() extends Atomic
-case class Space() extends Atomic
-case class Symbol(value: String) extends Atomic
-case class Text(value: String) extends Atomic
-case class Entity(codePoints: Seq[Int]) extends Atomic
+case class AutoLink(uri: String) extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Code(value: String) extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+case class InlineExpression(expr: Expression) extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+case class LineBreak() extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Space() extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Symbol(value: String) extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Text(value: String) extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Entity(codePoints: Seq[Int]) extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
 
 //endregion
 
 //region Span
 
-case class Emphasis(children: Seq[Inline]) extends Span
-case class Link(children: Seq[Inline], ref: Option[ReferenceId], args: Seq[Expression]) extends Span
-case class Quoted(children: Seq[Inline], kind: Quoted.QuoteKind) extends Span
+case class Emphasis(children: Seq[Inline]) extends Span {
+  def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Link(children: Seq[Inline], ref: Option[ReferenceId], args: Seq[Expression]) extends Span {
+  def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Quoted(children: Seq[Inline], kind: Quoted.QuoteKind) extends Span {
+  def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
+}
 
 object Quoted {
   sealed abstract class QuoteKind
@@ -134,7 +294,9 @@ object Quoted {
   }
 }
 
-case class Strong(children: Seq[Inline]) extends Span
+case class Strong(children: Seq[Inline]) extends Span {
+  def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
+}
 
 //endregion
 
@@ -155,13 +317,29 @@ trait Binary { self: Expression =>
 
 //region Literals
 
-case class ArrayLiteral(elems: Seq[Expression]) extends Expression
-case class BooleanLiteral(value: Boolean) extends Expression
-case class DocumentLiteral(doc: Document) extends Expression
-case class NullLiteral() extends Expression
-case class NumericLiteral(value: Double) extends Expression
+case class ArrayLiteral(elems: Seq[Expression]) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
 
-case class ObjectLiteral(props: Seq[(String, Expression)]) extends Expression
+case class BooleanLiteral(value: Boolean) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class DocumentLiteral(doc: Document) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class NullLiteral() extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class NumericLiteral(value: Double) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class ObjectLiteral(props: Seq[(String, Expression)]) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
 
 object ObjectLiteral {
   def apply(): ObjectLiteral = apply(Seq())
@@ -172,51 +350,177 @@ sealed abstract class StringLikeLiteral extends Expression {
   def value: String
 }
 
-case class StringLiteral(value: String) extends StringLikeLiteral
-case class VerbatimLiteral(value: String) extends StringLikeLiteral
-case class IriLiteral(value: String) extends StringLikeLiteral
+case class StringLiteral(value: String) extends StringLikeLiteral {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class VerbatimLiteral(value: String) extends StringLikeLiteral {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class IriLiteral(value: String) extends StringLikeLiteral {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
 
 //endregion
 
-case class Addition(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class BitwiseAnd(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class BitwiseNot(expr: Expression) extends Expression with Unary
-case class BitwiseOr(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class BitwiseXOr(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Call(body: Expression, args: Seq[Expression]) extends Expression
-case class Conditional(cond: Expression, trueExpr: Expression, falseExpr: Expression) extends Expression
-case class Delete(expr: Expression) extends Expression with Unary
-case class Division(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class DynamicProperty(body: Expression, member: Expression) extends Expression
-case class Elided() extends Expression
-case class Equals(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class GreaterThan(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class GreaterThanOrEqualTo(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Identifier(name: String) extends Expression
-case class InstanceOf(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class LeftShift(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class LessThan(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class LessThanOrEqualTo(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class LogicalAnd(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class LogicalNot(expr: Expression) extends Expression with Unary
-case class LogicalOr(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Modulo(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Multiplication(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Negative(expr: Expression) extends Expression with Unary
-case class NotEquals(lhs: Expression, rhs: Expression) extends Expression with Binary
+case class Addition(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
 
-case class Positive(expr: Expression) extends Expression with Unary
-case class PostfixDecrement(expr: Expression) extends Expression with Unary
-case class PostfixIncrement(expr: Expression) extends Expression with Unary
-case class PrefixDecrement(expr: Expression) extends Expression with Unary
-case class PrefixIncrement(expr: Expression) extends Expression with Unary
-case class RightShift(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class StaticProperty(body: Expression, member: String) extends Expression
-case class StrictEquals(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class StrictNotEquals(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Subtraction(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class TypeOf(expr: Expression) extends Expression with Unary
-case class UnsignedRightShift(lhs: Expression, rhs: Expression) extends Expression with Binary
-case class Void(expr: Expression) extends Expression with Unary
+case class BitwiseAnd(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class BitwiseNot(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class BitwiseOr(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class BitwiseXOr(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Call(body: Expression, args: Seq[Expression]) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Conditional(cond: Expression, trueExpr: Expression, falseExpr: Expression) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Delete(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Division(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class DynamicProperty(body: Expression, member: Expression) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Elided() extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Equals(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class GreaterThan(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class GreaterThanOrEqualTo(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Identifier(name: String) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class InstanceOf(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class LeftShift(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class LessThan(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class LessThanOrEqualTo(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class LogicalAnd(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class LogicalNot(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class LogicalOr(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Modulo(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Multiplication(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Negative(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class NotEquals(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+
+case class Positive(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class PostfixDecrement(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class PostfixIncrement(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class PrefixDecrement(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class PrefixIncrement(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class RightShift(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class StaticProperty(body: Expression, member: String) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class StrictEquals(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class StrictNotEquals(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Subtraction(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class TypeOf(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class UnsignedRightShift(lhs: Expression, rhs: Expression) extends Expression with Binary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Void(expr: Expression) extends Expression with Unary {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
 
 //endregion
