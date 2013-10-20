@@ -20,6 +20,16 @@ package object smd {
     def nextOption(): Option[A] = if(it.hasNext) Some(it.next()) else None
   }
 
+  implicit class UpgrayeddedOptionCompanion(val self: Option.type) extends AnyVal {
+    /** An Option factory which creates Some(value) in the event that the provided condition holds.
+      *
+      * @param cond the condition determining the resulting option.
+      * @param value the value of the resulting option in the event that the provided condition holds.
+      * @tparam A the type of the resulting Option.
+      */
+    def when[A](cond: Boolean)(value: => A): Option[A] = if(cond) Some(value) else None
+  }
+
   implicit class UpgrayeddedSeq[A](val seq: collection.Seq[A]) extends AnyVal {
     def lengthEq(len: Int): Boolean  = seq.lengthCompare(len) == 0
     def lengthGt(len: Int): Boolean  = seq.lengthCompare(len) >  0
