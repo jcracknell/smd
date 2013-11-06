@@ -22,7 +22,7 @@ object SmdBuild extends Build {
     ),
     libraryDependencies <++= (scalaVersion) { sv =>
       Seq(
-        "org.scalatest" %% "scalatest" % "latest.snapshot" % "test"
+        "org.scalatest" %% "scalatest" % "latest.release" % "test"
       )
     }
   )
