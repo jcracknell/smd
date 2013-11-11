@@ -2,12 +2,12 @@ package smd
 package grammar
 
 // TODO: add helpers to eliminate specific parser imports
-import smd.parsing.{Parser, Parsers, OrderedChoiceParser, LiteralSetParser, GraphemeParser}
 import smd.dom.{Block, Expression, Inline}
+import smd.parsing._
 
 object Grammar extends Grammar
 
-trait Grammar extends Parsers {
+trait Grammar extends Parsers { rootGrammar =>
   protected def parse[A](parser: Parser[A], extents: Seq[CharSequence]): A =
     // TODO: error checking
     parser.parse(extents).product
@@ -45,63 +45,10 @@ trait Grammar extends Parsers {
     }
   }
 
-  /// # Ordered Lists
-  ///
-  /// The following numeral styles are supported:
-  ///
-  ///  * arabic (1, 2, ...)
-  ///  * lower-roman (i, ii, ...)
-  ///  * upper-roman (I, II, ...)
-  ///  * lower-alpha (a, b, ...)
-  ///  * upper-alpha (A, B, ...)
-  ///
-  /// The following separator styles are supported:
-  ///
-  ///  * trailing-dot (`#.`)
-  ///  * trailing-parenthesis (`#)`)
-  ///  * enclosing-parentheses (`(#)`)
-  ///
-  /// The style and numbering of an ordered list is determined by the first item in the list. All subsequent items
-  /// in the list must conform to the style of the first item. The numeral value of sucessive items is ignored; as such
-  /// the auto-numbering placeholder `#` can be used. In the event that the auto-numbering placeholder is used for the
-  /// first item, the list will consist of arabic numerals starting from 1.
-  ///
-  /// A *counter name* can be prepended to resume numbering across lists.
-  /// In the event that a counter name is specified, the numeral value of the initial item is ignored, and the list
-  /// resumes numbering according to the referenced counter.
-  ///
-  /// @example(```
-  /// (ex:a) Example A
-  ///
-  /// This paragraph splits our example into two lists.
-  ///
-  /// (ex:b) Example B
-  /// ```)
-  ///
-  /// Counters are **level-scoped**. Counters behave as though the counter name is implicitly prefixed with a unique
-  /// identifier for the list in which it appears.
-  ///
-  /// @example(```
-  /// (ex:#) Example 1
-  ///     (sub:#) Subitem
-  ///
-  /// This paragraph splits our example into two lists.
-  ///
-  /// (ex:#) Example resumes numbering using the counter `ex`.
-  ///     (sub:#) Numbering of subitems does not resume, because `sub` is scoped to its parent list.
-  /// ```)
-  ///
-  /// A list item can be referenced from elsewhere in the document by appending a reference id enclosed in square
-  /// brackets to the numeral.
-  ///
-  /// @example(```
-  /// (ex:#[good]) My good example
-  /// (ex:#[bad])  My bad example
-  /// ```)
   lazy val orderedList: Parser[dom.OrderedList] = {
     // For performance reasons we use a regex to quickly check if there is a valid counter ahead
     // This is also a relatively concise and comprehensible reference for the counter grammar.
-    val counterish = 
+    val counterish =
       """(?iux)                             # ignore case, unicode character classes, comments
       [\ ]{0,3}                             # non-indent space
       [(]?                                  # begin separator
@@ -138,74 +85,80 @@ trait Grammar extends Parsers {
       for {
         (numeralStyle, numeral)               <- numeralStyles
         (separatorStyle, sepBefore, sepAfter) <- separatorStyles
-      } yield {
-        val counter = genListMarker(sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter)
-        genList(counter)(
-          items => items.head match { case ((counterName, start, _), _) =>
-            dom.OrderedList.Tight(
-              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items.map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
-            )
-          },
-          items => items.head match { case ((counterName, start, _), _) =>
+      } yield new ListGrammar[dom.OrderedList] {
+        type MarkerProduct = (Option[String], CharSequence, Option[dom.ReferenceId])
+
+        lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter
+
+        def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
+          items.head match { case ((counterName, start, _), _) =>
             dom.OrderedList.Loose(
               dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items.map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
             )
           }
-        )
+
+        def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
+          items.head match { case ((counterName, start, _), _) =>
+            dom.OrderedList.Tight(
+              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+            )
+          }
       }
 
     ?=(counterish) ~> OrderedChoiceParser(orderedListStyles)
   }
 
-  lazy val unorderedList: Parser[dom.UnorderedList] = {
-    val bullet = genListMarker("*" | "-" | "+")
+  lazy val unorderedList = new ListGrammar[dom.UnorderedList] {
+    type MarkerProduct = Any
+    lazy val marker = "*" | "-" | "+"
 
-    genList(bullet)(
-      is => dom.UnorderedList.Tight(
-        is map { case (_, inlines) => dom.UnorderedList.Item(inlines) }
-      ),
-      is => dom.UnorderedList.Loose(
-        is map { case (_, blocks) => dom.UnorderedList.Item(blocks) }
-      )
-    )
+    def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.UnorderedList =
+      dom.UnorderedList.Loose(items map { case (_, children) => dom.UnorderedList.Item(children) })
+
+    def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.UnorderedList =
+      dom.UnorderedList.Tight(items map { case (_, children) => dom.UnorderedList.Item(children) })
   }
 
-  /** Generic grammar for a list marker. */
-  protected def genListMarker[A](marker: Parser[A]): Parser[A] =
-    // A list marker must be followed by at least one space character in order to disambiguate bullet & bold
-    nonIndentSpace_? ~> marker <~ spaceChar.+
+  abstract class ListGrammar[+L <: dom.List] extends GrammarParser[L] {
+    type MarkerProduct
+    def marker: Parser[MarkerProduct]
+    def mkLoose(items: Seq[(MarkerProduct, Seq[dom.Block])]): L
+    def mkTight(items: Seq[(MarkerProduct, Seq[dom.Inline])]): L
 
-  /** Generic grammar for a list. */
-  protected def genList[M, L <: dom.List](marker: Parser[M])(
-    tight: Seq[(M, Seq[dom.Inline])] => L,
-    loose: Seq[(M, Seq[dom.Block])] => L
-  ): Parser[L] = {
-    // A line starting with a list marker.
-    val markedLine = marker ~ blockLine_?
-    // A line not starting with a list marker. Consumes an optional indent at the beginning of the line.
-    val unmarkedLine = ?!(marker) ~ indent.? ~> blockLine
+    lazy val grammar: Parser[L] = {
+      val spacedMarker = nonIndentSpace_? ~> marker <~ spaceChar.+
 
-    // The initial block of a list item, beginning with a marker.
-    val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
-    // A subsequent block of a list item, indented and not starting with a list marker.
-    // The indent is consumed by noMarkerLine.
-    val itemSubsequentBlock = interBlock ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
+      // A line starting with a list marker.
+      val markedLine = spacedMarker ~ blockLine_?
+      // A line not starting with a list marker. Consumes an optional indent at the beginning of the line.
+      val unmarkedLine = ?!(spacedMarker) ~ indent.? ~> blockLine
 
-    // A 'tight' list item is a list item which contains only a single block.
-    val itemTight = itemInitialBlock
-    // A 'loose' list item can contain subsequent blocks of content.
-    val itemLoose = itemInitialBlock ~ itemSubsequentBlock.* ^* { case ((m, a), bs) => (m, a ++ bs.flatten) }
+      // The initial block of a list item, beginning with a marker.
+      val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
+      // A subsequent block of a list item, indented and not starting with a list marker.
+      // The indent is consumed by noMarkerLine.
+      val itemSubsequentBlock = interBlock ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
 
-    // A 'tight' list is a sequence of tight list items not followed by loose content.
-    val tightList =
-      itemTight.+ <~ ?!(interBlock ~ (marker | indent)) ^* { items => tight(items map { case (m, ls) => (m, parse(blockInlines_?, ls)) }) }
+      // A 'tight' list item is a list item which contains only a single block.
+      val itemTight = itemInitialBlock
+      // A 'loose' list item can contain subsequent blocks of content.
+      val itemLoose = itemInitialBlock ~ itemSubsequentBlock.* ^* { case ((m, a), bs) => (m, a ++ bs.flatten) }
 
-    val looseList =
-      repSep(1, itemLoose, interBlock.?) ^* { p => loose(p.collect { case Left((m, ls)) => (m, parse(blocks, ls)) }) }
+      // A 'tight' list is a sequence of tight list items not followed by loose content.
+      val tightList = itemTight.+ <~ ?!(interBlock ~ (spacedMarker | indent)) ^* { rawItems =>
+        val items = rawItems map { case (m, extents) => (m, rootGrammar.parse(blockInlines_?, extents)) }
+        mkTight(items)
+      }
 
-    tightList | looseList
+      val looseList = repSep(1, itemLoose, interBlock.?) ^* { p =>
+        val items = p collect { case Left((m, extents)) => (m, rootGrammar.parse(blocks, extents)) }
+        mkLoose(items)
+      }
+
+      tightList | looseList
+    }
   }
 
   lazy val blockquote: Parser[dom.Blockquote] = {
