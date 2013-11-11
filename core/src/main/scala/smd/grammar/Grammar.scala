@@ -86,32 +86,32 @@ trait Grammar extends Parsers {
         (numeralStyle, numeral)               <- numeralStyles
         (separatorStyle, sepBefore, sepAfter) <- separatorStyles
       } yield new ListGrammar[dom.OrderedList] {
-        type MarkerProduct = (Option[String], CharSequence, Option[dom.ReferenceId])
+          type MarkerProduct = (Option[String], CharSequence, Option[dom.ReferenceId])
+          lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter
 
-        lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter
+          def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
+            items.head match { case ((counterName, start, _), _) =>
+              dom.OrderedList.Loose(
+                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+                items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+              )
+            }
 
-        def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
-          items.head match { case ((counterName, start, _), _) =>
-            dom.OrderedList.Loose(
-              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
-            )
-          }
-
-        def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
-          items.head match { case ((counterName, start, _), _) =>
-            dom.OrderedList.Tight(
-              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
-            )
-          }
-      }
+          def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
+            items.head match { case ((counterName, start, _), _) =>
+              dom.OrderedList.Tight(
+                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+                items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+              )
+            }
+        }
 
     ?=(counterish) ~> OrderedChoiceParser(orderedListStyles)
   }
 
-  lazy val unorderedList = new ListGrammar[dom.UnorderedList] {
+  val unorderedList = new ListGrammar[dom.UnorderedList] {
     type MarkerProduct = Any
+
     lazy val marker = "*" | "-" | "+"
 
     def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.UnorderedList =
@@ -121,13 +121,16 @@ trait Grammar extends Parsers {
       dom.UnorderedList.Tight(items map { case (_, children) => dom.UnorderedList.Item(children) })
   }
 
-  abstract class ListGrammar[+L <: dom.List] extends GrammarParser[L] {
+  /** Generic grammar for lists. */
+  abstract class ListGrammar[+L <: dom.List] extends Parser[L] {
     type MarkerProduct
     def marker: Parser[MarkerProduct]
     def mkLoose(items: Seq[(MarkerProduct, Seq[dom.Block])]): L
     def mkTight(items: Seq[(MarkerProduct, Seq[dom.Inline])]): L
 
-    lazy val grammar: Parser[L] = {
+    def parse(context: ParsingContext): ParsingResult[L] = list.parse(context)
+
+    protected lazy val list: Parser[L] = {
       val spacedMarker = nonIndentSpace_? ~> marker <~ spaceChar.+
 
       // A line starting with a list marker.
