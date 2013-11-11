@@ -57,3 +57,15 @@ abstract class Parser[+A] { lhs =>
     }
   }
 }
+
+object Parser {
+  /** [[smd.parsing.Parser]] matching the empty string, which always accepts and consumes no input. */
+  object EmptyString extends Parser[Unit] {
+    def parse(context: ParsingContext): ParsingResult[Unit] = context.resultBuilder.accept(Unit)
+  }
+
+  /** [[smd.parsing.Parser]] for the empty language, which never accepts and consumes no input. */
+  object EmptyLanguage extends Parser[Unit] {
+    def parse(context: ParsingContext): ParsingResult[Unit] = context.resultBuilder.reject[Unit]
+  }
+}

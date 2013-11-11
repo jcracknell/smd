@@ -10,7 +10,14 @@ trait Parsers extends ImplicitParserOps {
   protected val Grapheme =        smd.unicode.GraphemeCriteria
   protected val UnicodeCategory = smd.unicode.UnicodeCategory
 
+  /** [[smd.parsing.Parser]] matching the end of the input. */
   val EOF = EndOfInputParser
+
+  /** [[smd.parsing.Parser]] matching the empty string, which always accepts and consumes no input. */
+  val ε = Parser.EmptyString
+
+  /** [[smd.parsing.Parser]] for the empty language, which never accepts and consumes no input. */
+  val ∅ = Parser.EmptyLanguage
 
   /** Positive lookahead. Creates an [[smd.parsing.AndPredicateParser]], which consumes no input and succeeds if the
     * provided parser does not succeed.
