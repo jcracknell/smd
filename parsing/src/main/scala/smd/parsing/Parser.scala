@@ -65,7 +65,7 @@ object Parser {
   }
 
   /** [[smd.parsing.Parser]] for the empty language, which never accepts and consumes no input. */
-  object EmptyLanguage extends Parser[Unit] {
-    def parse(context: ParsingContext): ParsingResult[Unit] = context.resultBuilder.reject[Unit]
+  object EmptyLanguage extends Parser[Nothing] {
+    def parse(context: ParsingContext): ParsingResult[Nothing] = context.resultBuilder.reject[Nothing]
   }
 }
