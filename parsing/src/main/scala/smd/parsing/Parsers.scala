@@ -73,6 +73,12 @@ trait Parsers extends ImplicitParserOps {
       }
   }
 
+  /** Adds a method coercing the subject to [[smd.parsing.Parser]] to types for which an implicit conversion exists. */
+  implicit class ParserCoercion[A](subject: A) {
+    /** Coerces the subject to an instance of [[smd.parsing.Parser]] using implicit conversion. */
+    def p[P <: Parser[_]](implicit conv: A => P): P = conv(subject)
+  }
+
   implicit def convertCodePointCriterion2Parser(criterion: smd.unicode.CodePointCriterion): GraphemeParser =
     GraphemeParser(Grapheme.SingleCodePoint(criterion))
 
