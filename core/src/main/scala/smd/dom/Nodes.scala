@@ -2,6 +2,7 @@ package smd
 package dom
 
 import scala.language.higherKinds
+import smd.util.NumeralSystem
 
 case class Document(content: Seq[Block])
 
@@ -19,6 +20,10 @@ sealed abstract class Markdown extends Node with Visitable[Markdown.Visitor]
 
 object Markdown {
   trait Visitor[+A] extends Block.Visitor[A] with Inline.Visitor[A]
+}
+
+trait Referenceable {
+  def refId: Option[ReferenceId]
 }
 
 sealed abstract class Expression extends Node with Visitable[Expression.Visitor]
@@ -158,29 +163,74 @@ object DefinitionList {
 
 sealed abstract class OrderedList extends List {
   type Item <: OrderedList.Item[_ <: Markdown]
-  def counterStyle: OrderedList.CounterStyle
+  def counter: OrderedList.Counter
 }
 
 object OrderedList {
-  case class Loose(items: Seq[OrderedList.Item[Block]], counterStyle: CounterStyle) extends OrderedList {
+  case class Loose(counter: Counter, items: Seq[OrderedList.Item[Block]]) extends OrderedList {
     type Item = OrderedList.Item[Block]
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Tight(items: Seq[OrderedList.Item[Inline]], counterStyle: CounterStyle) extends OrderedList {
+  case class Tight(counter: Counter, items: Seq[OrderedList.Item[Inline]]) extends OrderedList {
     type Item = OrderedList.Item[Inline]
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Item[+A](children: Seq[A]) extends Composite[A]
+  case class Item[+A](refId: Option[ReferenceId], children: Seq[A]) extends Composite[A] with Referenceable
 
-  sealed abstract class CounterStyle
-  object CounterStyle {
-    case object Arabic extends CounterStyle
-    case object LowerAlpha extends CounterStyle
-    case object UpperAlpha extends CounterStyle
-    case object LowerRoman extends CounterStyle
-    case object UpperRoman extends CounterStyle
+  /** Counter information for an ordered list.
+    *
+    * @param start the initial value for the list counter, if it could be determined.
+    * @param name the name of the list counter, if it was specified.
+    */
+  case class Counter(
+    numeralStyle: NumeralStyle,
+    separatorStyle: SeparatorStyle,
+    start: Option[Int],
+    name: Option[String]
+  )
+
+  sealed abstract class NumeralStyle {
+    def encode(i: Int): Option[String]
+    def decode(s: CharSequence): Option[Int]
+  }
+
+  object NumeralStyle {
+    case object Arabic extends NumeralStyle {
+      def encode(i: Int): Option[String]       = NumeralSystem.Arabic.encode(i)
+      def decode(s: CharSequence): Option[Int] = NumeralSystem.Arabic.decode(s)
+    }
+
+    case object LowerAlpha extends NumeralStyle {
+      def encode(i: Int): Option[String]       = NumeralSystem.Alpha.encode(i)
+      def decode(s: CharSequence): Option[Int] = NumeralSystem.Alpha.decode(s)
+    }
+
+    case object UpperAlpha extends NumeralStyle {
+      def encode(i: Int): Option[String]       = NumeralSystem.Alpha.encode(i).map(_.toUpperCase)
+      def decode(s: CharSequence): Option[Int] = NumeralSystem.Alpha.decode(s)
+    }
+
+    case object LowerRoman extends NumeralStyle {
+      def encode(i: Int): Option[String]       = NumeralSystem.Roman.encode(i)
+      def decode(s: CharSequence): Option[Int] = NumeralSystem.Roman.decode(s)
+    }
+
+    case object UpperRoman extends NumeralStyle {
+      def encode(i: Int): Option[String]       = NumeralSystem.Roman.encode(i).map(_.toUpperCase)
+      def decode(s: CharSequence): Option[Int] = NumeralSystem.Roman.decode(s)
+    }
+  }
+
+  sealed abstract class SeparatorStyle
+  object SeparatorStyle {
+    /** [[smd.dom.OrderedList.SeparatorStyle]] for a counter followed by a single dot. */
+    case object TrailingDot extends SeparatorStyle
+    /** [[smd.dom.OrderedList.SeparatorStyle]] for a counter followed by a single right parenthesis. */
+    case object TrailingParenthesis extends SeparatorStyle
+    /** [[smd.dom.OrderedList.SeparatorStyle]] for a counter enclosed by round parentheses. */
+    case object EnclosingParentheses extends SeparatorStyle
   }
 }
 

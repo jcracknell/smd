@@ -1,9 +1,7 @@
 package smd
 package parsing
 
-case class ParserMagnet[+P <: Parser[_]](parser: P) {
-  def p: P = parser
-}
+case class ParserMagnet[+P <: Parser[_]](parser: P)
 
 object ParserMagnet {
   import scala.language.implicitConversions

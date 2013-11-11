@@ -45,27 +45,122 @@ trait Grammar extends Parsers {
     }
   }
 
+  /// # Ordered Lists
+  ///
+  /// The following numeral styles are supported:
+  ///
+  ///  * arabic (1, 2, ...)
+  ///  * lower-roman (i, ii, ...)
+  ///  * upper-roman (I, II, ...)
+  ///  * lower-alpha (a, b, ...)
+  ///  * upper-alpha (A, B, ...)
+  ///
+  /// The following separator styles are supported:
+  ///
+  ///  * trailing-dot (`#.`)
+  ///  * trailing-parenthesis (`#)`)
+  ///  * enclosing-parentheses (`(#)`)
+  ///
+  /// The style and numbering of an ordered list is determined by the first item in the list. All subsequent items
+  /// in the list must conform to the style of the first item. The numeral value of sucessive items is ignored; as such
+  /// the auto-numbering placeholder `#` can be used. In the event that the auto-numbering placeholder is used for the
+  /// first item, the list will consist of arabic numerals starting from 1.
+  ///
+  /// A *counter name* can be prepended to resume numbering across lists.
+  /// In the event that a counter name is specified, the numeral value of the initial item is ignored, and the list
+  /// resumes numbering according to the referenced counter.
+  ///
+  /// @example(```
+  /// (ex:a) Example A
+  ///
+  /// This paragraph splits our example into two lists.
+  ///
+  /// (ex:b) Example B
+  /// ```)
+  ///
+  /// Counters are **level-scoped**. Counters behave as though the counter name is implicitly prefixed with a unique
+  /// identifier for the list in which it appears.
+  ///
+  /// @example(```
+  /// (ex:#) Example 1
+  ///     (sub:#) Subitem
+  ///
+  /// This paragraph splits our example into two lists.
+  ///
+  /// (ex:#) Example resumes numbering using the counter `ex`.
+  ///     (sub:#) Numbering of subitems does not resume, because `sub` is scoped to its parent list.
+  /// ```)
+  ///
+  /// A list item can be referenced from elsewhere in the document by appending a reference id enclosed in square
+  /// brackets to the numeral.
+  ///
+  /// @example(```
+  /// (ex:#[good]) My good example
+  /// (ex:#[bad])  My bad example
+  /// ```)
   lazy val orderedList: Parser[dom.OrderedList] = {
-    val enumerator = (
-      nonIndentSpace_? ~> digit.+ <~ "." ~ spaceChar.*
-      ^^ { r => try { Integer.parseInt(r.parsed.toString) } catch { case _: Throwable => 1 } }
+    // For performance reasons we use a regex to quickly check if there is a valid counter ahead
+    // This is also a relatively concise and comprehensible reference for the counter grammar.
+    val counterish = 
+      """(?iux)                             # ignore case, unicode character classes, comments
+      [\ ]{0,3}                             # non-indent space
+      [(]?                                  # begin separator
+      ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
+      (
+        \#                                  # auto-number
+      | [0-9]+                              # arabic
+      | [a-z]+                              # alpha/roman
+      )
+      (\[[^\n\r\u2028\u2029]+\])?           # optional reference id
+      [.)]                                  # end separator
+      [\t\ ]                                # must be followed by at least one space
+      """.r
+
+    // Arabic numerals must come first as the default in the event of an initial placeholder marker.
+    val numeralStyles = Seq(
+      (dom.OrderedList.NumeralStyle.Arabic,     """[0-9]+""".r.p                    ),
+      (dom.OrderedList.NumeralStyle.LowerRoman, """[mdclxvi][mdclxviMDCLXVI]*""".r.p),
+      (dom.OrderedList.NumeralStyle.UpperRoman, """[MDCLXVI][mdclxviMDCLXVI]*""".r.p),
+      (dom.OrderedList.NumeralStyle.LowerAlpha, """[a-z][a-zA-Z]*""".r.p            ),
+      (dom.OrderedList.NumeralStyle.UpperAlpha, """[A-Z][a-zA-Z]*""".r.p            )
     )
 
-    genList(enumerator)(
-      is => dom.OrderedList.Tight(
-        is map { case (_, inlines) => dom.OrderedList.Item(inlines) },
-        dom.OrderedList.CounterStyle.Arabic
-      ),
-      is => dom.OrderedList.Loose(
-        is map { case (_, blocks) => dom.OrderedList.Item(blocks) },
-        dom.OrderedList.CounterStyle.Arabic
-      )
+    val separatorStyles = Seq(
+      (dom.OrderedList.SeparatorStyle.TrailingDot,          ε,     ".".p),
+      (dom.OrderedList.SeparatorStyle.TrailingParenthesis,  ε,     ")".p),
+      (dom.OrderedList.SeparatorStyle.EnclosingParentheses, "(".p, ")".p)
     )
+
+    val counterName_? = (("""[\p{Lower}\p{Upper}\p{Digit}_-]+""".r <~ ":") ^* (_.matched)).?
+
+    // TODO: is there a sane way we can enforce the same counter name across all list elements?
+    val orderedListStyles =
+      for {
+        (numeralStyle, numeral)               <- numeralStyles
+        (separatorStyle, sepBefore, sepAfter) <- separatorStyles
+      } yield {
+        val counter = genListMarker(sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter)
+        genList(counter)(
+          items => items.head match { case ((counterName, start, _), _) =>
+            dom.OrderedList.Tight(
+              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+              items.map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+            )
+          },
+          items => items.head match { case ((counterName, start, _), _) =>
+            dom.OrderedList.Loose(
+              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+              items.map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+            )
+          }
+        )
+      }
+
+    ?=(counterish) ~> OrderedChoiceParser(orderedListStyles)
   }
 
   lazy val unorderedList: Parser[dom.UnorderedList] = {
-    /** A bullet must be followed by at least one space to avoid confusion with emphasis, negative numbers, etc. */
-    val bullet = nonIndentSpace_? ~ ("*" | "-" | "+") ~ spaceChar.+
+    val bullet = genListMarker("*" | "-" | "+")
 
     genList(bullet)(
       is => dom.UnorderedList.Tight(
@@ -77,43 +172,38 @@ trait Grammar extends Parsers {
     )
   }
 
-  /** Generic grammar for a list.
-    *
-    * @param marker parser for a list marker.
-    * @param tight function for creating a tight list from a sequence of marker-content pairs.
-    * @param loose function for creating a loose list from a sequence of marker-content pairs.
-    * @tparam M product type of the marker parser.
-    * @tparam L resulting list type.
-    */
+  /** Generic grammar for a list marker. */
+  protected def genListMarker[A](marker: Parser[A]): Parser[A] =
+    // A list marker must be followed by at least one space character in order to disambiguate bullet & bold
+    nonIndentSpace_? ~> marker <~ spaceChar.+
+
+  /** Generic grammar for a list. */
   protected def genList[M, L <: dom.List](marker: Parser[M])(
     tight: Seq[(M, Seq[dom.Inline])] => L,
     loose: Seq[(M, Seq[dom.Block])] => L
   ): Parser[L] = {
-    /** A line starting with a list marker. */
+    // A line starting with a list marker.
     val markedLine = marker ~ blockLine_?
-    /** A line not starting with a list marker. Consumes an optional indent at the beginning of the line. */
+    // A line not starting with a list marker. Consumes an optional indent at the beginning of the line.
     val unmarkedLine = ?!(marker) ~ indent.? ~> blockLine
 
-    /** The initial block of a list item, beginning with a marker. */
+    // The initial block of a list item, beginning with a marker.
     val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
-    /** A subsequent block of a list item, indented and not starting with a list marker.
-      * The indent is consumed by noMarkerLine. */
+    // A subsequent block of a list item, indented and not starting with a list marker.
+    // The indent is consumed by noMarkerLine.
     val itemSubsequentBlock = interBlock ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
 
-    /** A 'tight' list item is a list item which contains only a single block. */
+    // A 'tight' list item is a list item which contains only a single block.
     val itemTight = itemInitialBlock
-    /** A 'loose' list item can contain subsequent blocks of content. */
+    // A 'loose' list item can contain subsequent blocks of content.
     val itemLoose = itemInitialBlock ~ itemSubsequentBlock.* ^* { case ((m, a), bs) => (m, a ++ bs.flatten) }
 
-    /** A 'tight' list is a sequence of tight list items not followed by loose content. */
-    val tightList = (
-      itemTight.+ <~ ?!(interBlock ~ (marker | indent))
-      ^* { items => tight(items map { case (m, ls) => (m, parse(blockInlines_?, ls)) }) }
-    )
+    // A 'tight' list is a sequence of tight list items not followed by loose content.
+    val tightList =
+      itemTight.+ <~ ?!(interBlock ~ (marker | indent)) ^* { items => tight(items map { case (m, ls) => (m, parse(blockInlines_?, ls)) }) }
 
-    val looseList = (
+    val looseList =
       repSep(1, itemLoose, interBlock.?) ^* { p => loose(p.collect { case Left((m, ls)) => (m, parse(blocks, ls)) }) }
-    )
 
     tightList | looseList
   }
