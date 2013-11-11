@@ -11,13 +11,13 @@ trait Parsers extends ImplicitParserOps {
   protected val UnicodeCategory = smd.unicode.UnicodeCategory
 
   /** [[smd.parsing.Parser]] matching the end of the input. */
-  val EOF = EndOfInputParser
+  protected val EOF = EndOfInputParser
 
   /** [[smd.parsing.Parser]] matching the empty string, which always accepts and consumes no input. */
-  val ε = Parser.EmptyString
+  protected val ε = Parser.EmptyString
 
   /** [[smd.parsing.Parser]] for the empty language, which never accepts and consumes no input. */
-  val ∅ = Parser.EmptyLanguage
+  protected val ∅ = Parser.EmptyLanguage
 
   /** Positive lookahead. Creates an [[smd.parsing.AndPredicateParser]], which consumes no input and succeeds if the
     * provided parser does not succeed.
@@ -25,7 +25,7 @@ trait Parsers extends ImplicitParserOps {
     * @param parser the parser which must succeed for the lookahead to succeed.
     * @tparam A the product type of the parser.
     */
-  def ?= [A](parser: Parser[A]): AndPredicateParser[A] = AndPredicateParser(parser)
+  protected def ?= [A](parser: Parser[A]): AndPredicateParser[A] = AndPredicateParser(parser)
 
   /** Negative lookahead. Creates an [[smd.parsing.NotPredicateParser]], which consumes no input and succeeds only if
     * the provided parser does not succeed.
@@ -33,14 +33,14 @@ trait Parsers extends ImplicitParserOps {
     * @param parser the parser which must fail for the lookahead to succeed.
     * @tparam A the product type of the parser.
     */
-  def ?! (parser: Parser[Any]): NotPredicateParser = NotPredicateParser(parser)
+  protected def ?! (parser: Parser[Any]): NotPredicateParser = NotPredicateParser(parser)
 
   /** Creates a lazily initialized [[smd.parsing.ReferenceParser]] from the provided parser.
     *
     * @param parser the parser to be lazily initialized.
     * @tparam A the product type of the lazily initialized parser.
     */
-  def & [A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
+  protected def & [A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
 
   /** Creates a parser which repeatedly parses the provided parser interleaved with the provided separator parser.
     * Yields a sequence of [[scala.util.Either]] values wherein `rep` results are represented as [[scala.util.Left]]
@@ -62,7 +62,7 @@ trait Parsers extends ImplicitParserOps {
     * @tparam R the product type of the repeated parser.
     * @tparam S the product type of the separator parser.
     */
-  def repSep[R, S](n: Int, rep: Parser[R], sep: Parser[S]): Parser[Seq[Either[R, S]]] = {
+  protected def repSep[R, S](n: Int, rep: Parser[R], sep: Parser[S]): Parser[Seq[Either[R, S]]] = {
     assert(n >= 0, "repSep requires a non-negative number of repetitions")
 
     if(0 == n)
