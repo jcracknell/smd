@@ -15,13 +15,12 @@ sealed abstract class ParsingResult[+A] {
   /** Returns true if the parser rejected the input. */
   def rejected: Boolean
 
-  /** Alias for `this.product`. */
-  @throws[UnsupportedOperationException]
-  @inline def p : A = product
-
   /** The product of the parser $ifAccepted. */
   @throws[UnsupportedOperationException]
   def product: A
+
+  /** The product of the parser as an [[scala.Option]]. */
+  def productOption: Option[A] = if(accepted) Some(product) else None
 
   /** The index at which parsing started $ifAccepted. */
   @throws[UnsupportedOperationException]
