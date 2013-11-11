@@ -83,6 +83,34 @@ class OrderedListSpec extends ParsingScenarios {
   )
 
   parsing("""
+  | iii. Item 3
+  |  iv. Item 4
+  """) as orderedList should produce(
+    OrderedList.Tight(Counter(NumeralStyle.LowerRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
+      OrderedList.Item(None, Seq(
+        Text("Item"), Space(), Text("3")
+      )),
+      OrderedList.Item(None, Seq(
+        Text("Item"), Space(), Text("4")
+      ))
+    ))
+  )
+
+  parsing("""
+  | III. Item 3
+  |  IV. Item 4
+  """) as orderedList should produce(
+    OrderedList.Tight(Counter(NumeralStyle.UpperRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
+      OrderedList.Item(None, Seq(
+        Text("Item"), Space(), Text("3")
+      )),
+      OrderedList.Item(None, Seq(
+        Text("Item"), Space(), Text("4")
+      ))
+    ))
+  )
+
+  parsing("""
   | b. Item b
   | c. Item c
   """) as orderedList should produce (
