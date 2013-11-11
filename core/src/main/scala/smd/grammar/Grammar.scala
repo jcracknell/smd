@@ -7,8 +7,8 @@ import smd.parsing._
 
 object Grammar extends Grammar
 
-trait Grammar extends Parsers { rootGrammar =>
-  protected def parse[A](parser: Parser[A], extents: Seq[CharSequence]): A =
+trait Grammar extends Parsers {
+  protected def parseExtents[A](parser: Parser[A], extents: Seq[CharSequence]): A =
     // TODO: error checking
     parser.parse(extents).product
 
@@ -148,12 +148,12 @@ trait Grammar extends Parsers { rootGrammar =>
 
       // A 'tight' list is a sequence of tight list items not followed by loose content.
       val tightList = itemTight.+ <~ ?!(interBlock ~ (spacedMarker | indent)) ^* { rawItems =>
-        val items = rawItems map { case (m, extents) => (m, rootGrammar.parse(blockInlines_?, extents)) }
+        val items = rawItems map { case (m, extents) => (m, parseExtents(blockInlines_?, extents)) }
         mkTight(items)
       }
 
       val looseList = repSep(1, itemLoose, interBlock.?) ^* { p =>
-        val items = p collect { case Left((m, extents)) => (m, rootGrammar.parse(blocks, extents)) }
+        val items = p collect { case Left((m, extents)) => (m, parseExtents(blocks, extents)) }
         mkLoose(items)
       }
 
@@ -163,7 +163,7 @@ trait Grammar extends Parsers { rootGrammar =>
 
   lazy val blockquote: Parser[dom.Blockquote] = {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
-    val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parse(&(blocks), init +: subs) }
+    val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parseExtents(&(blocks), init +: subs) }
 
     repSep(1, blockquoteBlock, interBlock) ^* { p => dom.Blockquote(p.collect({ case Left(b) => b }).flatten) }
   }
