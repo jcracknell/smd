@@ -47,4 +47,35 @@ class NumeralSystemSpec extends FunSpec with Matchers {
       Alpha.encode(Int.MaxValue) should be (Some("fxshrxw"))
     }
   }
+
+  describe("Roman") {
+    it("should not encode 0") {
+      Roman.encode(0) should be (None)
+    }
+    it("should not encode 4000") {
+      Roman.encode(4000) should be (None)
+    }
+
+    val cases = Seq(
+      1 -> "i",    2 -> "ii",   3 -> "iii",  4 -> "iv",    5 -> "v",
+      6 -> "vi",   7 -> "vii",  8 -> "viii", 9 -> "ix",   10 -> "x",
+      11 -> "xi",
+      99 -> "xcix",
+      100 -> "c",
+      2013 -> "mmxiii",
+      3999 -> "mmmcmxcix"
+    )
+
+    cases foreach { case (value, encoded) =>
+      it(s"should encode $value as ${encoded.literalEncode}") {
+        Roman.encode(value) should be (Some(encoded))
+      }
+    }
+
+    cases foreach { case (value, encoded) =>
+      it(s"should decode ${encoded.literalEncode} as $value") {
+        Roman.decode(encoded) should be (Some(value))
+      }
+    }
+  }
 }

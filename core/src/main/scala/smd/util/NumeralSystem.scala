@@ -2,7 +2,8 @@ package smd
 package util
 
 import scala.util.Try
-import scala.annotation.tailrec
+import scala.annotation.{switch, tailrec}
+import smd.parsing.{Parser, Parsers}
 
 trait NumeralSystem {
   /** The minimum value representable in this [[smd.util.NumeralSystem]]. */
@@ -15,12 +16,8 @@ trait NumeralSystem {
 }
 
 object NumeralSystem {
-  object Arabic extends Arabic
-  object Alpha extends Alpha
-  object Roman extends Roman
-
   /** [[smd.util.NumeralSystem]] implementation for lowercase alpha numerals. */
-  trait Alpha extends NumeralSystem {
+  object Alpha extends NumeralSystem {
     val minValue: Int = 1
     val maxValue: Int = Int.MaxValue
 
@@ -46,7 +43,7 @@ object NumeralSystem {
   }
 
   /** [[smd.util.NumeralSystem]] implementation for arabic numerals. */
-  trait Arabic extends NumeralSystem {
+  object Arabic extends NumeralSystem {
     val minValue = Int.MinValue
     val maxValue = Int.MaxValue
     def encode(i: Int): Option[String] = Some(i.toString)
@@ -55,10 +52,55 @@ object NumeralSystem {
   }
 
   /** [[smd.util.NumeralSystem]] implementation for lowercase roman numerals. */
-  trait Roman extends NumeralSystem {
+  object Roman extends NumeralSystem with Parsers {
     val minValue: Int = 1
     val maxValue: Int = 3999
-    def encode(i: Int): Option[String] = ???
-    def decode(s: CharSequence, start: Int, end: Int): Option[Int] = ???
+
+    def encode(i: Int): Option[String] = Option.when(minValue <= i && i <= maxValue) {
+      val sb = new StringBuilder(15)
+
+      @inline def encodeDecade(v: Int, d: Char, q: Char, u: Char): Unit =
+        (v: @switch @unchecked) match {
+          case 0 => sb
+          case 1 => sb + u
+          case 2 => sb + u + u
+          case 3 => sb + u + u + u
+          case 4 => sb + u + q
+          case 5 => sb + q
+          case 6 => sb + q + u
+          case 7 => sb + q + u + u
+          case 8 => sb + q + u + u + u
+          case 9 => sb + u + d
+        }
+
+      encodeDecade(i / 1000,      '?', '?', 'm')
+      encodeDecade(i /  100 % 10, 'm', 'd', 'c')
+      encodeDecade(i /   10 % 10, 'c', 'l', 'x')
+      encodeDecade(i        % 10, 'x', 'v', 'i')
+      sb.toString
+    }
+
+    def decode(s: CharSequence, start: Int, end: Int): Option[Int] =
+      grammar.parse(s.subSequenceProxy(start, end)).productOption
+
+    protected val grammar = {
+      val m = ("m" | "M") ^^^ 1000
+      val d = ("d" | "D") ^^^  500
+      val c = ("c" | "C") ^^^  100
+      val l = ("l" | "L") ^^^   50
+      val x = ("x" | "X") ^^^   10
+      val v = ("v" | "V") ^^^    5
+      val i = ("i" | "I") ^^^    1
+
+      def decade(decem: Parser[Int], quintum: Parser[Int], unit: Parser[Int]): Parser[Int] = (
+        unit ~ decem          ^~  { (u, d)  => d - u       }
+      | unit ~ quintum        ^~  { (u, q)  => q - u       }
+      | quintum ~ unit.*(0,3) ^~  { (q, us) => q + us.sum  }
+      | unit.*(1,3)           ^*  { (us)    => us.sum      }
+      | ε                     ^^^ 0
+      )
+
+      decade(∅, ∅, m) ~ decade(m, d, c) ~ decade(c, l, x) ~ decade(x, v, i) <~ EOF ^~ { (a, b, c, d) => a + b + c + d }
+    }
   }
 }
