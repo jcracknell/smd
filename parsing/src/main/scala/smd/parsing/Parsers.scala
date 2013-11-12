@@ -42,6 +42,9 @@ trait Parsers extends ImplicitParserOps {
     */
   protected def & [A](parser: => Parser[A]): Parser[A] = ReferenceParser(parser)
 
+  /** Creates an [[smd.parsing.OrderedChoiceParser]] from the provided parsers. */
+  protected def |<< [A](parsers: Seq[Parser[A]]): OrderedChoiceParser[A] = OrderedChoiceParser(parsers)
+
   /** Creates a parser which repeatedly parses the provided parser interleaved with the provided separator parser.
     * Yields a sequence of [[scala.util.Either]] values wherein `rep` results are represented as [[scala.util.Left]]
     * instances, and `sep` results are represented as [[scala.util.Right]].

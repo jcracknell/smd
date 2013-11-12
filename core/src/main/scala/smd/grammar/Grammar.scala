@@ -46,23 +46,6 @@ trait Grammar extends Parsers {
   }
 
   lazy val orderedList: Parser[dom.OrderedList] = {
-    // For performance reasons we use a regex to quickly check if there is a valid counter ahead
-    // This is also a relatively concise and comprehensible reference for the counter grammar.
-    val counterish =
-      """(?iux)                             # ignore case, unicode character classes, comments
-      [\ ]{0,3}                             # non-indent space
-      [(]?                                  # begin separator
-      ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
-      (
-        \#                                  # auto-number
-      | [0-9]+                              # arabic
-      | [a-z]+                              # alpha/roman
-      )
-      (\[[^\n\r\u2028\u2029]+\])?           # optional reference id
-      [.)]                                  # end separator
-      [\t\ ]                                # must be followed by at least one space
-      """.r
-
     // Arabic numerals must come first as the default in the event of an initial placeholder marker.
     val numeralStyles = Seq(
       (dom.OrderedList.NumeralStyle.Arabic,     """[0-9]+""".r.p                    ),
@@ -80,33 +63,48 @@ trait Grammar extends Parsers {
 
     val counterName_? = (("""[\p{Lower}\p{Upper}\p{Digit}_-]+""".r <~ ":") ^* (_.matched)).?
 
+    // For performance reasons we use a regex to quickly check if there is a valid counter ahead
+    // This is also a relatively concise and comprehensible reference for the counter grammar.
+    val counterish = """(?iux)                             # ignore case, unicode character classes, comments
+                     [\ ]{0,3}                             # non-indent space
+                     [(]?                                  # begin separator
+                     ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
+                     (
+                       \#                                  # auto-number
+                       | [0-9]+                              # arabic
+                       | [a-z]+                              # alpha/roman
+                     )
+                     (\[[^\n\r\u2028\u2029]+\])?           # optional reference id
+                     [.)]                                  # end separator
+                     [\t\ ]                                # must be followed by at least one space
+                     """.r
+
     // TODO: is there a sane way we can enforce the same counter name across all list elements?
-    val orderedListStyles =
+    ?=(counterish) ~> |<< {
       for {
         (numeralStyle, numeral)               <- numeralStyles
         (separatorStyle, sepBefore, sepAfter) <- separatorStyles
       } yield new ListGrammar[dom.OrderedList] {
-          type MarkerProduct = (Option[String], CharSequence, Option[dom.ReferenceId])
-          lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter
+        type MarkerProduct = (Option[String], CharSequence, Option[dom.ReferenceId])
+        lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter
 
-          def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
-            items.head match { case ((counterName, start, _), _) =>
-              dom.OrderedList.Loose(
-                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-                items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
-              )
-            }
+        def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
+          items.head match { case ((counterName, start, _), _) =>
+            dom.OrderedList.Loose(
+              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+            )
+          }
 
-          def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
-            items.head match { case ((counterName, start, _), _) =>
-              dom.OrderedList.Tight(
-                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-                items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
-              )
-            }
-        }
-
-    ?=(counterish) ~> OrderedChoiceParser(orderedListStyles)
+        def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
+          items.head match { case ((counterName, start, _), _) =>
+            dom.OrderedList.Tight(
+              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+            )
+          }
+      }
+    }
   }
 
   val unorderedList = new ListGrammar[dom.UnorderedList] {
@@ -252,21 +250,25 @@ trait Grammar extends Parsers {
 
   lazy val entity = escape ^* dom.Entity
 
-  lazy val quoted = OrderedChoiceParser(
+  lazy val quoted = |<< {
     Seq(
       "\"" -> dom.Quoted.QuoteKind.Double,
       "'"  -> dom.Quoted.QuoteKind.Single
-    ) map { case (quot, kind) =>
+    ) map { case (qs, kind) =>
+      val quot = qs.p
       quot ~> (?!(quot) ~> &(inline)).* <~ quot ^* { is => dom.Quoted(is, kind) }
     }
-  )
+  }
 
   /** Backtick-enclosed code not leaving a block. */
-  lazy val code: Parser[dom.Code] =
-    ?=("`") ~> OrderedChoiceParser((1 to 16).map(n => "".padTo(n, '`')).map { ticks =>
-      val content = ?!("`") ~ blockWhitespace.? ~ (?!(whitespace | ticks) ~ unicodeCharacter ~ blockWhitespace.?).+
-      ticks ~> (content ^^ { _.parsed }) <~ ticks
-    }) ^* { p => dom.Code(p.toString) }
+  lazy val code =
+    ?=("`") ~> |<< {
+      for(n <- 1 to 16) yield {
+        val ticks = new String(Array.fill(n)('`')).p
+        val content = ?!("`") ~ blockWhitespace.? ~ (?!(whitespace | ticks) ~ unicodeCharacter ~ blockWhitespace.?).+ ^^ { _.parsed }
+        ticks ~> content <~ ticks ^* { p => dom.Code(p.toString) }
+      }
+    }
 
   lazy val inlineExpression = ?=("@") ~> &(leftHandSideExpression) <~ ";".? ^* dom.InlineExpression
 
@@ -633,8 +635,8 @@ trait Grammar extends Parsers {
       val decimalIntegerLiteral = ("0" | nonZeroDigit ~ digit.*) ^^(_.parsed.toString.toDouble)
 
       (
-        decimalIntegerLiteral ~ optionalDecimalPart ~ optionalExponentPart ^* { p => (p._1 + p._2) * p._3 }
-      | requiredDecimalPart ~ optionalExponentPart                         ^* { p => p._1 * p._2 }
+        decimalIntegerLiteral ~ optionalDecimalPart ~ optionalExponentPart ^~ { (i, d, e) => (i + d) * e }
+      | requiredDecimalPart ~ optionalExponentPart                         ^~ { (d, e)    => d * e       }
       )
     }
 
@@ -646,19 +648,27 @@ trait Grammar extends Parsers {
 
   //region String Literals
 
-  lazy val verbatimLiteralExpression: Parser[dom.VerbatimLiteral] =
-    ?=("`") ~> OrderedChoiceParser(
-      (1 to 16).reverse.map(n => new String(Array.fill(n)('`'))).map { ticks =>
-        ticks ~> ((?!(ticks) ~> unicodeCharacter).* ^^(_.parsed)) <~ ticks
+  lazy val verbatimLiteralExpression =
+    ?=("`") ~> |<< {
+      for(n <- 16 to 1 by -1) yield {
+        val ticks = new String(Array.fill(n)('`')).p
+        val content = (?!(ticks) ~ unicodeCharacter).* ^^ { _.parsed }
+        ticks ~> content <~ ticks ^* { p => dom.VerbatimLiteral(p.toString) }
       }
-    ) ^* { p => dom.VerbatimLiteral(p.toString) }
+    }
 
   lazy val stringLiteralExpression: Parser[dom.StringLiteral] = {
-    val stringPart = escape ^*(_.flatMap(Character.toChars(_))) | !CodePoint.Values(newLineCharValues) ^*(_.chars)
+    val stringPart = (
+      escape                               ^* { _.flatMap(Character.toChars(_)) }
+    | !CodePoint.Values(newLineCharValues) ^* { _.chars                         }
+    )
 
-    OrderedChoiceParser(Seq("\"", "'") map { quot =>
-      quot ~> (?!(quot) ~> stringPart).* <~ quot ^* { p => dom.StringLiteral(new String(p.flatten.toArray)) }
-    })
+    |<< {
+      for(qs <- Seq("\"", "'")) yield {
+        val quot = qs.p
+        quot ~> (?!(quot) ~> stringPart).* <~ quot ^* { p => dom.StringLiteral(new String(p.flatten.toArray)) }
+      }
+    }
   }
 
   //endregion
