@@ -65,19 +65,20 @@ trait Grammar extends Parsers {
 
     // For performance reasons we use a regex to quickly check if there is a valid counter ahead
     // This is also a relatively concise and comprehensible reference for the counter grammar.
-    val counterish = """(?iux)                             # ignore case, unicode character classes, comments
-                     [\ ]{0,3}                             # non-indent space
-                     [(]?                                  # begin separator
-                     ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
-                     (
-                       \#                                  # auto-number
-                       | [0-9]+                              # arabic
-                       | [a-z]+                              # alpha/roman
-                     )
-                     (\[[^\n\r\u2028\u2029]+\])?           # optional reference id
-                     [.)]                                  # end separator
-                     [\t\ ]                                # must be followed by at least one space
-                     """.r
+    val counterish = 
+      """(?iux)                             # ignore case, unicode character classes, comments
+      [\ ]{0,3}                             # non-indent space
+      [(]?                                  # begin separator
+      ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
+      (
+        \#                                  # auto-number
+      | [0-9]+                              # arabic
+      | [a-z]+                              # alpha/roman
+      )
+      (\[[^\n\r\u2028\u2029]+\])?           # optional reference id
+      [.)]                                  # end separator
+      [\t\ ]                                # must be followed by at least one space
+      """.r
 
     // TODO: is there a sane way we can enforce the same counter name across all list elements?
     ?=(counterish) ~> |<< {
