@@ -183,18 +183,20 @@ trait Grammar extends Parsers {
 
   lazy val blockLine = ?!(blankLine) ~> blockLine_?
 
-  lazy val blockLine_? : Parser[CharSequence] = {
-    val atomic = (
-      ?!(specialChar) ~ unicodeCharacter
-    | inlineExpression
-    | comment
+  lazy val blockLine_? =  (?!(newLine) ~ blockAtom).* ~ newLine.? ^^(_.parsed)
+
+  /** An indivisible element of a block; used to quickly scan block content. Matches either a single character, or
+    * a 'modal' element requiring specific line handling differing from the ordinary block rules. */
+  lazy val blockAtom = {
+    val modal = (
+      comment
     | link
     | autoLink
     | code
-    | unicodeCharacter
+    | inlineExpression
     )
 
-    (?!(newLine) ~ atomic).* ~ newLine.? ^^(_.parsed)
+    ?=(specialChar) ~ modal | unicodeCharacter
   }
 
   //endregion
