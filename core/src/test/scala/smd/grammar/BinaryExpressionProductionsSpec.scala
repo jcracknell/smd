@@ -62,9 +62,6 @@ class BinaryExpressionsProductionsSpec extends ParsingScenarios {
     parsing("42 >= 7") as logicalOrExpression should produce (
       GreaterThanOrEqualTo(NumericLiteral(42), NumericLiteral(7))
     )
-    parsing("42 instanceof 7") as logicalOrExpression should produce (
-      InstanceOf(NumericLiteral(42), NumericLiteral(7))
-    )
   }
   describe("ShiftExpression") {
     parsing("42 >> 7")  as logicalOrExpression should produce (

@@ -45,8 +45,6 @@ object Expression {
     def visit(node: BitwiseOr): A
     def visit(node: BitwiseXOr): A
     def visit(node: Call): A
-    def visit(node: Conditional): A
-    def visit(node: Delete): A
     def visit(node: Division): A
     def visit(node: DynamicProperty): A
     def visit(node: Elided): A
@@ -54,7 +52,6 @@ object Expression {
     def visit(node: GreaterThan): A
     def visit(node: GreaterThanOrEqualTo): A
     def visit(node: Identifier): A
-    def visit(node: InstanceOf): A
     def visit(node: LeftShift): A
     def visit(node: LessThan): A
     def visit(node: LessThanOrEqualTo): A
@@ -66,18 +63,12 @@ object Expression {
     def visit(node: Negative): A
     def visit(node: NotEquals): A
     def visit(node: Positive): A
-    def visit(node: PostfixDecrement): A
-    def visit(node: PostfixIncrement): A
-    def visit(node: PrefixDecrement): A
-    def visit(node: PrefixIncrement): A
     def visit(node: RightShift): A
     def visit(node: StaticProperty): A
     def visit(node: StrictEquals): A
     def visit(node: StrictNotEquals): A
     def visit(node: Subtraction): A
-    def visit(node: TypeOf): A
     def visit(node: UnsignedRightShift): A
-    def visit(node: Void): A
   }
 }
 
@@ -439,14 +430,6 @@ case class Call(body: Expression, args: Seq[Expression]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Conditional(cond: Expression, trueExpr: Expression, falseExpr: Expression) extends Expression {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class Delete(expr: Expression) extends Expression with Unary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
 case class Division(lhs: Expression, rhs: Expression) extends Expression with Binary {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
@@ -472,10 +455,6 @@ case class GreaterThanOrEqualTo(lhs: Expression, rhs: Expression) extends Expres
 }
 
 case class Identifier(name: String) extends Expression {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class InstanceOf(lhs: Expression, rhs: Expression) extends Expression with Binary {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -519,24 +498,7 @@ case class NotEquals(lhs: Expression, rhs: Expression) extends Expression with B
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-
 case class Positive(expr: Expression) extends Expression with Unary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class PostfixDecrement(expr: Expression) extends Expression with Unary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class PostfixIncrement(expr: Expression) extends Expression with Unary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class PrefixDecrement(expr: Expression) extends Expression with Unary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class PrefixIncrement(expr: Expression) extends Expression with Unary {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -560,17 +522,8 @@ case class Subtraction(lhs: Expression, rhs: Expression) extends Expression with
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-case class TypeOf(expr: Expression) extends Expression with Unary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
 case class UnsignedRightShift(lhs: Expression, rhs: Expression) extends Expression with Binary {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
-
-case class Void(expr: Expression) extends Expression with Unary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
 
 //endregion

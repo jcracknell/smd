@@ -312,20 +312,7 @@ trait Grammar extends Parsers {
 
   //region Expressions
 
-  def expr: Parser[Expression] = conditionalExpression
-
-  lazy val conditionalExpression: Parser[Expression] = (
-    logicalOrExpression
-  ~ ( expressionWhitespace_? ~ "?" ~ expressionWhitespace_?
-    ~ &(conditionalExpression)
-    ~ expressionWhitespace_? ~ ":" ~ expressionWhitespace_?
-    ~ &(conditionalExpression)
-    ^*{ p => (p._4, p._8) }
-    ).? ^* {
-      case (i, Some((t, e))) => dom.Conditional(i, t, e)
-      case (e, None) => e
-    }
-  )
+  def expr: Parser[Expression] = logicalOrExpression
 
   lazy val logicalOrExpression = binOp(logicalAndExpression,  "||" ~ ?!("=")       ^^^ dom.LogicalOr)
 
@@ -349,7 +336,6 @@ trait Grammar extends Parsers {
   | "<="         ^^^ dom.LessThanOrEqualTo
   | ">"          ^^^ dom.GreaterThan
   | "<"          ^^^ dom.LessThan
-  | "instanceof" ^^^ dom.InstanceOf
   )
 
   lazy val shiftExpression: Parser[Expression] = binOp(additiveExpression,
@@ -375,29 +361,12 @@ trait Grammar extends Parsers {
     ).* ^* { case (lhs, ops) => (lhs /: ops) { (body, op) => op._1(body, op._2) } }
 
   lazy val unaryExpression: Parser[Expression] = (
-    unaryOp("!",                                     dom.LogicalNot)
-  | unaryOp("--",                                    dom.PrefixDecrement)
-  | unaryOp("-",                                     dom.Negative)
-  | unaryOp("++",                                    dom.PrefixIncrement)
-  | unaryOp("+",                                     dom.Positive)
-  | unaryOp("~",                                     dom.BitwiseNot)
-  | unaryOp("typeof" ~ ?!(identifierExpressionPart), dom.TypeOf)
-  | unaryOp("delete" ~ ?!(identifierExpressionPart), dom.Delete)
-  | unaryOp("void"   ~ ?!(identifierExpressionPart), dom.Void)
-  | postfixExpression
+    "!" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.LogicalNot
+  | "-" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.Negative
+  | "+" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.Positive
+  | "~" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.BitwiseNot
+  | leftHandSideExpression
   )
-
-  private def unaryOp(op: Parser[Any], builder: Expression => Expression): Parser[Expression] =
-    op ~ expressionWhitespace_? ~> &(unaryExpression) ^*(builder(_))
-
-  lazy val postfixExpression: Parser[Expression] =
-    leftHandSideExpression ~ ( expressionWhitespaceNoNewline_? ~>
-      "--" ^^^ dom.PostfixDecrement |
-      "++" ^^^ dom.PostfixIncrement
-    ).? ^* {
-      case (body, Some(builder)) => builder(body)
-      case (body, _) => body
-    }
 
   lazy val leftHandSideExpression: Parser[Expression] = {
     val staticProperty =  "." ~ expressionWhitespace_? ~> identifier
