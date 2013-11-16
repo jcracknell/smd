@@ -25,6 +25,9 @@ class NumeralSystemSpec extends FunSpec with Matchers {
     it("should decode 'ab'") {
       Alpha.decode("ab") should be (Some(28))
     }
+    it("should not decode the empty string") {
+      Alpha.decode("") should be (None)
+    }
     it("should encode 1") {
       Alpha.encode(1) should be (Some("a"))
     }
@@ -49,6 +52,9 @@ class NumeralSystemSpec extends FunSpec with Matchers {
   }
 
   describe("Roman") {
+    it("should not decode the empty string") {
+      Roman.decode("") should be (None)
+    }
     it("should not encode 0") {
       Roman.encode(0) should be (None)
     }

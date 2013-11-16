@@ -38,7 +38,7 @@ object NumeralSystem {
           Option.when('a' <= c && c <= 'z')(c - 96) flatMap { d => decodeImpl(acc * 26 + d, pos + 1) }
         }
 
-      decodeImpl(0, start)
+      if(start < end) decodeImpl(0, start) else None
     }
   }
 
@@ -84,7 +84,8 @@ object NumeralSystem {
       Grammar.numeral.parse(s.subSequenceProxy(start, end)).productOption
 
     protected object Grammar extends Parsers {
-      lazy val numeral = decade(∅, ∅, m) ~ decade(m, d, c) ~ decade(c, l, x) ~ decade(x, v, i) <~ EOF ^~ { (a, b, c, d) => a + b + c + d }
+      lazy val numeral =
+        ?!(EOF) ~> decade(∅, ∅, m) ~ decade(m, d, c) ~ decade(c, l, x) ~ decade(x, v, i) <~ EOF ^~ { (a, b, c, d) => a + b + c + d }
 
       def decade(decem: Parser[Int], quintum: Parser[Int], unit: Parser[Int]): Parser[Int] = (
           unit ~ decem          ^~  { (u, d)  => d - u       }
