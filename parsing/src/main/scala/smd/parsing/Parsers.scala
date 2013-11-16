@@ -76,6 +76,9 @@ trait Parsers extends ImplicitParserOps {
       }
   }
 
+  /** For now the primary purpose of this function is to 'seal' the provided parser. */
+  protected def rule[A](p: Parser[A]): Parser[A] = p
+
   /** Adds a method coercing the subject to [[smd.parsing.Parser]] to types for which an implicit conversion exists. */
   implicit class ParserCoercion[A](subject: A) {
     /** Coerces the subject to an instance of [[smd.parsing.Parser]] using implicit conversion. */
