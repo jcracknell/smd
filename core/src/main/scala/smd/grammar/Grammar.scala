@@ -25,6 +25,7 @@ trait Grammar extends Parsers {
   | unorderedList
   | orderedList
   | reference
+  | definitionList
   | paragraph
   )
 
@@ -45,6 +46,19 @@ trait Grammar extends Parsers {
     ref ~ (blockArgumentList | argumentList) <~ blockWhitespaceOrComments.? ~ blankLine ^~ {
       (r, as) => dom.Reference(r, as)
     }
+  }
+
+  //region Lists
+
+  val unorderedList = new ListGrammar[dom.UnorderedList] {
+    type MarkerProduct = Any
+    lazy val marker = "*" | "-" | "+"
+
+    def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.UnorderedList =
+      dom.UnorderedList.Loose(items map { case (_, children) => dom.UnorderedList.Item(children) })
+
+    def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.UnorderedList =
+      dom.UnorderedList.Tight(items map { case (_, children) => dom.UnorderedList.Item(children) })
   }
 
   lazy val orderedList: Parser[dom.OrderedList] = {
@@ -110,53 +124,57 @@ trait Grammar extends Parsers {
     }
   }
 
-  val unorderedList = new ListGrammar[dom.UnorderedList] {
-    type MarkerProduct = Any
+  lazy val definitionList: Parser[dom.DefinitionList] = rule {
+    val term = blockLine
 
-    lazy val marker = "*" | "-" | "+"
+    val defGrammar = new ListItemGrammar {
+      type MarkerProduct = Any
+      lazy val marker = ":" | "~"
+      // Indent is required for unmarked lines
+      protected override lazy val unmarkedLine = ?!(spacedMarker) ~ indent ~> blockLine
+    }
 
-    def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.UnorderedList =
-      dom.UnorderedList.Loose(items map { case (_, children) => dom.UnorderedList.Item(children) })
+    val itemTight = term ~ defGrammar.itemTight.+
+    val itemLoose = term ~ (interBlock ~> defGrammar.itemLoose).+
 
-    def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.UnorderedList =
-      dom.UnorderedList.Tight(items map { case (_, children) => dom.UnorderedList.Item(children) })
+    val tightList = itemTight.+ <~ ?!(interBlock ~ (indent | defGrammar.marker | itemLoose)) ^* {
+      _ map { case (rawTerm, rawDefs) =>
+        val term = parseExtents(blockInlines_?, Seq(rawTerm))
+        val defs = rawDefs map { case (_, rawDef) => dom.DefinitionList.Definition(parseExtents(blockInlines_?, rawDef)) }
+        dom.DefinitionList.Item(dom.DefinitionList.Term(term), defs: _*)
+      } match { case items =>
+        dom.DefinitionList.Tight(items)
+      }
+    }
+
+    val looseList = repSep(1, itemLoose, interBlock) ^* {
+      _ collect { case Left((rawTerm, rawDefs)) =>
+        val term = dom.DefinitionList.Term(parseExtents(blockInlines_?, Seq(rawTerm)))
+        val defs = rawDefs map { case (_, rawDef) => dom.DefinitionList.Definition(parseExtents(blocks, rawDef))}
+        dom.DefinitionList.Item(term, defs: _*)
+      } match { case items =>
+        dom.DefinitionList.Loose(items)
+      }
+    }
+
+    tightList | looseList
   }
 
   /** Generic grammar for lists. */
-  abstract class ListGrammar[+L <: dom.List] extends Parser[L] {
-    type MarkerProduct
-    def marker: Parser[MarkerProduct]
+  abstract class ListGrammar[+L <: dom.List] extends Parser[L] with ListItemGrammar {
     def mkLoose(items: Seq[(MarkerProduct, Seq[dom.Block])]): L
     def mkTight(items: Seq[(MarkerProduct, Seq[dom.Inline])]): L
 
     def parse(context: ParsingContext): ParsingResult[L] = list.parse(context)
 
     protected lazy val list: Parser[L] = {
-      val spacedMarker = nonIndentSpace_? ~> marker <~ spaceChar.+
-
-      // A line starting with a list marker.
-      val markedLine = spacedMarker ~ blockLine_?
-      // A line not starting with a list marker. Consumes an optional indent at the beginning of the line.
-      val unmarkedLine = ?!(spacedMarker) ~ indent.? ~> blockLine
-
-      // The initial block of a list item, beginning with a marker.
-      val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
-      // A subsequent block of a list item, indented and not starting with a list marker.
-      // The indent is consumed by noMarkerLine.
-      val itemSubsequentBlock = interBlock ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
-
-      // A 'tight' list item is a list item which contains only a single block.
-      val itemTight = itemInitialBlock
-      // A 'loose' list item can contain subsequent blocks of content.
-      val itemLoose = itemInitialBlock ~ itemSubsequentBlock.* ^* { case ((m, a), bs) => (m, a ++ bs.flatten) }
-
       // A 'tight' list is a sequence of tight list items not followed by loose content.
-      val tightList = itemTight.+ <~ ?!(interBlock ~ (spacedMarker | indent)) ^* { rawItems =>
+      val tightList = itemTight.+ <~ ?!(interBlock ~ (indent | itemLoose)) ^* { rawItems =>
         val items = rawItems map { case (m, extents) => (m, parseExtents(blockInlines_?, extents)) }
         mkTight(items)
       }
 
-      val looseList = repSep(1, itemLoose, interBlock.?) ^* { p =>
+      val looseList = repSep(1, itemLoose, interBlock) ^* { p =>
         val items = p collect { case Left((m, extents)) => (m, parseExtents(blocks, extents)) }
         mkLoose(items)
       }
@@ -164,6 +182,32 @@ trait Grammar extends Parsers {
       tightList | looseList
     }
   }
+
+  /** Generic grammar for list items. */
+  trait ListItemGrammar {
+    type MarkerProduct
+    def marker: Parser[MarkerProduct]
+
+    lazy val spacedMarker = nonIndentSpace_? ~> marker <~ spaceChar.+
+
+    // A line starting with a list marker.
+    protected lazy val markedLine = spacedMarker ~ blockLine_?
+    // A line not starting with a list marker. Consumes an optional indent at the beginning of the line.
+    protected lazy val unmarkedLine = ?!(spacedMarker) ~ indent.? ~> blockLine
+
+    // The initial block of a list item, beginning with a marker.
+    protected lazy val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
+    // A subsequent block of a list item, indented and not starting with a list marker.
+    // The indent is consumed by noMarkerLine.
+    protected lazy val itemSubsequentBlock = interBlock ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
+
+    /** A 'tight' list item is a list item which contains only a single block. */
+    lazy val itemTight = itemInitialBlock
+    /** A 'loose' list item can contain subsequent blocks of content. */
+    lazy val itemLoose = itemInitialBlock ~ itemSubsequentBlock.* ^* { case ((m, a), bs) => (m, a ++ bs.flatten) }
+  }
+
+  //endregion
 
   lazy val blockquote: Parser[dom.Blockquote] = {
     val announcedLine = ">" ~ " ".? ~> blockLine_?

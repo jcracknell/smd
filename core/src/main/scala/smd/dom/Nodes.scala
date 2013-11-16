@@ -148,8 +148,8 @@ object DefinitionList {
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Item[+A](term: Term[A], defs: Definition[A]*)
-  case class Term[+A](children: Seq[A]) extends Composite[A]
+  case class Item[+A](term: Term, defs: Definition[A]*)
+  case class Term(children: Seq[Inline]) extends Composite[Inline]
   case class Definition[+A](children: Seq[A]) extends Composite[A]
 }
 
