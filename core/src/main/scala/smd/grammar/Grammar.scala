@@ -17,7 +17,7 @@ trait Grammar extends Parsers {
   //region Blocks
 
   lazy val blocks: Parser[Seq[Block]] =
-    interBlock.? ~> repSep(0, block, interBlock.?) <~ interBlock.? ^* { _.collect { case Left(b) => b } }
+    interBlock_? ~> repSep(0, block, interBlock_?) <~ interBlock_? ^* { _.collect { case Left(b) => b } }
 
   lazy val block: Parser[Block] = (
     heading
@@ -30,7 +30,7 @@ trait Grammar extends Parsers {
   )
 
   /** Zero or more blank lines interleaved with comments. */
-  lazy val interBlock = repSep(0, blankLines_?, spaceChars_? ~ comment) ^^(_.parsed)
+  lazy val interBlock_? = repSep(0, blankLines_?, spaceChars_? ~ comment) ^^(_.parsed)
 
   lazy val reference: Parser[dom.Reference] = {
     // Divergence from spec: we accept any number of spaces, as we do not support indented code blocks
@@ -135,9 +135,9 @@ trait Grammar extends Parsers {
     }
 
     val itemTight = term ~ defGrammar.itemTight.+
-    val itemLoose = term ~ (interBlock ~> defGrammar.itemLoose).+
+    val itemLoose = term ~ (interBlock_? ~> defGrammar.itemLoose).+
 
-    val tightList = itemTight.+ <~ ?!(interBlock ~ (indent | defGrammar.marker | itemLoose)) ^* {
+    val tightList = itemTight.+ <~ ?!(interBlock_? ~ (indent | defGrammar.marker | itemLoose)) ^* {
       _ map { case (rawTerm, rawDefs) =>
         val term = parseExtents(blockInlines_?, Seq(rawTerm))
         val defs = rawDefs map { case (_, rawDef) => dom.DefinitionList.Definition(parseExtents(blockInlines_?, rawDef)) }
@@ -147,7 +147,7 @@ trait Grammar extends Parsers {
       }
     }
 
-    val looseList = repSep(1, itemLoose, interBlock) ^* {
+    val looseList = repSep(1, itemLoose, interBlock_?) ^* {
       _ collect { case Left((rawTerm, rawDefs)) =>
         val term = dom.DefinitionList.Term(parseExtents(blockInlines_?, Seq(rawTerm)))
         val defs = rawDefs map { case (_, rawDef) => dom.DefinitionList.Definition(parseExtents(blocks, rawDef))}
@@ -169,12 +169,12 @@ trait Grammar extends Parsers {
 
     protected lazy val list: Parser[L] = {
       // A 'tight' list is a sequence of tight list items not followed by loose content.
-      val tightList = itemTight.+ <~ ?!(interBlock ~ (indent | itemLoose)) ^* { rawItems =>
+      val tightList = itemTight.+ <~ ?!(interBlock_? ~ (indent | itemLoose)) ^* { rawItems =>
         val items = rawItems map { case (m, extents) => (m, parseExtents(blockInlines_?, extents)) }
         mkTight(items)
       }
 
-      val looseList = repSep(1, itemLoose, interBlock) ^* { p =>
+      val looseList = repSep(1, itemLoose, interBlock_?) ^* { p =>
         val items = p collect { case Left((m, extents)) => (m, parseExtents(blocks, extents)) }
         mkLoose(items)
       }
@@ -199,7 +199,7 @@ trait Grammar extends Parsers {
     protected lazy val itemInitialBlock = markedLine ~ unmarkedLine.* ^~ { (m, a, b) => (m, a +: b) }
     // A subsequent block of a list item, indented and not starting with a list marker.
     // The indent is consumed by noMarkerLine.
-    protected lazy val itemSubsequentBlock = interBlock ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
+    protected lazy val itemSubsequentBlock = interBlock_? ~ ?=(indent) ~ unmarkedLine.+ ^~ { (a, _, b) => a +: b }
 
     /** A 'tight' list item is a list item which contains only a single block. */
     lazy val itemTight = itemInitialBlock
@@ -213,7 +213,7 @@ trait Grammar extends Parsers {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
     val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parseExtents(&(blocks), init +: subs) }
 
-    repSep(1, blockquoteBlock, interBlock) ^* { p => dom.Blockquote(p.collect({ case Left(b) => b }).flatten) }
+    repSep(1, blockquoteBlock, interBlock_?) ^* { p => dom.Blockquote(p.collect({ case Left(b) => b }).flatten) }
   }
 
   lazy val heading: Parser[dom.Heading] =
