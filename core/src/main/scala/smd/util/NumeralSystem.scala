@@ -52,7 +52,7 @@ object NumeralSystem {
   }
 
   /** [[smd.util.NumeralSystem]] implementation for lowercase roman numerals. */
-  object Roman extends NumeralSystem with Parsers {
+  object Roman extends NumeralSystem {
     val minValue: Int = 1
     val maxValue: Int = 3999
 
@@ -81,26 +81,26 @@ object NumeralSystem {
     }
 
     def decode(s: CharSequence, start: Int, end: Int): Option[Int] =
-      grammar.parse(s.subSequenceProxy(start, end)).productOption
+      Grammar.numeral.parse(s.subSequenceProxy(start, end)).productOption
 
-    protected val grammar = {
-      val m = ("m" | "M") ^^^ 1000
-      val d = ("d" | "D") ^^^  500
-      val c = ("c" | "C") ^^^  100
-      val l = ("l" | "L") ^^^   50
-      val x = ("x" | "X") ^^^   10
-      val v = ("v" | "V") ^^^    5
-      val i = ("i" | "I") ^^^    1
+    protected object Grammar extends Parsers {
+      lazy val numeral = decade(∅, ∅, m) ~ decade(m, d, c) ~ decade(c, l, x) ~ decade(x, v, i) <~ EOF ^~ { (a, b, c, d) => a + b + c + d }
 
       def decade(decem: Parser[Int], quintum: Parser[Int], unit: Parser[Int]): Parser[Int] = (
-        unit ~ decem          ^~  { (u, d)  => d - u       }
-      | unit ~ quintum        ^~  { (u, q)  => q - u       }
-      | quintum ~ unit.*(0,3) ^~  { (q, us) => q + us.sum  }
-      | unit.*(1,3)           ^*  { (us)    => us.sum      }
-      | ε                     ^^^ 0
+          unit ~ decem          ^~  { (u, d)  => d - u       }
+        | unit ~ quintum        ^~  { (u, q)  => q - u       }
+        | quintum ~ unit.*(0,3) ^~  { (q, us) => q + us.sum  }
+        | unit.*(1,3)           ^*  { (us)    => us.sum      }
+        | ε                     ^^^ 0
       )
 
-      decade(∅, ∅, m) ~ decade(m, d, c) ~ decade(c, l, x) ~ decade(x, v, i) <~ EOF ^~ { (a, b, c, d) => a + b + c + d }
+      def m = ("m" | "M") ^^^ 1000
+      def d = ("d" | "D") ^^^  500
+      def c = ("c" | "C") ^^^  100
+      def l = ("l" | "L") ^^^   50
+      def x = ("x" | "X") ^^^   10
+      def v = ("v" | "V") ^^^    5
+      def i = ("i" | "I") ^^^    1
     }
   }
 }
