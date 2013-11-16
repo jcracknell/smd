@@ -44,7 +44,22 @@ class LeftHandSideExpressionProductionsSpec extends ParsingScenarios {
         body = Identifier("a"),
         member = "b"
       ),
-      args = Seq(StringLiteral("c"))
+      args = Seq(Argument(None, StringLiteral("c")))
     )
+  )
+
+  parsing("@some(foo = bar)") as leftHandSideExpression should produce (
+    Call(Identifier("some"), Seq("foo" -> IriLiteral("bar")))
+  )
+
+  parsing("@some(foo=bar)") as leftHandSideExpression should produce (
+    Call(Identifier("some"), Seq("foo" -> IriLiteral("bar")))
+  )
+
+  parsing("""@code(lang=scala, ```def foo(): String = { "bar" }```)""") as leftHandSideExpression should produce (
+    Call(Identifier("code"), Seq(
+      "lang" -> IriLiteral("scala"),
+      VerbatimLiteral("""def foo(): String = { "bar" }""")
+    ))
   )
 }

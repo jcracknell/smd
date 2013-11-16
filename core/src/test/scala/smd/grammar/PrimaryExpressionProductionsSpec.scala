@@ -28,7 +28,7 @@ class PrimaryExpressionProductionsSpec extends ParsingScenarios {
 
   parsing("{}") as primaryExpression should produce (ObjectLiteral())
 
-  parsing("{'a':42}") as primaryExpression should produce (ObjectLiteral("a" -> NumericLiteral(42d)))
+  parsing("{'a'=42}") as primaryExpression should produce (ObjectLiteral("a" -> NumericLiteral(42d)))
 
   parsing("(@a || true)") as primaryExpression should produce ( LogicalOr(Identifier("a"), BooleanLiteral(true)))
 }

@@ -1,7 +1,7 @@
 package smd
 package dom
 
-import scala.language.higherKinds
+import scala.language.{higherKinds, implicitConversions}
 import smd.util.NumeralSystem
 
 case class Document(content: Seq[Block])
@@ -122,7 +122,7 @@ case class Paragraph(children: Seq[Inline]) extends Block with Composite[Inline]
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Reference(ref: ReferenceId, args: Seq[Expression]) extends Block {
+case class Reference(ref: ReferenceId, args: Seq[Argument]) extends Block {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -320,7 +320,7 @@ case class Emphasis(children: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Link(children: Seq[Inline], ref: Option[ReferenceId], args: Seq[Expression]) extends Span {
+case class Link(children: Seq[Inline], ref: Option[ReferenceId], args: Seq[Argument]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -404,7 +404,6 @@ case class IriLiteral(value: String) extends StringLikeLiteral {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-
 //endregion
 
 case class Addition(lhs: Expression, rhs: Expression) extends Expression with Binary {
@@ -427,7 +426,7 @@ case class BitwiseXOr(lhs: Expression, rhs: Expression) extends Expression with 
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Call(body: Expression, args: Seq[Expression]) extends Expression {
+case class Call(body: Expression, args: Seq[Argument]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -530,5 +529,20 @@ case class Subtraction(lhs: Expression, rhs: Expression) extends Expression with
 case class UnsignedRightShift(lhs: Expression, rhs: Expression) extends Expression with Binary {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
+
+//region Misc
+
+case class Argument(name: Option[String], value: Expression) {
+  def isNamed: Boolean = name.isDefined
+}
+
+object Argument {
+  implicit def fromTuple(t: (String, Expression)): Argument = t match { case (n, v) => named(n, v) }
+  implicit def fromExpression(e: Expression): Argument = unnamed(e)
+  def named(n: String, v: Expression): Argument = Argument(Some(n), v)
+  def unnamed(v: Expression): Argument = Argument(None, v)
+}
+
+//endregion
 
 //endregion
