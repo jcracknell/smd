@@ -45,6 +45,7 @@ object Expression {
     def visit(node: BitwiseOr): A
     def visit(node: BitwiseXOr): A
     def visit(node: Call): A
+    def visit(node: Conditional): A
     def visit(node: Division): A
     def visit(node: DynamicProperty): A
     def visit(node: Elided): A
@@ -427,6 +428,10 @@ case class BitwiseXOr(lhs: Expression, rhs: Expression) extends Expression with 
 }
 
 case class Call(body: Expression, args: Seq[Expression]) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Conditional(cond: Expression, thenExpr: Expression, elseExpr: Option[Expression] = None) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 

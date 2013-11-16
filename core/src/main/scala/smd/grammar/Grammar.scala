@@ -314,6 +314,19 @@ trait Grammar extends Parsers {
 
   def expr: Parser[Expression] = logicalOrExpression
 
+  lazy val conditionalExpression = {
+    val `if`   = rule {                          "if"   ~ ?!(identifierExpressionPart) ~ expressionWhitespace_? }
+    val `then` = rule { expressionWhitespace_? ~ "then" ~ ?!(identifierExpressionPart) ~ expressionWhitespace_? }
+    val `else` = rule { expressionWhitespace_? ~ "else" ~ ?!(identifierExpressionPart) ~ expressionWhitespace_? }
+
+    val cond = rule(
+      parenthesizedExpression <~ (`then` | expressionWhitespace_?)
+    | &(expr)                 <~ `then`
+    )
+
+    `if` ~> cond ~ &(expr) ~ (`else` ~> &(expr)).? ^~ { (c, t, e) => dom.Conditional(c, t, e) }
+  }
+
   lazy val logicalOrExpression = binOp(logicalAndExpression,  "||" ~ ?!("=")       ^^^ dom.LogicalOr)
 
   lazy val logicalAndExpression = binOp(bitwiseOrExpression,  "&&" ~ ?!("=")       ^^^ dom.LogicalAnd)
@@ -392,8 +405,10 @@ trait Grammar extends Parsers {
     literalExpression
   | arrayLiteralExpression
   | objectLiteralExpression
-  | "(" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ ")"
+  | parenthesizedExpression
   )
+
+  protected lazy val parenthesizedExpression =  "(" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ ")"
 
   lazy val arrayLiteralExpression: Parser[dom.ArrayLiteral] = {
     /** A non-elided array element preceded by any number of elided elements. */
@@ -658,7 +673,7 @@ trait Grammar extends Parsers {
                        "break", "case", "catch", "class", "const", "continue", "debugger",
                        "default", "delete", "do", "else", "enum", "export", "extends",
                        "false", "finally", "for", "function", "if", "import", "instanceof",
-                       "in", "new", "null", "return", "super", "switch", "this", "throw",
+                       "in", "new", "null", "return", "super", "switch", "then", "this", "throw",
                        "true", "try", "typeof", "var", "void", "while", "with"
                      )
 
