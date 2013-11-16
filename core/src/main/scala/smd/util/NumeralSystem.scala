@@ -59,7 +59,7 @@ object NumeralSystem {
     def encode(i: Int): Option[String] = Option.when(minValue <= i && i <= maxValue) {
       val sb = new StringBuilder(15)
 
-      @inline def encodeDecade(v: Int, d: Char, q: Char, u: Char): Unit =
+      @inline def encodeDecade(v: Int, d: Char, q: Char, u: Char): StringBuilder =
         (v: @switch @unchecked) match {
           case 0 => sb
           case 1 => sb + u
