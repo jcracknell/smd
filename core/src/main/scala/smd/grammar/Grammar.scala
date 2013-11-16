@@ -725,12 +725,12 @@ trait Grammar extends Parsers {
   /** Up to three space characters. */
   protected lazy val nonIndentSpace_? = " ".*(0,3)
 
-  protected lazy val hexDigit =          CodePoint.Values(('0' to '9') ++ ('a' to 'f') ++ ('A' to 'F'))
-  protected lazy val digit =             CodePoint.Values('0' to '9')
-  protected lazy val nonZeroDigit =      CodePoint.Values('1' to '9')
+  protected lazy val hexDigit =          (CodePoint.Values(('0' to '9') ++ ('a' to 'f') ++ ('A' to 'F'))).p
+  protected lazy val digit =             CodePoint.Values('0' to '9').p
+  protected lazy val nonZeroDigit =      CodePoint.Values('1' to '9').p
   protected lazy val englishAlpha =      englishLowerAlpha | englishUpperAlpha
-  protected lazy val englishLowerAlpha = CodePoint.Range('a', 'z')
-  protected lazy val englishUpperAlpha = CodePoint.Range('A', 'Z')
+  protected lazy val englishLowerAlpha = CodePoint.Range('a', 'z').p
+  protected lazy val englishUpperAlpha = CodePoint.Range('A', 'Z').p
 
   /** A space character or newline sequence. */
   protected lazy val whitespace = spaceChar | newLine
@@ -739,11 +739,11 @@ trait Grammar extends Parsers {
   protected lazy val newLine =    "\r\n" | CodePoint.Values(newLineCharValues)
   protected lazy val newLineCharValues = Set('\n', '\r', '\u2028', '\u2029')
   protected lazy val spaceChars_? = spaceChar.*
-  protected lazy val spaceChar =  CodePoint.Values(' ', '\t')
+  protected lazy val spaceChar =  CodePoint.Values(' ', '\t').p
   protected lazy val spaceCharValues = Set(' ', '\t')
 
   /** Any single unicode grapheme. */
-  protected lazy val unicodeCharacter = Grapheme.Any
+  protected lazy val unicodeCharacter = Grapheme.Any.p
 
   //endregion
 }
