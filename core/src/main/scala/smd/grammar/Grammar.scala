@@ -312,7 +312,10 @@ trait Grammar extends Parsers {
 
   //region Expressions
 
-  def expr: Parser[Expression] = logicalOrExpression
+  lazy val expr: Parser[Expression] = rule(
+    conditionalExpression
+  | logicalOrExpression
+  )
 
   lazy val conditionalExpression = {
     val `if`   = rule {                          "if"   ~ ?!(identifierExpressionPart) ~ expressionWhitespace_? }
