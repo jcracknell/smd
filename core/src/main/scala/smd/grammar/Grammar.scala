@@ -386,7 +386,8 @@ trait Grammar extends Parsers {
       }
     }
 
-  lazy val inlineExpression = ?=("@") ~> &(leftHandSideExpression) <~ ";".? ^* dom.InlineExpression
+  /* An inline expression starting with a twirl. */
+  lazy val inlineExpression = embeddableExpression ^* dom.InlineExpression
 
   lazy val symbol = CodePoint.Values(specialCharValues) ^* { p => dom.Symbol(p.charSequence.toString) }
 
@@ -419,12 +420,25 @@ trait Grammar extends Parsers {
     '[', ']',   // labels
     '<', '>',   // autolinks
     '|',        // table cell delimiter
-    '@'         // expression start
+    '@'         // twirl
   )
 
   //endregion
 
   //region Expressions
+
+  /* The 'twirl'; used to switch between markdown and expression mode. */
+  val twirl = "@".p
+
+  /** An expression which can be embedded in markdown following the twirl.
+    * The user is restricted to either a control structure, or a left-hand-side expression.
+    * This effectively prohibits the use of binar operators without explicitly adding parentheses
+    * to denote the start and end of the expression. */
+  lazy val embeddableExpression =
+    ?=(twirl) ~> ( twirl ~> conditionalExpression  // control structures
+                 |          leftHandSideExpression // first leaving the twirl for an identifier
+                 | twirl ~> leftHandSideExpression // now discarding the twirl
+                 )
 
   lazy val expr: Parser[Expression] = rule(
     conditionalExpression
@@ -502,7 +516,7 @@ trait Grammar extends Parsers {
     val staticProperty =  "." ~ expressionWhitespace_? ~> identifierName
     val dynamicProperty = "[" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ "]"
 
-    atExpression ~ (expressionWhitespace_? ~> (
+    primaryExpression ~ (expressionWhitespace_? ~> (
       // Build a sequence of functions which will construct the appropriate expr when provided a body
       argumentList    ^* { args => (b: Expression) => dom.Call(b, args) }
     | staticProperty  ^* { prop => (b: Expression) => dom.StaticProperty(b, prop) }
@@ -520,12 +534,10 @@ trait Grammar extends Parsers {
     "(" ~ expressionWhitespace_? ~> arguments <~ expressionWhitespace_? ~ ")" ^* { _.collect { case Left((n, v)) => dom.Argument(n, v) } }
   }
 
-  lazy val atExpression: Parser[Expression] = atExpressionRequired | primaryExpression
-  lazy val atExpressionRequired: Parser[Expression] = "@" ~ (identifierExpression | primaryExpression) ^*(_._2)
-
-  /** A literal, array literal, or object literal dom. */
+  /** An identifier, literal, array, object, or parenthesized expression. */
   lazy val primaryExpression: Parser[Expression] = (
-    literalExpression
+    identifierExpression
+  | literalExpression
   | arrayLiteralExpression
   | objectLiteralExpression
   | parenthesizedExpression
@@ -568,7 +580,7 @@ trait Grammar extends Parsers {
 
   // Identifiers
 
-  lazy val identifierExpression: Parser[dom.Identifier] = identifierName ^* dom.Identifier
+  lazy val identifierExpression: Parser[dom.Identifier] = twirl ~> identifierName ^* dom.Identifier
 
   protected lazy val identifierName: Parser[String] =
     // Not a keyword: not a keyword followed by something other than an identifier part
