@@ -275,6 +275,8 @@ object Span {
     def visit(node: Link): A
     def visit(node: Quoted): A
     def visit(node: Strong): A
+    def visit(node: Subscript): A
+    def visit(node: Superscript): A
   }
 }
 
@@ -337,6 +339,14 @@ object Quoted {
 }
 
 case class Strong(children: Seq[Inline]) extends Span {
+  def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Subscript(children: Seq[Inline]) extends Span {
+  def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Superscript(children: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 

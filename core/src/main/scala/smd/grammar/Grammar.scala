@@ -262,6 +262,8 @@ trait Grammar extends Parsers {
   | code
   | entity
   | inlineExpression
+  | superscript
+  | subscript
   | symbol
   )
 
@@ -280,6 +282,9 @@ trait Grammar extends Parsers {
   lazy val autoLink: Parser[dom.AutoLink] =
     // TODO: decoding? more forgiving?
     "<" ~ ?=(englishAlpha.+ ~ ":") ~> (iriLiteralExpression ^* { iri => dom.AutoLink(iri.value) }) <~ ">"
+
+  lazy val subscript   = "~" ~> (?!(whitespace | "~") ~> &(inline)).+ <~ "~" ^* dom.Subscript
+  lazy val superscript = "^" ~> (?!(whitespace | "^") ~> &(inline)).+ <~ "^" ^* dom.Superscript
 
   lazy val strong = "**" ~> (?!("**") ~> &(inline)).+ <~ "**" ^* dom.Strong
 
@@ -336,14 +341,15 @@ trait Grammar extends Parsers {
   )
 
   /** A normal character; not a special or whitespace character. */
-  protected lazy val normalChar = !Grapheme.SingleCodePoint(CodePoint.Values(specialCharValues ++ whitespaceCharValues))
+  protected lazy val normalChar = rule { !Grapheme.SingleCodePoint(CodePoint.Values(specialCharValues ++ whitespaceCharValues)) }
 
   /** A special character; a character which can denote the beginning of a structural element. */
-  protected lazy val specialChar = CodePoint.Values(specialCharValues)
+  protected lazy val specialChar = rule { CodePoint.Values(specialCharValues) }
 
   /** The set of special character values; characters which can denote the beginnig of a structural element. */
   protected lazy val specialCharValues = Set(
     '*',        // strong, emphasis
+    '~', '^',   // subscript, superscript
     '\'', '\"', // quotes
     '`',        // ticks
     '/',        // comments

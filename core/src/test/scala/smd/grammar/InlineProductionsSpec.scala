@@ -29,6 +29,9 @@ class InlineProductionsSpec extends ParsingScenarios {
     | // content required
     """) as inline should produce (LineBreak())
   }
+  describe("Entity") {
+    parsing("""\ """) as inline should produce (Entity(Seq(' '.toInt)))
+  }
   describe("Link") {
     parsing("[foo](baz)") as inline should produce (Link(Seq(Text("foo")), None, Seq(IriLiteral("baz"))))
     parsing("[foo][bar]") as inline should produce (Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq()))
@@ -53,6 +56,16 @@ class InlineProductionsSpec extends ParsingScenarios {
     parsing("**a**") as inline should produce (Strong(Seq(Text("a"))))
     parsing("***a***") as inline should produce (Strong(Seq(Emphasis(Seq(Text("a"))))))
     parsing("***a*b**") as inline should produce (Strong(Seq(Emphasis(Seq(Text("a"))), Text("b"))))
+  }
+  describe("Subscript") {
+    parsing("""~1~""") as inline should produce (Subscript(Seq(Text("1"))))
+    parsing("""~1 2~""") as inline should produce (Symbol("~"))
+    parsing("""~1\ 2~""") as inline should produce (Subscript(Seq(Text("1"), Entity(Seq(' '.toInt)), Text("2"))))
+  }
+  describe("Superscript") {
+    parsing("""^1^""") as inline should produce (Superscript(Seq(Text("1"))))
+    parsing("""^1 2^""") as inline should produce (Symbol("^"))
+    parsing("""^1\ 2^""") as inline should produce (Superscript(Seq(Text("1"), Entity(Seq(' '.toInt)), Text("2"))))
   }
   describe("Text") {
     parsing("pelican") as inline should produce (Text("pelican"))
