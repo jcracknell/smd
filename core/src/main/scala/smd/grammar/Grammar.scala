@@ -432,12 +432,14 @@ trait Grammar extends Parsers {
 
   /** An expression which can be embedded in markdown following the twirl.
     * The user is restricted to either a control structure, or a left-hand-side expression.
-    * This effectively prohibits the use of binar operators without explicitly adding parentheses
-    * to denote the start and end of the expression. */
+    * This effectively prohibits the use of binary operators without explicitly adding parentheses
+    * to denote the start and end of the expression.
+    * A semicolon ''immediately'' following an expression is consumed to prevent the proliferation
+    * of misplaced semicolons resulting from programmers adding them out of habit. */
   lazy val embeddableExpression =
-    ?=(twirl) ~> ( twirl ~> conditionalExpression  // control structures
-                 |          leftHandSideExpression // first leaving the twirl for an identifier
-                 | twirl ~> leftHandSideExpression // now discarding the twirl
+    ?=(twirl) ~> ( twirl ~> conditionalExpression           // control structures
+                 |          leftHandSideExpression <~ ";".? // first leaving the twirl for an identifier
+                 | twirl ~> leftHandSideExpression <~ ";".? // now discarding the twirl
                  )
 
   lazy val expr: Parser[Expression] = rule(
