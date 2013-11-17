@@ -51,7 +51,8 @@ trait ParsingScenarios extends FunSpec {
         scenario.parser.parse(scenario.input) match {
           case Accepted.Producing(actualProduct) =>
             if(expectedProduct != actualProduct)
-              fail(s"expected: $expectedProduct\nactual: $actualProduct")
+              fail(s"""expected: $expectedProduct
+                      |actual:   $actualProduct""".trim.stripMargin)
           case _ =>
             fail("input was rejected")
         }
