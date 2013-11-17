@@ -35,6 +35,23 @@ class InlineProductionsSpec extends ParsingScenarios {
   describe("Entity") {
     parsing("""\ """) as inline should produce (Entity(Seq(' '.toInt)))
   }
+  describe("InlineExpression") {
+    parsing("""@1""") as inline should produce (InlineExpression(NumericLiteral(1d)))
+    parsing("""@-1""") as inline should produce (Symbol("@"))
+    parsing("""@(-1)""") as inline should produce (InlineExpression(Negative(NumericLiteral(1d))))
+    parsing("""@1 + 2""") as inline should produce (InlineExpression(NumericLiteral(1d)))
+    parsing("""@(1 + 2)""") as inline should produce (InlineExpression(Addition(NumericLiteral(1d), NumericLiteral(2d))))
+    parsing("""@if(true) 1 else 2""") as inline should produce (
+      InlineExpression(
+        Conditional(BooleanLiteral(true), NumericLiteral(1d), Some(NumericLiteral(2d)))
+      )
+    )
+    parsing("""@if(true) 1 elsie""") as inline should produce (
+      InlineExpression(
+        Conditional(BooleanLiteral(true), NumericLiteral(1d), None)
+      )
+    )
+  }
   describe("Link") {
     parsing("[foo](baz)") as inline should produce (Link(Seq(Text("foo")), None, Seq(IriLiteral("baz"))))
     parsing("[foo][bar]") as inline should produce (Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq()))
