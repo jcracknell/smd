@@ -374,13 +374,15 @@ trait Grammar extends Parsers {
     }
   }
 
-  /** Backtick-enclosed code not leaving a block. */
+  /** Backtick-enclosed code. */
   lazy val code =
     ?=("`") ~> |<< {
       for(n <- 1 to 16) yield {
         val ticks = new String(Array.fill(n)('`')).p
-        val content = ?!("`") ~ blockWhitespace.? ~ (?!(whitespace | ticks) ~ unicodeCharacter ~ blockWhitespace.?).+ ^^ { _.parsed }
-        ticks ~> content <~ ticks ^* { p => dom.Code(p.toString) }
+        val ticksStart = ticks ~ ?!("`") ~ " ".?
+        val ticksEnd   = " ".? ~ ticks
+        val content = (?!(ticksEnd | newLine) ~ unicodeCharacter).+ ^^ { _.parsed }
+        ticksStart ~> content <~ ticksEnd ^* { p => dom.Code(p.toString) }
       }
     }
 

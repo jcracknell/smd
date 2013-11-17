@@ -18,6 +18,9 @@ class InlineProductionsSpec extends ParsingScenarios {
     parsing("`a`") as inline should produce (Code("a"))
     parsing("````````````````a````````````````") as inline should produce (Code("a"))
     parsing("`//comment`") as inline should produce (Code("//comment"))
+    parsing("`` ` ``") as inline should produce (Code("`"))
+    parsing("` foo `") as inline should produce (Code("foo"))
+    parsing("`` `println()` ``") as inline should produce(Code("`println()`"))
   }
   describe("Emphasis") {
     parsing("*a*") as inline should produce (Emphasis(Seq(Text("a"))))
