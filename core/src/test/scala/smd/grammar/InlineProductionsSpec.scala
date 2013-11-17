@@ -23,6 +23,12 @@ class InlineProductionsSpec extends ParsingScenarios {
     parsing("*a*") as inline should produce (Emphasis(Seq(Text("a"))))
     parsing("***a**b*") as inline should produce (Emphasis(Seq(Strong(Seq(Text("a"))), Text("b"))))
   }
+  describe("LineBreak") {
+    parsing("""
+    |  \
+    | // content required
+    """) as inline should produce (LineBreak())
+  }
   describe("Link") {
     parsing("[foo](baz)") as inline should produce (Link(Seq(Text("foo")), None, Seq(IriLiteral("baz"))))
     parsing("[foo][bar]") as inline should produce (Link(Seq(Text("foo")), Some(ReferenceId("bar")), Seq()))

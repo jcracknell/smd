@@ -252,6 +252,7 @@ trait Grammar extends Parsers {
 
   lazy val inline: Parser[Inline] = (
     text
+  | lineBreak
   | space
   | strong
   | emphasis
@@ -259,7 +260,6 @@ trait Grammar extends Parsers {
   | link
   | autoLink
   | code
-  | lineBreak
   | entity
   | inlineExpression
   | symbol
