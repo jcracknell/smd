@@ -26,6 +26,7 @@ trait Grammar extends Parsers {
   | orderedList
   | reference
   | definitionList
+  | table
   | paragraph
   )
 
@@ -208,6 +209,65 @@ trait Grammar extends Parsers {
   }
 
   //endregion
+
+  lazy val table = {
+    val ` || ` = spaceChars_? ~> "|".p.+                      <~ spaceChars_? ^* { _.length }
+    val ` |+ ` = spaceChars_? ~> CodePoint.Values('|', '+').+ <~ spaceChars_? ^* { _.length }
+
+    // We define rules to consume empty cells consisting only of comments and whitespace at
+    // the start and end of a row
+    val rowStart = rule { (spaceChars_? ~ multiLineComment).* }
+    val rowEnd   = commentLine
+
+    val  |> = rule { rowStart ~> ` || `                                       }
+    val <|> = rule {             ` || `   <~ ?!(rowEnd)                       }
+    val <|  = rule {             ` || `.? <~    rowEnd  ^* { _.getOrElse(1) } }
+    val  +> = rule { rowStart ~> ` |+ `                                       }
+    val <+> = rule {             ` |+ `   <~ ?!(rowEnd)                       }
+    val <+  = rule {             ` |+ `.? <~    rowEnd  ^* { _.getOrElse(1) } }
+
+    val align = {
+      val `--` = CodePoint.Values('-', '=').+
+      val `:`  = ":".p
+
+      ( `:`   ~ `--` ~ `:`  ^^^ dom.Table.CellAlignment.Center
+      |         `--` ~ `:`  ^^^ dom.Table.CellAlignment.Right
+      | `:`.? ~ `--`        ^^^ dom.Table.CellAlignment.Left
+      )
+    }
+
+    val cellContent = (?!(` || ` | rowEnd) ~ blockAtom).* ^^ { _.parsed }
+
+    val alignRow = +> ~> (align       ~  <+>).* ~ align       ~ <+ ^~ { (as, fa, fs) => as :+ (fa, fs) }
+    val row      = |> ~> (cellContent ~  <|>).* ~ cellContent ~ <| ^~ { (cs, fc, fs) => cs :+ (fc, fs) }
+
+    val commentRows_? = (
+      (spaceChars_? ~ multiLineComment).+ ~ (blankLine | singleLineComment)
+    | spaceChars_? ~ singleLineComment
+    ).*
+
+    val headRows = repSepS(1, commentRows_?, ?!(alignRow) ~> row)
+    val bodyRows = repSepS(1, commentRows_?,                 row)
+
+    def mkRows(rows: Seq[Seq[(CharSequence, Int)]], alignments: List[dom.Table.CellAlignment]) =
+      rows map { row =>
+        val cells =  (row.toList, alignments) unfoldRight {
+          case ((c, span) :: cs, as) =>
+            val alignment = as.headOption.getOrElse(dom.Table.CellAlignment.Left)
+            val cell = dom.Table.Cell(alignment, span, parseExtents(blockInlines_?, Seq(c)))
+            // Emit the cell, dropping alignments equal to the number of spanned cells
+            Some((cell, (cs, as.drop(span))))
+          case _ => None
+        }
+        dom.Table.Row(cells.toList: _*)
+      }
+
+    headRows ~ alignRow ~ bodyRows ^~ { (hd, al, bd) =>
+      // Expand the alignments by the cells spanned by each alignment
+      val alignments = al.flatMap({ case (a, n) => List.fill(n)(a) }).toList
+      dom.Table(head = mkRows(hd, alignments), body = mkRows(bd, alignments))
+    }
+  }
 
   lazy val blockquote: Parser[dom.Blockquote] = {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
@@ -750,13 +810,15 @@ trait Grammar extends Parsers {
     "\\" ~> (characterEscape | numericEscape | namedEscape | literalEscape)
   }
 
-  /** A single or multi-line comment. */
-  lazy val comment = {
-    val multiLineComment =  "/*" ~ (?!("*/") ~ unicodeCharacter).* ~ "*/"
-    val singleLineComment = "//" ~ line_?
+  /** Matches any number of comments and space characters until a newline or single line comment is encountered. */
+  lazy val commentLine = rule { (spaceChars_? ~ multiLineComment).* ~ (blankLine | singleLineComment) }
 
-    singleLineComment | multiLineComment
-  }
+  /** A C-style single or multi-line comment. */
+  lazy val comment = rule { singleLineComment | multiLineComment }
+  /** A C-style multi-line comment. */
+  protected lazy val multiLineComment  = rule { "/*" ~ (?!("*/") ~ unicodeCharacter).* ~ "*/" }
+  /** A C-style single-line comment. */
+  protected lazy val singleLineComment = rule { "//" ~ line_? }
 
   protected lazy val commentStart = "//" | "/*"
 
@@ -788,7 +850,9 @@ trait Grammar extends Parsers {
   /** A valid newline sequence. */
   protected lazy val newLine =    "\r\n" | CodePoint.Values(newLineCharValues)
   protected lazy val newLineCharValues = Set('\n', '\r', '\u2028', '\u2029')
+  /** Zero or more spaces or tabs. */
   protected lazy val spaceChars_? = spaceChar.*
+  /** A space or a tab. */
   protected lazy val spaceChar =  CodePoint.Values(' ', '\t').p
   protected lazy val spaceCharValues = Set(' ', '\t')
 

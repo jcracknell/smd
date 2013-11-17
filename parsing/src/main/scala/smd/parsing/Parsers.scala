@@ -76,6 +76,12 @@ trait Parsers extends ImplicitParserOps {
       }
   }
 
+  protected def repSepR[R](n: Int, rep: Parser[R], sep: Parser[Any]): Parser[Seq[R]] =
+    repSep(n, rep, sep) ^* { _ collect { case Left(r) => r } }
+
+  protected def repSepS[S](n: Int, rep: Parser[Any], sep: Parser[S]): Parser[Seq[S]] =
+    repSep(n, rep, sep) ^* { _ collect { case Right(s) => s } }
+
   /** For now the primary purpose of this function is to 'seal' the provided parser. */
   protected def rule[A](p: Parser[A]): Parser[A] = p
 

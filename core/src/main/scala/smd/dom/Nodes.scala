@@ -88,6 +88,7 @@ object Block {
     def visit(node: DefinitionList.Tight): A
     def visit(node: OrderedList.Loose): A
     def visit(node: OrderedList.Tight): A
+    def visit(node: Table): A
     def visit(node: UnorderedList.Loose): A
     def visit(node: UnorderedList.Tight): A
   }
@@ -124,6 +125,22 @@ case class Paragraph(children: Seq[Inline]) extends Block with Composite[Inline]
 
 case class Reference(ref: ReferenceId, args: Seq[Argument]) extends Block {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Table(head: Seq[Table.Row], body: Seq[Table.Row]) extends Block {
+  def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+}
+
+object Table {
+  case class Row(cells: Cell*)
+  case class Cell(alignment: CellAlignment, span: Int, children: Seq[Inline]) extends Composite[Inline]
+
+  sealed abstract class CellAlignment
+  object CellAlignment {
+    case object Left   extends CellAlignment
+    case object Right  extends CellAlignment
+    case object Center extends CellAlignment
+  }
 }
 
 sealed abstract class List extends Block {
