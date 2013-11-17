@@ -499,7 +499,7 @@ trait Grammar extends Parsers {
   )
 
   lazy val leftHandSideExpression: Parser[Expression] = {
-    val staticProperty =  "." ~ expressionWhitespace_? ~> identifier
+    val staticProperty =  "." ~ expressionWhitespace_? ~> identifierName
     val dynamicProperty = "[" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ "]"
 
     atExpression ~ (expressionWhitespace_? ~> (
@@ -563,17 +563,18 @@ trait Grammar extends Parsers {
     stringLiteralExpression   ^* { _.value          }
   | verbatimLiteralExpression ^* { _.value          }
   | numericLiteralExpression  ^* { _.value.toString }
-  | identifier
+  | identifierName
   )
 
   // Identifiers
 
-  lazy val identifierExpression: Parser[dom.Identifier] = identifier ^* dom.Identifier
+  lazy val identifierExpression: Parser[dom.Identifier] = identifierName ^* dom.Identifier
 
-  protected lazy val identifier: Parser[String] =
+  protected lazy val identifierName: Parser[String] =
     // Not a keyword: not a keyword followed by something other than an identifier part
-    ?!(keyword ~ ?!(identifierExpressionPart)) ~>
-    identifierExpressionStart ~ identifierExpressionPart.* ^* { case (s, ps) => (new StringBuilder(s) /: ps.flatten) { (sb, p) => sb.append(p) }.toString }
+    ?!(keyword ~ ?!(identifierExpressionPart)) ~> identifierExpressionStart ~ identifierExpressionPart.* ^* {
+      case (s, ps) => (new StringBuilder(s) /: ps.flatten) { (sb, p) => sb.append(p) }.toString
+    }
 
   /** A valid non-initial portion of an identifier. */
   protected lazy val identifierExpressionPart: Parser[String] = identPartCriteria ^* (_.charSequence.toString) | identPartEscape
