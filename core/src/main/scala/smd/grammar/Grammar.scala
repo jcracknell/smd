@@ -300,7 +300,7 @@ trait Grammar extends Parsers {
     | link
     | autoLink
     | code
-    | inlineExpression
+    | embeddableExpression
     )
 
     ?=(specialChar) ~ modal | unicodeCharacter
