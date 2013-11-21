@@ -35,16 +35,16 @@ trait Grammar extends Parsers {
 
   lazy val reference: Parser[dom.Reference] = {
     // Divergence from spec: we accept any number of spaces, as we do not support indented code blocks
-    val ref = spaceChars_? ~> referenceId <~ ":" ~ blockWhitespaceOrComments
+    val ref = spaceChars_? ~> referenceId <~ ":" ~ blockWhitespace
 
     // A block argument list does not need to be parenthesized, but must obey block delimiting whitespace rules
     val blockArgumentList = {
-      val argument = (propertyName <~ blockWhitespaceOrComments.? ~ "=" ~ blockWhitespaceOrComments.?).? ~ leftHandSideExpression
-      val separator = blockWhitespaceOrComments.? ~ "," ~ blockWhitespaceOrComments.?
+      val argument = (propertyName <~ blockWhitespace.? ~ "=" ~ blockWhitespace.?).? ~ leftHandSideExpression
+      val separator = blockWhitespace.? ~ "," ~ blockWhitespace.?
       repSep(1, argument, separator) ^* { _.collect { case Left((n, v)) => dom.Argument(n, v) } }
     }
 
-    ref ~ (blockArgumentList | argumentList) <~ blockWhitespaceOrComments.? ~ blankLine ^~ {
+    ref ~ (blockArgumentList | argumentList) <~ blockWhitespace.? ~ blankLine ^~ {
       (r, as) => dom.Reference(r, as)
     }
   }
@@ -283,10 +283,10 @@ trait Grammar extends Parsers {
     blockInlines ^* dom.Paragraph
 
   lazy val blockInlines: Parser[Seq[Inline]] =
-    blockWhitespaceOrComments.? ~> (inline.+ <~ blockWhitespaceOrComments.?).+ ^*(_.flatten)
+    blockWhitespace.? ~> (inline.+ <~ blockWhitespace.?).+ ^*(_.flatten)
 
   lazy val blockInlines_? : Parser[Seq[Inline]] =
-    blockWhitespaceOrComments.? ~> (inline.+ <~ blockWhitespaceOrComments.?).* ^*(_.flatten)
+    blockWhitespace.? ~> (inline.+ <~ blockWhitespace.?).* ^*(_.flatten)
 
   lazy val blockLine = ?!(blankLine) ~> blockLine_?
 
@@ -351,7 +351,7 @@ trait Grammar extends Parsers {
   lazy val emphasis = "*" ~> (?!("*") ~> &(inline) | &(strong)).+ <~ "*" ^* dom.Emphasis
 
   lazy val lineBreak =
-    blockWhitespaceOrComments ~ "\\" ~ ?=(blankLine) ~ blockWhitespaceOrComments ^^^ dom.LineBreak()
+    blockWhitespace ~ "\\" ~ ?=(blankLine) ~ blockWhitespace ^^^ dom.LineBreak()
 
   lazy val text: Parser[dom.Text] = {
     val apos = "'" ~ Grapheme.Category(UnicodeCategory.Groups.Letter ++ UnicodeCategory.Groups.Number)
@@ -360,7 +360,7 @@ trait Grammar extends Parsers {
   }
 
   /** Any non-empty combination of comments and whitespace not leaving or at the end of a block. */
-  lazy val space = blockWhitespaceOrComments ~ ?!(blankLine) ^^^ dom.Space()
+  lazy val space = blockWhitespace ~ ?!(blankLine) ^^^ dom.Space()
 
   lazy val entity = escape ^* dom.Entity
 
@@ -392,16 +392,17 @@ trait Grammar extends Parsers {
   lazy val symbol = CodePoint.Values(specialCharValues) ^* { p => dom.Symbol(p.charSequence.toString) }
 
   /** Any non-empty combination of comments and whitespace not consuming a blank line. */
-  protected lazy val blockWhitespaceOrComments = (
-    blockWhitespace ~ (comment ~ blockWhitespace.?).*
-  | (comment ~ blockWhitespace.?).+
-  )
+  protected lazy val blockWhitespace = {
+    // Any non-empty amount of whitespace not consuming a blank line
+    val ws = ( spaceChar.+ ~ (newLine ~ spaceChars_? ~ ?!(blankLine)).?
+             | newLine ~ spaceChars_? ~ ?!(blankLine)
+             )
 
-  /** Any non-empty amount of whitespace not consuming a blank line. */
-  protected lazy val blockWhitespace = (
-    spaceChar.+ ~ (newLine ~ spaceChars_? ~ ?!(blankLine)).?
-  | newLine ~ spaceChars_? ~ ?!(blankLine)
-  )
+    ( ws ~ (comment ~ ws.?).*
+    | (comment ~ ws.?).+
+    )
+  }
+
 
   /** A normal character; not a special or whitespace character. */
   protected lazy val normalChar = rule { !Grapheme.SingleCodePoint(CodePoint.Values(specialCharValues ++ whitespaceCharValues)) }
