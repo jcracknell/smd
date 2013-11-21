@@ -37,14 +37,7 @@ trait Grammar extends Parsers {
     // Divergence from spec: we accept any number of spaces, as we do not support indented code blocks
     val ref = spaceChars_? ~> referenceId <~ ":" ~ sp
 
-    // A block argument list does not need to be parenthesized, but must obey block delimiting whitespace rules
-    val blockArgumentList = {
-      val argument = (propertyName <~ sp.? ~ "=" ~ sp.?).? ~ leftHandSideExpression
-      val separator = sp.? ~ "," ~ sp.?
-      repSep(1, argument, separator) ^* { _.collect { case Left((n, v)) => dom.Argument(n, v) } }
-    }
-
-    ref ~ (blockArgumentList | argumentList) <~ sp.? ~ blankLine ^~ {
+    ref ~ (parenthesizedArgumentList | argumentList) <~ sp.? ~ blankLine ^~ {
       (r, as) => dom.Reference(r, as)
     }
   }
@@ -331,7 +324,7 @@ trait Grammar extends Parsers {
   lazy val link: Parser[dom.Link] = {
     val label = "[" ~> (?!("]") ~> &(inline)).* <~ "]"
 
-    label ~ referenceId.? ~ argumentList.? ^~ { (lbl, ref, args) => dom.Link(lbl, ref, args.getOrElse(Seq())) }
+    label ~ referenceId.? ~ parenthesizedArgumentList.? ^~ { (lbl, ref, args) => dom.Link(lbl, ref, args.getOrElse(Seq())) }
   }
 
   /** A reference id enclosed in square brackets. */
@@ -521,20 +514,21 @@ trait Grammar extends Parsers {
 
     primaryExpression ~ (sp.? ~> (
       // Build a sequence of functions which will construct the appropriate expr when provided a body
-      argumentList    ^* { args => (b: Expression) => dom.Call(b, args) }
-    | staticProperty  ^* { prop => (b: Expression) => dom.StaticProperty(b, prop) }
-    | dynamicProperty ^* { prop => (b: Expression) => dom.DynamicProperty(b, prop) }
+      parenthesizedArgumentList ^* { args => (b: Expression) => dom.Call(b, args) }
+    | staticProperty            ^* { prop => (b: Expression) => dom.StaticProperty(b, prop) }
+    | dynamicProperty           ^* { prop => (b: Expression) => dom.DynamicProperty(b, prop) }
     )).* ^* { case (body, builders) =>
       (body /: builders) { (x, bld) => bld(x) }
     }
   }
 
+  /** A parenthesized list of 0 or more arguments. */
+  protected lazy val parenthesizedArgumentList = "(" ~ sp.? ~> argumentList.? <~ sp.? ~ ")" ^* { _.getOrElse(Seq()) }
+
+  /** An unparenthesized list of 1 or more arguments. */
   protected lazy val argumentList = {
     val argument = (propertyName <~ sp.? ~ "=" ~ sp.?).? ~ &(expr)
-    val separator = sp.? ~ "," ~ sp.?
-    val arguments = repSep(0, argument, separator)
-
-    "(" ~ sp.? ~> arguments <~ sp.? ~ ")" ^* { _.collect { case Left((n, v)) => dom.Argument(n, v) } }
+    repSepR(1, argument, sp.? ~ "," ~ sp) ^* { _ map { case (n, v) => dom.Argument(n, v) } }
   }
 
   /** An identifier, literal, array, object, or parenthesized expression. */
