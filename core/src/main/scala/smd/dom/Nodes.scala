@@ -47,7 +47,6 @@ object Expression {
     def visit(node: Call): A
     def visit(node: Conditional): A
     def visit(node: Division): A
-    def visit(node: Elided): A
     def visit(node: Equals): A
     def visit(node: GreaterThan): A
     def visit(node: GreaterThanOrEqualTo): A
@@ -385,7 +384,7 @@ trait Binary { self: Expression =>
 
 //region Literals
 
-case class ArrayLiteral(elems: Seq[Expression]) extends Expression {
+case class ArrayLiteral(elems: Seq[Option[Expression]]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -461,10 +460,6 @@ case class Conditional(cond: Expression, thenExpr: Expression, elseExpr: Option[
 }
 
 case class Division(lhs: Expression, rhs: Expression) extends Expression with Binary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class Elided() extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 

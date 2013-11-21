@@ -9,20 +9,20 @@ class PrimaryExpressionProductionsSpec extends ParsingScenarios {
 
   parsing("[]") as primaryExpression should produce (ArrayLiteral(Seq()))
 
-  parsing("['a']") as primaryExpression should produce (ArrayLiteral(Seq(StringLiteral("a"))))
+  parsing("['a']") as primaryExpression should produce (ArrayLiteral(Seq(Some(StringLiteral("a")))))
 
-  parsing("['a',42]") as primaryExpression should produce (ArrayLiteral(Seq(StringLiteral("a"), NumericLiteral(42d))))
+  parsing("['a',42]") as primaryExpression should produce (ArrayLiteral(Seq(Some(StringLiteral("a")), Some(NumericLiteral(42d)))))
 
   parsing("[,]") as primaryExpression should produce (ArrayLiteral(Seq()))
 
-  parsing("[,'a']") as primaryExpression should produce (ArrayLiteral(Seq(Elided(), StringLiteral("a"))))
+  parsing("[,'a']") as primaryExpression should produce (ArrayLiteral(Seq(None, Some(StringLiteral("a")))))
 
   parsing("[,,'a','b',,,,]") as primaryExpression should produce (
     ArrayLiteral(Seq(
-      Elided(),
-      Elided(),
-      StringLiteral("a"),
-      StringLiteral("b")
+      None,
+      None,
+      Some(StringLiteral("a")),
+      Some(StringLiteral("b"))
     ))
   )
 

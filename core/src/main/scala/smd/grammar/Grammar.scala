@@ -545,18 +545,14 @@ trait Grammar extends Parsers {
     /** A non-elided array element preceded by any number of elided elements. */
     val separator = rule { sp.? ~ "," ~ sp.? }
     val subsequentArrayElement =
-      separator.+ ~ sp.? ~ &(expr) ^* { case (seps, _, e) => seps.tail.map(_ => dom.Elided()) :+ e }
+      separator.+ ~ &(expr) ^~ { (seps, e) => seps.tail.map(_ => None) :+ Some(e) }
 
-    val arrayElements = (
-      (
-        &(expr) ~ subsequentArrayElement.* ^* { case (e, ses) => e +: ses.flatten }
-      | subsequentArrayElement.+            ^* { p => dom.Elided() +: p.flatten } // initial element elided
-      ).?
-    <~ separator.*
-    ^*(_.getOrElse(Seq()))
-    )
+    val arrayElements = ( &(expr) ~ subsequentArrayElement.* <~ separator.* ^~  { (e, ses) => Some(e) +: ses.flatten }
+                        | subsequentArrayElement.+           <~ separator.* ^*  {      (p) => None +: p.flatten      }
+                        | separator.*                                       ^^^ {             Seq()                  }
+                        )
 
-    "[" ~ sp.? ~> arrayElements <~ sp.? ~ "]" ^* dom.ArrayLiteral
+    "[" ~ sp.? ~> arrayElements <~ sp.? ~ "]" ^* { es => dom.ArrayLiteral(es) }
   }
 
   lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] = {
