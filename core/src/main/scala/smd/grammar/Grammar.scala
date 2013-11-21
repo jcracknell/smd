@@ -780,12 +780,11 @@ trait Grammar extends Parsers {
   //endregion
 
   lazy val keyword = LiteralSetParser(
-                       "break", "case", "catch", "class", "const", "continue", "debugger",
-                       "default", "delete", "do", "else", "enum", "export", "extends",
-                       "false", "finally", "for", "function", "if", "import", "instanceof",
-                       "in", "new", "null", "return", "super", "switch", "then", "this", "throw",
-                       "true", "try", "typeof", "var", "void", "while", "with"
-                     )
+    "case", "catch", "class", "do", "else", "extends",
+    "false", "finally", "for", "if", "import", "new",
+    "null", "return", "super", "then", "this", "throw",
+    "true", "try", "val", "var", "while"
+  )
 
   //endregion
 
