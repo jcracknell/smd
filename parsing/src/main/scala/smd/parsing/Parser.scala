@@ -8,6 +8,10 @@ abstract class Parser[+A] { lhs =>
   def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
   def parse(inputParts: Seq[CharSequence]): ParsingResult[A] = parse(CompositeCharSequence.weighted(inputParts))
 
+  private lazy val opt = OptionalParser(this)
+  private lazy val rep0 = RepetitionParser(this, None, None)
+  private lazy val rep1 = RepetitionParser(this, Some(1), None)
+
   /** Apply a transformation to the result of the left-hand parser. */
   def ^^  [B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 
@@ -16,7 +20,7 @@ abstract class Parser[+A] { lhs =>
 
   def ^^^ [B](transform: => B): Parser[B] = this ^^ { r => transform }
 
-  def ? : OptionalParser[A] = OptionalParser(this)
+  def ? : OptionalParser[A] = opt
 
   def | [R <: Parser[_], C <: Parser[_]]
         (rhs: ParserMagnet[R])
@@ -34,14 +38,14 @@ abstract class Parser[+A] { lhs =>
   /** Parse two expressions in sequence, discarding the results of the right-hand expression. */
   def <~ [B](rhs: Parser[B]): Parser[A] = LeftParser(this, rhs)
 
-  def *                       = RepetitionParser(this, None,           None          )
+  def *                       = rep0
   def *   (occurs: Int)       = RepetitionParser(this, Some(occurs),   Some(occurs)  )
   def *   (min: Int, max:Int) = RepetitionParser(this, Some(min),      Some(max)     )
   def *>  (min: Int)          = RepetitionParser(this, Some(min + 1),  None          )
   def *>= (min: Int)          = RepetitionParser(this, Some(min),      None          )
   def *<  (max: Int)          = RepetitionParser(this, None,           Some(max - 1) )
   def *<= (max: Int)          = RepetitionParser(this, None,           Some(max)     )
-  def +                       = RepetitionParser(this, Some(1),        None          )
+  def +                       = rep1
 
   def ^? [B](f: PartialFunction[ParsingResult[A], B]): Parser[B] = new Parser[B] {
     def parse(context: ParsingContext): ParsingResult[B] = {
