@@ -797,9 +797,6 @@ trait Grammar extends Parsers {
                        "true", "try", "typeof", "var", "void", "while", "with"
                      )
 
-  /** Zero or more space characters or comments. */
-  lazy val expressionWhitespaceNoNewline_? = (spaceChar | comment).*
-
   /** Zero or more whitespace characters or comments. */
   lazy val expressionWhitespace_? = expressionWhitespace.?
   lazy val expressionWhitespace = (whitespace | comment).+
