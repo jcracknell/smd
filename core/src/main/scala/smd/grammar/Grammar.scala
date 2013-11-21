@@ -35,16 +35,16 @@ trait Grammar extends Parsers {
 
   lazy val reference: Parser[dom.Reference] = {
     // Divergence from spec: we accept any number of spaces, as we do not support indented code blocks
-    val ref = spaceChars_? ~> referenceId <~ ":" ~ blockWhitespace
+    val ref = spaceChars_? ~> referenceId <~ ":" ~ sp
 
     // A block argument list does not need to be parenthesized, but must obey block delimiting whitespace rules
     val blockArgumentList = {
-      val argument = (propertyName <~ blockWhitespace.? ~ "=" ~ blockWhitespace.?).? ~ leftHandSideExpression
-      val separator = blockWhitespace.? ~ "," ~ blockWhitespace.?
+      val argument = (propertyName <~ sp.? ~ "=" ~ sp.?).? ~ leftHandSideExpression
+      val separator = sp.? ~ "," ~ sp.?
       repSep(1, argument, separator) ^* { _.collect { case Left((n, v)) => dom.Argument(n, v) } }
     }
 
-    ref ~ (blockArgumentList | argumentList) <~ blockWhitespace.? ~ blankLine ^~ {
+    ref ~ (blockArgumentList | argumentList) <~ sp.? ~ blankLine ^~ {
       (r, as) => dom.Reference(r, as)
     }
   }
@@ -283,10 +283,10 @@ trait Grammar extends Parsers {
     blockInlines ^* dom.Paragraph
 
   lazy val blockInlines: Parser[Seq[Inline]] =
-    blockWhitespace.? ~> (inline.+ <~ blockWhitespace.?).+ ^*(_.flatten)
+    sp.? ~> (inline.+ <~ sp.?).+ ^*(_.flatten)
 
   lazy val blockInlines_? : Parser[Seq[Inline]] =
-    blockWhitespace.? ~> (inline.+ <~ blockWhitespace.?).* ^*(_.flatten)
+    sp.? ~> (inline.+ <~ sp.?).* ^*(_.flatten)
 
   lazy val blockLine = ?!(blankLine) ~> blockLine_?
 
@@ -343,15 +343,15 @@ trait Grammar extends Parsers {
     // TODO: decoding? more forgiving?
     "<" ~ ?=(englishAlpha.+ ~ ":") ~> (iriLiteralExpression ^* { iri => dom.AutoLink(iri.value) }) <~ ">"
 
-  lazy val subscript   = "~" ~> (?!(whitespace | "~") ~> &(inline)).+ <~ "~" ^* dom.Subscript
-  lazy val superscript = "^" ~> (?!(whitespace | "^") ~> &(inline)).+ <~ "^" ^* dom.Superscript
+  lazy val subscript   = "~" ~> (?!(whitespaceChar | "~") ~> &(inline)).+ <~ "~" ^* dom.Subscript
+  lazy val superscript = "^" ~> (?!(whitespaceChar | "^") ~> &(inline)).+ <~ "^" ^* dom.Superscript
 
   lazy val strong = "**" ~> (?!("**") ~> &(inline)).+ <~ "**" ^* dom.Strong
 
   lazy val emphasis = "*" ~> (?!("*") ~> &(inline) | &(strong)).+ <~ "*" ^* dom.Emphasis
 
   lazy val lineBreak =
-    blockWhitespace ~ "\\" ~ ?=(blankLine) ~ blockWhitespace ^^^ dom.LineBreak()
+    sp ~ "\\" ~ ?=(blankLine) ~ sp ^^^ dom.LineBreak()
 
   lazy val text: Parser[dom.Text] = {
     val apos = "'" ~ Grapheme.Category(UnicodeCategory.Groups.Letter ++ UnicodeCategory.Groups.Number)
@@ -360,7 +360,7 @@ trait Grammar extends Parsers {
   }
 
   /** Any non-empty combination of comments and whitespace not leaving or at the end of a block. */
-  lazy val space = blockWhitespace ~ ?!(blankLine) ^^^ dom.Space()
+  lazy val space = sp ~ ?!(blankLine) ^^^ dom.Space()
 
   lazy val entity = escape ^* dom.Entity
 
@@ -392,7 +392,7 @@ trait Grammar extends Parsers {
   lazy val symbol = CodePoint.Values(specialCharValues) ^* { p => dom.Symbol(p.charSequence.toString) }
 
   /** Any non-empty combination of comments and whitespace not consuming a blank line. */
-  protected lazy val blockWhitespace = {
+  protected lazy val sp = {
     // Any non-empty amount of whitespace not consuming a blank line
     val ws = ( spaceChar.+ ~ (newLine ~ spaceChars_? ~ ?!(blankLine)).?
              | newLine ~ spaceChars_? ~ ?!(blankLine)
@@ -449,12 +449,12 @@ trait Grammar extends Parsers {
   )
 
   lazy val conditionalExpression = {
-    val `if`   = rule {                          "if"   ~ ?!(identifierExpressionPart) ~ expressionWhitespace_? }
-    val `then` = rule { expressionWhitespace_? ~ "then" ~ ?!(identifierExpressionPart) ~ expressionWhitespace_? }
-    val `else` = rule { expressionWhitespace_? ~ "else" ~ ?!(identifierExpressionPart) ~ expressionWhitespace_? }
+    val `if`   = rule {                          "if"   ~ ?!(identifierExpressionPart) ~ sp.? }
+    val `then` = rule { sp.? ~ "then" ~ ?!(identifierExpressionPart) ~ sp.? }
+    val `else` = rule { sp.? ~ "else" ~ ?!(identifierExpressionPart) ~ sp.? }
 
     val cond = rule(
-      parenthesizedExpression <~ (`then` | expressionWhitespace_?)
+      parenthesizedExpression <~ (`then` | sp.?)
     | &(expr)                 <~ `then`
     )
 
@@ -504,22 +504,22 @@ trait Grammar extends Parsers {
 
   private def binOp[A](operand: Parser[A], ops: Parser[(A, A) => A]): Parser[A] =
     operand ~ (
-      expressionWhitespace_? ~ ops ~ expressionWhitespace_? ~ operand ^* { case (_, op, _, rhs) => (op, rhs) }
+      sp.? ~ ops ~ sp.? ~ operand ^* { case (_, op, _, rhs) => (op, rhs) }
     ).* ^* { case (lhs, ops) => (lhs /: ops) { (body, op) => op._1(body, op._2) } }
 
   lazy val unaryExpression: Parser[Expression] = (
-    "!" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.LogicalNot
-  | "-" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.Negative
-  | "+" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.Positive
-  | "~" ~ expressionWhitespace_? ~> &(unaryExpression) ^* dom.BitwiseNot
+    "!" ~ sp.? ~> &(unaryExpression) ^* dom.LogicalNot
+  | "-" ~ sp.? ~> &(unaryExpression) ^* dom.Negative
+  | "+" ~ sp.? ~> &(unaryExpression) ^* dom.Positive
+  | "~" ~ sp.? ~> &(unaryExpression) ^* dom.BitwiseNot
   | leftHandSideExpression
   )
 
   lazy val leftHandSideExpression: Parser[Expression] = {
-    val staticProperty =  "." ~ expressionWhitespace_? ~> identifierName
-    val dynamicProperty = "[" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ "]"
+    val staticProperty =  "." ~ sp.? ~> identifierName
+    val dynamicProperty = "[" ~ sp.? ~> &(expr) <~ sp.? ~ "]"
 
-    primaryExpression ~ (expressionWhitespace_? ~> (
+    primaryExpression ~ (sp.? ~> (
       // Build a sequence of functions which will construct the appropriate expr when provided a body
       argumentList    ^* { args => (b: Expression) => dom.Call(b, args) }
     | staticProperty  ^* { prop => (b: Expression) => dom.StaticProperty(b, prop) }
@@ -530,11 +530,11 @@ trait Grammar extends Parsers {
   }
 
   protected lazy val argumentList = {
-    val argument = (propertyName <~ expressionWhitespace_? ~ "=" ~ expressionWhitespace_?).? ~ &(expr)
-    val separator = expressionWhitespace_? ~ "," ~ expressionWhitespace_?
+    val argument = (propertyName <~ sp.? ~ "=" ~ sp.?).? ~ &(expr)
+    val separator = sp.? ~ "," ~ sp.?
     val arguments = repSep(0, argument, separator)
 
-    "(" ~ expressionWhitespace_? ~> arguments <~ expressionWhitespace_? ~ ")" ^* { _.collect { case Left((n, v)) => dom.Argument(n, v) } }
+    "(" ~ sp.? ~> arguments <~ sp.? ~ ")" ^* { _.collect { case Left((n, v)) => dom.Argument(n, v) } }
   }
 
   /** An identifier, literal, array, object, or parenthesized expression. */
@@ -546,13 +546,13 @@ trait Grammar extends Parsers {
   | parenthesizedExpression
   )
 
-  protected lazy val parenthesizedExpression =  "(" ~ expressionWhitespace_? ~> &(expr) <~ expressionWhitespace_? ~ ")"
+  protected lazy val parenthesizedExpression =  "(" ~ sp.? ~> &(expr) <~ sp.? ~ ")"
 
   lazy val arrayLiteralExpression: Parser[dom.ArrayLiteral] = {
     /** A non-elided array element preceded by any number of elided elements. */
-    val separator = rule { expressionWhitespace_? ~ "," ~ expressionWhitespace_? }
+    val separator = rule { sp.? ~ "," ~ sp.? }
     val subsequentArrayElement =
-      separator.+ ~ expressionWhitespace_? ~ &(expr) ^* { case (seps, _, e) => seps.tail.map(_ => dom.Elided()) :+ e }
+      separator.+ ~ sp.? ~ &(expr) ^* { case (seps, _, e) => seps.tail.map(_ => dom.Elided()) :+ e }
 
     val arrayElements = (
       (
@@ -563,15 +563,15 @@ trait Grammar extends Parsers {
     ^*(_.getOrElse(Seq()))
     )
 
-    "[" ~ expressionWhitespace_? ~> arrayElements <~ expressionWhitespace_? ~ "]" ^* dom.ArrayLiteral
+    "[" ~ sp.? ~> arrayElements <~ sp.? ~ "]" ^* dom.ArrayLiteral
   }
 
   lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] = {
-    val property = (propertyName <~ expressionWhitespace_? ~ "=" ~ expressionWhitespace_?) ~ &(expr)
-    val separator = expressionWhitespace_? ~ "," ~ expressionWhitespace_?
+    val property = (propertyName <~ sp.? ~ "=" ~ sp.?) ~ &(expr)
+    val separator = sp.? ~ "," ~ sp.?
     val properties = repSep(0, property, separator) ^* { _.collect { case Left(p) => p } }
 
-    "{" ~ expressionWhitespace_? ~> properties <~ expressionWhitespace_? ~ "}" ^* { p => dom.ObjectLiteral(p) }
+    "{" ~ sp.? ~> properties <~ sp.? ~ "}" ^* { p => dom.ObjectLiteral(p) }
   }
 
   protected lazy val propertyName = (
@@ -798,10 +798,6 @@ trait Grammar extends Parsers {
                        "true", "try", "typeof", "var", "void", "while", "with"
                      )
 
-  /** Zero or more whitespace characters or comments. */
-  lazy val expressionWhitespace_? = expressionWhitespace.?
-  lazy val expressionWhitespace = (whitespace | comment).+
-
   //endregion
 
   //region Common Productions
@@ -860,7 +856,7 @@ trait Grammar extends Parsers {
   protected lazy val englishUpperAlpha = CodePoint.Range('A', 'Z').p
 
   /** A space character or newline sequence. */
-  protected lazy val whitespace = spaceChar | newLine
+  protected lazy val whitespaceChar = spaceChar | newLine
   protected lazy val whitespaceCharValues = spaceCharValues ++ newLineCharValues
   /** A valid newline sequence. */
   protected lazy val newLine =    "\r\n" | CodePoint.Values(newLineCharValues)
