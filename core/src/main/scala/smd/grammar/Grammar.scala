@@ -516,7 +516,6 @@ trait Grammar extends Parsers {
       // Build a sequence of functions which will construct the appropriate expr when provided a body
       parenthesizedArgumentList ^* { args => (b: Expression) => dom.Call(b, args) }
     | staticProperty            ^* { prop => (b: Expression) => dom.StaticProperty(b, prop) }
-    | dynamicProperty           ^* { prop => (b: Expression) => dom.DynamicProperty(b, prop) }
     )).* ^* { case (body, builders) =>
       (body /: builders) { (x, bld) => bld(x) }
     }

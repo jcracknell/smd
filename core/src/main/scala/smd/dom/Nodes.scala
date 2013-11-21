@@ -47,7 +47,6 @@ object Expression {
     def visit(node: Call): A
     def visit(node: Conditional): A
     def visit(node: Division): A
-    def visit(node: DynamicProperty): A
     def visit(node: Elided): A
     def visit(node: Equals): A
     def visit(node: GreaterThan): A
@@ -462,10 +461,6 @@ case class Conditional(cond: Expression, thenExpr: Expression, elseExpr: Option[
 }
 
 case class Division(lhs: Expression, rhs: Expression) extends Expression with Binary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class DynamicProperty(body: Expression, member: Expression) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 

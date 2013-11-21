@@ -21,13 +21,6 @@ class LeftHandSideExpressionProductionsSpec extends ParsingScenarios {
     )
   )
 
-  parsing("@a['b']") as leftHandSideExpression should produce (
-    DynamicProperty(
-      body = Identifier("a"),
-      member = StringLiteral("b")
-    )
-  )
-
   parsing("@a.b()") as leftHandSideExpression should produce (
     Call(
       body = StaticProperty(
