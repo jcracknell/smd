@@ -17,4 +17,20 @@ class HtmlUtilsSpec extends FunSpec with Matchers {
       }
     }
   }
+
+  describe("htmlEncode") {
+    List(
+      "<"     -> "&lt;",
+      ">"     -> "&gt;",
+      "&"     -> "&amp;",
+      "\""    -> "&quot;",
+      "\'"    -> "&apos;",
+      "<br/>" -> "&lt;br/&gt;",
+      "M&Ms"  -> "M&amp;Ms"
+    ) foreach { case (input, expected) =>
+      it(s"should encode ${input.literalEncode} as ${expected.literalEncode}") {
+        HtmlUtils.htmlEncode(input) should be (expected)
+      }
+    }
+  }
 }
