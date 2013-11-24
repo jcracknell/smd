@@ -9,7 +9,7 @@ import java.nio.charset.Charset
 class HtmlRenderer(
   configuration: HtmlWriter.Configuration = HtmlWriter.defaultConfiguration,
   charSet: Charset                        = Charset.forName("UTF-8")
-) {
+) extends Renderer {
 
   def render(document: Document, ostream: OutputStream): Unit =
     using(new BufferedOutputStream(ostream)) { ostream =>
