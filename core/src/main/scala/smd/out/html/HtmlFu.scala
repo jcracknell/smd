@@ -49,13 +49,25 @@ class HtmlFu(writer: HtmlWriter, tag: String) {
   def block(attrs: HtmlAttributable*)(content: => Unit): Unit =
     writer.writeBlock(tag, attrs.flatMap(_.toAttributes): _*)(content)
 
+  def block(content: => Unit): Unit =
+    writer.writeBlock(tag)(content)
+
   def inline(attrs: HtmlAttributable*)(content: => Unit): Unit =
     writer.writeSpan(tag, attrs.flatMap(_.toAttributes): _*)(content)
 
-  def empty(attrs: HtmlAttributable*): Unit =
-    writer.writeEmpty(tag, attrs.flatMap(_.toAttributes): _*)
+  def inline(content: => Unit): Unit =
+    writer.writeSpan(tag)(content)
+
+  def empty(a0: HtmlAttributable, attrs: HtmlAttributable*): Unit =
+    writer.writeEmpty(tag, (a0 +: attrs).flatMap(_.toAttributes): _*)
+
+  def empty(): Unit =
+    writer.writeEmpty(tag)
 
   def pre(attrs: HtmlAttributable*)(content: => Unit): Unit =
     writer.writePre(tag, attrs.flatMap(_.toAttributes): _*)(content)
+
+  def pre(content: => Unit): Unit =
+    writer.writePre(tag)(content)
 }
 
