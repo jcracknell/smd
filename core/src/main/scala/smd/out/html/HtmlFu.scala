@@ -2,37 +2,6 @@ package smd
 package out
 package html
 
-/** Trait encapsulating a conversion to a sequence of [[smd.out.html.HtmlNode]], allowing nodes and
-  * sequences of nodes to be handled in a uniform manner. */
-trait HtmlNodeable {
-  def toNodes: Seq[HtmlNode]
-}
-
-object HtmlNodeable {
-  import scala.language.implicitConversions
-
-  def apply(mkNodes: => Seq[HtmlNode]): HtmlNodeable = new HtmlNodeable {
-    private lazy val nodes = mkNodes
-    def toNodes: Seq[HtmlNode] = nodes
-  }
-
-  implicit def fromNode(node: HtmlNode): HtmlNodeable = HtmlNodeable {
-    Seq(node)
-  }
-
-  implicit def fromString(text: String): HtmlNodeable = HtmlNodeable {
-    Seq(HtmlNode.Text(HtmlString.encode(text)))
-  }
-
-  implicit def fromHtmlString(text: HtmlString): HtmlNodeable = HtmlNodeable {
-    Seq(HtmlNode.Text(text))
-  }
-
-  implicit def fromNodeableSeq[A <% HtmlNodeable](nodeables: Seq[A]): HtmlNodeable = HtmlNodeable {
-    nodeables flatMap { _.toNodes }
-  }
-}
-
 trait HtmlAttributable {
   def toAttributes: Seq[HtmlAttribute]
 }
@@ -76,29 +45,17 @@ object HtmlAttributable {
   }
 }
 
-trait HtmlFu {
-  protected def tag: String
+class HtmlFu(writer: HtmlWriter, tag: String) {
+  def block(attrs: HtmlAttributable*)(content: => Unit): Unit =
+    writer.writeBlock(tag, attrs.flatMap(_.toAttributes): _*)(content)
 
-  def block(attrs: HtmlAttributable*)(children: HtmlNodeable*) =
-    HtmlNode.Block(tag, attrs.flatMap(_.toAttributes), children.flatMap(_.toNodes))
+  def inline(attrs: HtmlAttributable*)(content: => Unit): Unit =
+    writer.writeSpan(tag, attrs.flatMap(_.toAttributes): _*)(content)
 
-  def inline(attrs: HtmlAttributable*)(children: HtmlNodeable*) =
-    HtmlNode.Inline(tag, attrs.flatMap(_.toAttributes), children.flatMap(_.toNodes))
+  def empty(attrs: HtmlAttributable*): Unit =
+    writer.writeEmpty(tag, attrs.flatMap(_.toAttributes): _*)
 
-  def empty(attrs: HtmlAttributable*) =
-    HtmlNode.Empty(tag, attrs.flatMap(_.toAttributes))
-
-  def pre(attrs: HtmlAttributable*)(children: HtmlNodeable*) =
-    HtmlNode.Pre(tag, attrs.flatMap(_.toAttributes), children.flatMap(_.toNodes))
-}
-
-object HtmlFu {
-  import scala.language.implicitConversions
-
-  implicit class StringHtmlFu(val tag: String) extends HtmlFu
-
-  implicit class SymbolHtmlFu(val sym: Symbol) extends HtmlFu {
-    protected def tag: String = sym.name
-  }
+  def pre(attrs: HtmlAttributable*)(content: => Unit): Unit =
+    writer.writePre(tag, attrs.flatMap(_.toAttributes): _*)(content)
 }
 
