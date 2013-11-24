@@ -11,3 +11,5 @@ trait PostfixOptionImplicits {
     def unless(cond: Boolean): Option[A] = if(cond) None else Some(a)
   }
 }
+
+object PostfixOptionImplicits extends PostfixOptionImplicits

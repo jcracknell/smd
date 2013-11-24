@@ -61,4 +61,11 @@ object SmdBuild extends Build {
       }
     )
   )
+
+  lazy val `smd.readme` = Project(
+    id =           "readme",
+    base =         file("readme"),
+    dependencies = Seq(`smd.core`),
+    settings =     baseSettings
+  )
 }

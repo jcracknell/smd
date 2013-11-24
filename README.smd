@@ -1,0 +1,191 @@
+# SMD
+
+@toc()
+
+## Summary of Omissions and Extensions
+
+SMD implements a markdown dialect which deviates substantially from
+[the original syntax][1] developped by John Gruber, but endeavours to
+conform in spirit; defining a lightweight markup language which is easy to understand and whose rendered output
+closely resembles the input text (insofar as this is possible).
+
+### Omissions
+
+  * Underscore syntax for bold and italic text.
+  * Image embedding of the form `![title](href)`, as this functionality is better handled as a macro.
+  * Embedded HTML.
+  * Indented code blocks; a feature I like to describe as 'easy to invoke by accident, yet difficult to use with
+    purpose'.
+  * 'Setext' (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax
+    supporting only two levels.
+
+### Extensions
+
+  * [Superscript and subscript][], as seen in pandoc.
+  * C-style comments, both single and multi-line
+  * [Definition Lists][], as seen in PHP Markdown Extra/reStructuredText/pandoc
+  * [Pipe tables](#tables), as seen in PHP Markdown Extra
+
+## Span Syntax
+
+### Strong and Emphasis
+
+A span of text can *emphasized* or marked as **strong** by enclosing it in asterixes (`*`).
+Emphasis and strong are typically rendered using italicized and bold text respectively.
+
+@example(`*emphasized* and **strong** text`)
+
+### Links
+
+@example(`[google](http://www.google.com)`)
+
+### Subscript and Superscript
+
+Text can be made subscript or superscript by enclosing it with tilde (`~`) or caret (`^`) characters respectively.
+
+@example(`H~2~0 January 1^st^`)
+
+### Code
+
+Enclosing a snippet of text with a sequence of between 1 and 16 backtick characters (`` ` ``) creates a code snippet. 
+A code snippet preserves the formatting of the enclosed text verbatim, ignoring all escape sequences and markup.
+A code snippet cannot span multiple lines.
+
+@example(`` `12 * 12 = 144` ``)
+
+A single space character is discarded following the opening backtick sequence and preceding the closing sequence to
+handle snippets beginning or ending with a backtick.
+
+@example(``` `` `echo "Hello World!"` `` ```)
+
+### Entities
+
+  * Named HTML entities of the form `\eacute;`
+  * Decimal escapes of the form `\#201;`
+  * Hexadecimal escapes of the form `\#u201;`, `\u201;`, `\#x201;` or `\x201;`
+  * Character escapes of the form `\n`, `\t` as seen in most programming languages, though their usefulness here is
+    debatable. 
+
+The presence of the semicolon is optional in all cases save that of a named HTML entity, however it can serve to
+disambiguate the end of the entity.
+
+@example(```
+\eacute; \Eacute; \u82; \#130;
+```)
+
+Any character can be preceded with a backslash to create a valid character escape, preventing the usual syntax rules
+from applying. For example, an asterix can be escaped as `\*` to prevent it from being interpreted as emphasis.
+
+### Line Breaks
+
+An explicit line break can be introduced by preceding the end of a line with the escape character (`\`).
+
+@example(```
+Line 1,
+still line 1 \
+line 2.
+```)
+
+## Block Syntax
+
+### Paragraphs
+
+### Headings
+
+A heading is preceded by a variable number of pound characters (`#`) determining the level of the heading.
+Setext-style (underlined) headings as seen in other markdown dialects are unsupported.
+
+### Lists
+
+List markers must be followed by at least one space.
+
+Lists can be either *tight* or *loose*.
+The items of a *tight* list contain span markup and cannot span multiple paragraphs:
+
+@example(```
+  * Item 1
+  * Item 2
+```)
+
+The items of a *loose* list can contain multiple paragraphs. A loose list is defined as 'a list which is not tight';
+thus if a single empty line is introduced into a tight list, the entire list becomes loose:
+
+@example(```
+  * Item 1
+
+  * Item 2
+```)
+
+A block can be included into a preceding list element by *indenting* (at minimum) the first line of the block with a
+tab character or four spaces. This technique is used to create list items spanning multiple paragraphs and sublists:
+
+@example(```
+  * Item 1
+
+    Still in item 1.
+
+  * Item 2
+
+Not in item 2.
+
+  * Top-level list
+      * Sublist item 1
+      * Sublist item 2
+```)
+
+#### Unordered Lists
+
+As seen previously, an unordered list is denoted by a marker consisting of the `*`, `-` or `+` character. Your choice
+of marker character has no effect whatsoever.
+
+#### Ordered Lists
+
+The following separator styles are supported:
+
+  * trailing-dot, of the form `1.`
+  * trailing-parenthesis, of the form `1)`
+  * enclosing-parentheses, of the form `(1)`
+
+The following counter styles are supported:
+
+  * arabic (`1`, `2`, ...)
+  * lower-alpha (`a`, `b`, ...)
+  * upper-alpha (`A`, `B`, ...)
+  * lower-roman (`i`, `ii`, ...)
+  * upper-roman (`I`, `II`, ...)
+
+#### Definition Lists
+
+### Tables
+
+SMD supports 'pipe tables' as seen in PHP Markdown Extra, and pandoc.
+This table syntax is intentionally restrictive in order to encourage the use of tables as a means of presenting data
+rather than as presentational elements.
+
+A table must contain an *alignment row* separating the header rows from the body of the table.
+The position of the colon (`:`) characters in the alignment row determines the alignment of all cells in the
+corresponding column. If the colon is omitted or the number of columns exceeds those specified in the alignment row,
+then columns are left-aligned by default.
+
+The cell separators of a table do not need to be aligned perfectly, but doing so will make the table much easier to
+read in its textual representation!
+
+@example(```
+| Left     |  Center  |    Right |
+|:---------+:--------:+---------:|
+| left     |  center  |    right |
+```)
+
+The `+` and `=` characters are interchangeable with `|` and `-` respectively  on the alignment row only, so that you
+can indulge your artistic sensibilities to some small degree. Table cells can be spanned to multiple columns by
+repeating the separator following the cell:
+
+@example(```
+|         Trial |     1    ||     2    ||
+|     Component | Min | Max | Min | Max |
+|--------------:+----:+----:+----:+----:|
+|   Frobnicator |  23 |  42 |  20 |  56 |
+| Confoobmotron |  57 | 130 |  63 | 112 |
+```)
+
+[1]: http://daringfireball.net/projects/markdown/
