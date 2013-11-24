@@ -22,7 +22,7 @@ class LiteralExpressionProductionsSpec extends ParsingScenarios {
   describe("string literals") {
     parsing("''")           as literalExpression should produce (StringLiteral(""))
     parsing("\"\"")         as literalExpression should produce (StringLiteral(""))
-    parsing("``")           as literalExpression should produce (VerbatimLiteral(""))
+    parsing("``")           as literalExpression should reject
     parsing("'a'")          as literalExpression should produce (StringLiteral("a"))
     parsing("\"a\"")        as literalExpression should produce (StringLiteral("a"))
     parsing("`a`")          as literalExpression should produce (VerbatimLiteral("a"))
@@ -47,6 +47,9 @@ class LiteralExpressionProductionsSpec extends ParsingScenarios {
     parsing("`\\u004z`")    as literalExpression should produce (VerbatimLiteral("\\u004z"))
     parsing("'\\eacutez'")  as literalExpression should produce (StringLiteral("eacutez"))
     parsing("'\\eacute;z'") as literalExpression should produce (StringLiteral("éz"))
+    parsing("`` `a` ``") as literalExpression should produce (VerbatimLiteral("`a`"))
+    parsing("` a `") as literalExpression should produce (VerbatimLiteral("a"))
+    parsing("`  a  `") as literalExpression should produce (VerbatimLiteral(" a "))
   }
   describe("iri literals") {
     parsing("nullish") as literalExpression should produce (IriLiteral("nullish"))

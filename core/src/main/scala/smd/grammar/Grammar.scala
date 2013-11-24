@@ -368,16 +368,10 @@ trait Grammar extends Parsers {
   }
 
   /** Backtick-enclosed code. */
-  lazy val code =
-    ?=("`") ~> |<< {
-      for(n <- 1 to 16) yield {
-        val ticks = new String(Array.fill(n)('`')).p
-        val ticksStart = ticks ~ ?!("`") ~ " ".?
-        val ticksEnd   = " ".? ~ ticks
-        val content = (?!(ticksEnd | newLine) ~ unicodeCharacter).+ ^^ { _.parsed }
-        ticksStart ~> content <~ ticksEnd ^* { p => dom.Code(p.toString) }
-      }
-    }
+  lazy val code = {
+    val grammar = new VerbatimStringGrammar { protected def contentAtom: Parser[Any] = ?!(newLine) ~ unicodeCharacter }
+    grammar ^* { s => dom.Code(s) }
+  }
 
   /* An inline expression starting with a twirl. */
   lazy val inlineExpression = embeddableExpression ^* dom.InlineExpression
@@ -754,14 +748,27 @@ trait Grammar extends Parsers {
 
   //region String Literals
 
-  lazy val verbatimLiteralExpression =
-    ?=("`") ~> |<< {
-      for(n <- 16 to 1 by -1) yield {
-        val ticks = new String(Array.fill(n)('`')).p
-        val content = (?!(ticks) ~ unicodeCharacter).* ^^ { _.parsed }
-        ticks ~> content <~ ticks ^* { p => dom.VerbatimLiteral(p.toString) }
-      }
-    }
+  lazy val verbatimLiteralExpression = {
+    val grammar = new VerbatimStringGrammar { protected def contentAtom: Parser[Any] = unicodeCharacter }
+    grammar ^* { s => dom.VerbatimLiteral(s) }
+  }
+
+  trait VerbatimStringGrammar extends Parser[String] {
+    protected def contentAtom: Parser[Any]
+
+    def parse(context: ParsingContext): ParsingResult[String] =
+      verbatimString.parse(context)
+
+    lazy val verbatimString = ?=("`") ~> |<< {
+                                for(n <- 1 to 16) yield {
+                                  val ticks = rule { new String(Array.fill(n)('`')) }
+                                  val start = rule { ticks ~ ?!("`") ~ " ".? }
+                                  val end   = rule { " ".? ~ ticks           }
+                                  val content = (?!(end) ~ contentAtom).+ ^^ { _.parsed }
+                                  start ~> content <~ end ^* { _.toString }
+                                }
+                              }
+  }
 
   lazy val stringLiteralExpression: Parser[dom.StringLiteral] = {
     val stringPart = (
