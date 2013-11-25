@@ -49,7 +49,7 @@ class HtmlRenderer(
     def visit(node: Paragraph): Unit =
       'p.block { renderNodes(node.children) }
 
-    def visit(node: Reference): Unit = 'span.empty
+    def visit(node: Reference): Unit = { }
 
     def visit(node: DefinitionList.Loose): Unit =
       'dl.block('class -> "dl-loose") {
