@@ -1,17 +1,180 @@
-<h1 id="">SMD</h1><p><pre class="inline-expression">Call(Identifier(toc),List())</pre></p><h2 id="">Summary of Omissions and Extensions</h2><p>SMD implements a markdown dialect which deviates substantially from <a href="">the original syntax</a> developped by John Gruber, but endeavours to conform in spirit; defining a lightweight markup language which is easy to understand and whose rendered output closely resembles the input text (insofar as this is possible).</p><h3 id="">Omissions</h3><ul class="ul-tight"><li>Underscore syntax for bold and italic text.</li><li>Image embedding of the form <code>![title](href)</code>, as this functionality is better handled as a macro.</li><li>Embedded HTML.</li><li>Indented code blocks; a feature I like to describe as <q class="single">easy to invoke by accident, yet difficult to use with purpose</q>.</li><li><q class="single">Setext</q> (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax supporting only two levels.</li></ul><h3 id="">Extensions</h3><ul class="ul-tight"><li><a href="">Superscript and subscript</a>, as seen in pandoc.</li><li>C-style comments, both single and multi-line</li><li><a href="">Definition Lists</a>, as seen in PHP Markdown Extra/reStructuredText/pandoc</li><li><a href="">Pipe tables</a>, as seen in PHP Markdown Extra</li></ul><h2 id="">Span Syntax</h2><h3 id="">Strong and Emphasis</h3><p>A span of text can <em>emphasized</em> or marked as <strong>strong</strong> by enclosing it in asterixes (<code>*</code>). Emphasis and strong are typically rendered using italicized and bold text respectively.</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(*emphasized* and **strong** text))))</pre></p><h3 id="">Links</h3><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral([google](http://www.google.com)))))</pre></p><h3 id="">Subscript and Superscript</h3><p>Text can be made subscript or superscript by enclosing it with tilde (<code>~</code>) or caret (<code>^</code>) characters respectively.</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(H~2~0 January 1^st^))))</pre></p><h3 id="">Code</h3><p>Enclosing a snippet of text with a sequence of between 1 and 16 backtick characters (<code>`</code>) creates a code snippet. A code snippet preserves the formatting of the enclosed text verbatim, ignoring all escape sequences and markup. A code snippet cannot span multiple lines.</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(`12 * 12 = 144`))))</pre></p><p>A single space character is discarded following the opening backtick sequence and preceding the closing sequence to handle snippets beginning or ending with a backtick.</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(`` `echo &quot;Hello World!&quot;` ``))))</pre></p><h3 id="">Entities</h3><ul class="ul-tight"><li>Named HTML entities of the form <code>\eacute;</code></li><li>Decimal escapes of the form <code>\#201;</code></li><li>Hexadecimal escapes of the form <code>\#u201;</code>, <code>\u201;</code>, <code>\#x201;</code> or <code>\x201;</code></li><li>Character escapes of the form <code>\n</code>, <code>\t</code> as seen in most programming languages, though their usefulness here is debatable.</li></ul><p>The presence of the semicolon is optional in all cases save that of a named HTML entity, however it can serve to disambiguate the end of the entity.</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<h1 id="">
+  SMD
+</h1>
+<p>
+  <pre class="inline-expression">Call(Identifier(toc),List())</pre>
+</p>
+<h2 id="">
+  Summary of Omissions and Extensions
+</h2>
+<p>
+  SMD implements a markdown dialect which deviates substantially from <a href="">the original syntax</a> developped by John Gruber, but endeavours to conform in spirit; defining a lightweight markup language which is easy to understand and whose rendered output closely resembles the input text (insofar as this is possible).
+</p>
+<h3 id="">
+  Omissions
+</h3>
+<ul class="ul-tight">
+  <li>
+    Underscore syntax for bold and italic text.
+  </li>
+  <li>
+    Image embedding of the form <code>![title](href)</code>, as this functionality is better handled as a macro.
+  </li>
+  <li>
+    Embedded HTML.
+  </li>
+  <li>
+    Indented code blocks; a feature I like to describe as <q class="single">easy to invoke by accident, yet difficult to use with purpose</q>.
+  </li>
+  <li>
+    <q class="single">Setext</q> (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax supporting only two levels.
+  </li>
+  
+</ul>
+<h3 id="">
+  Extensions
+</h3>
+<ul class="ul-tight">
+  <li>
+    <a href="">Superscript and subscript</a>, as seen in pandoc.
+  </li>
+  <li>
+    C-style comments, both single and multi-line
+  </li>
+  <li>
+    <a href="">Definition Lists</a>, as seen in PHP Markdown Extra/reStructuredText/pandoc
+  </li>
+  <li>
+    <a href="">Pipe tables</a>, as seen in PHP Markdown Extra
+  </li>
+  
+</ul>
+<h2 id="">
+  Span Syntax
+</h2>
+<h3 id="">
+  Strong and Emphasis
+</h3>
+<p>
+  A span of text can <em>emphasized</em> or marked as <strong>strong</strong> by enclosing it in asterixes (<code>*</code>). Emphasis and strong are typically rendered using italicized and bold text respectively.
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(*emphasized* and **strong** text))))</pre>
+</p>
+<h3 id="">
+  Links
+</h3>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral([google](http://www.google.com)))))</pre>
+</p>
+<h3 id="">
+  Subscript and Superscript
+</h3>
+<p>
+  Text can be made subscript or superscript by enclosing it with tilde (<code>~</code>) or caret (<code>^</code>) characters respectively.
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(H~2~0 January 1^st^))))</pre>
+</p>
+<h3 id="">
+  Code
+</h3>
+<p>
+  Enclosing a snippet of text with a sequence of between 1 and 16 backtick characters (<code>`</code>) creates a code snippet. A code snippet preserves the formatting of the enclosed text verbatim, ignoring all escape sequences and markup. A code snippet cannot span multiple lines.
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(`12 * 12 = 144`))))</pre>
+</p>
+<p>
+  A single space character is discarded following the opening backtick sequence and preceding the closing sequence to handle snippets beginning or ending with a backtick.
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(`` `echo &quot;Hello World!&quot;` ``))))</pre>
+</p>
+<h3 id="">
+  Entities
+</h3>
+<ul class="ul-tight">
+  <li>
+    Named HTML entities of the form <code>\eacute;</code>
+  </li>
+  <li>
+    Decimal escapes of the form <code>\#201;</code>
+  </li>
+  <li>
+    Hexadecimal escapes of the form <code>\#u201;</code>, <code>\u201;</code>, <code>\#x201;</code> or <code>\x201;</code>
+  </li>
+  <li>
+    Character escapes of the form <code>\n</code>, <code>\t</code> as seen in most programming languages, though their usefulness here is debatable.
+  </li>
+  
+</ul>
+<p>
+  The presence of the semicolon is optional in all cases save that of a named HTML entity, however it can serve to disambiguate the end of the entity.
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
 \eacute; \Eacute; \u82; \#130;
-))))</pre></p><p>Any character can be preceded with a backslash to create a valid character escape, preventing the usual syntax rules from applying. For example, an asterix can be escaped as <code>\*</code> to prevent it from being interpreted as emphasis.</p><h3 id="">Line Breaks</h3><p>An explicit line break can be introduced by preceding the end of a line with the escape character (<code>\</code>).</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+))))</pre>
+</p>
+<p>
+  Any character can be preceded with a backslash to create a valid character escape, preventing the usual syntax rules from applying. For example, an asterix can be escaped as <code>\*</code> to prevent it from being interpreted as emphasis.
+</p>
+<h3 id="">
+  Line Breaks
+</h3>
+<p>
+  An explicit line break can be introduced by preceding the end of a line with the escape character (<code>\</code>).
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
 Line 1,
 still line 1 \
 line 2.
-))))</pre></p><h2 id="">Block Syntax</h2><h3 id="">Paragraphs</h3><h3 id="">Headings</h3><p>A heading is preceded by a variable number of pound characters (<code>#</code>) determining the level of the heading. Setext-style (underlined) headings as seen in other markdown dialects are unsupported.</p><h3 id="">Lists</h3><p>List markers must be followed by at least one space.</p><p>Lists can be either <em>tight</em> or <em>loose</em>. The items of a <em>tight</em> list contain span markup and cannot span multiple paragraphs:</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+))))</pre>
+</p>
+<h2 id="">
+  Block Syntax
+</h2>
+<h3 id="">
+  Paragraphs
+</h3>
+<h3 id="">
+  Headings
+</h3>
+<p>
+  A heading is preceded by a variable number of pound characters (<code>#</code>) determining the level of the heading. Setext-style (underlined) headings as seen in other markdown dialects are unsupported.
+</p>
+<h3 id="">
+  Lists
+</h3>
+<p>
+  List markers must be followed by at least one space.
+</p>
+<p>
+  Lists can be either <em>tight</em> or <em>loose</em>. The items of a <em>tight</em> list contain span markup and cannot span multiple paragraphs:
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
   * Item 2
-))))</pre></p><p>The items of a <em>loose</em> list can contain multiple paragraphs. A loose list is defined as <q class="single">a list which is not tight</q>; thus if a single empty line is introduced into a tight list, the entire list becomes loose:</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+))))</pre>
+</p>
+<p>
+  The items of a <em>loose</em> list can contain multiple paragraphs. A loose list is defined as <q class="single">a list which is not tight</q>; thus if a single empty line is introduced into a tight list, the entire list becomes loose:
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
 
   * Item 2
-))))</pre></p><p>A block can be included into a preceding list element by <em>indenting</em> (at minimum) the first line of the block with a tab character or four spaces. This technique is used to create list items spanning multiple paragraphs and sublists:</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+))))</pre>
+</p>
+<p>
+  A block can be included into a preceding list element by <em>indenting</em> (at minimum) the first line of the block with a tab character or four spaces. This technique is used to create list items spanning multiple paragraphs and sublists:
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
 
     Still in item 1.
@@ -23,14 +186,84 @@ Not in item 2.
   * Top-level list
       * Sublist item 1
       * Sublist item 2
-))))</pre></p><h4 id="">Unordered Lists</h4><p>As seen previously, an unordered list is denoted by a marker consisting of the <code>*</code>, <code>-</code> or <code>+</code> character. Your choice of marker character has no effect whatsoever.</p><h4 id="">Ordered Lists</h4><p>The following separator styles are supported:</p><ul class="ul-tight"><li>trailing-dot, of the form <code>1.</code></li><li>trailing-parenthesis, of the form <code>1)</code></li><li>enclosing-parentheses, of the form <code>(1)</code></li></ul><p>The following counter styles are supported:</p><ul class="ul-tight"><li>arabic (<code>1</code>, <code>2</code>, ...)</li><li>lower-alpha (<code>a</code>, <code>b</code>, ...)</li><li>upper-alpha (<code>A</code>, <code>B</code>, ...)</li><li>lower-roman (<code>i</code>, <code>ii</code>, ...)</li><li>upper-roman (<code>I</code>, <code>II</code>, ...)</li></ul><h4 id="">Definition Lists</h4><h3 id="">Tables</h3><p>SMD supports <q class="single">pipe tables</q> as seen in PHP Markdown Extra, and pandoc. This table syntax is intentionally restrictive in order to encourage the use of tables as a means of presenting data rather than as presentational elements.</p><p>A table must contain an <em>alignment row</em> separating the header rows from the body of the table. The position of the colon (<code>:</code>) characters in the alignment row determines the alignment of all cells in the corresponding column. If the colon is omitted or the number of columns exceeds those specified in the alignment row, then columns are left-aligned by default.</p><p>The cell separators of a table do not need to be aligned perfectly, but doing so will make the table much easier to read in its textual representation!</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+))))</pre>
+</p>
+<h4 id="">
+  Unordered Lists
+</h4>
+<p>
+  As seen previously, an unordered list is denoted by a marker consisting of the <code>*</code>, <code>-</code> or <code>+</code> character. Your choice of marker character has no effect whatsoever.
+</p>
+<h4 id="">
+  Ordered Lists
+</h4>
+<p>
+  The following separator styles are supported:
+</p>
+<ul class="ul-tight">
+  <li>
+    trailing-dot, of the form <code>1.</code>
+  </li>
+  <li>
+    trailing-parenthesis, of the form <code>1)</code>
+  </li>
+  <li>
+    enclosing-parentheses, of the form <code>(1)</code>
+  </li>
+  
+</ul>
+<p>
+  The following counter styles are supported:
+</p>
+<ul class="ul-tight">
+  <li>
+    arabic (<code>1</code>, <code>2</code>, ...)
+  </li>
+  <li>
+    lower-alpha (<code>a</code>, <code>b</code>, ...)
+  </li>
+  <li>
+    upper-alpha (<code>A</code>, <code>B</code>, ...)
+  </li>
+  <li>
+    lower-roman (<code>i</code>, <code>ii</code>, ...)
+  </li>
+  <li>
+    upper-roman (<code>I</code>, <code>II</code>, ...)
+  </li>
+  
+</ul>
+<h4 id="">
+  Definition Lists
+</h4>
+<h3 id="">
+  Tables
+</h3>
+<p>
+  SMD supports <q class="single">pipe tables</q> as seen in PHP Markdown Extra, and pandoc. This table syntax is intentionally restrictive in order to encourage the use of tables as a means of presenting data rather than as presentational elements.
+</p>
+<p>
+  A table must contain an <em>alignment row</em> separating the header rows from the body of the table. The position of the colon (<code>:</code>) characters in the alignment row determines the alignment of all cells in the corresponding column. If the colon is omitted or the number of columns exceeds those specified in the alignment row, then columns are left-aligned by default.
+</p>
+<p>
+  The cell separators of a table do not need to be aligned perfectly, but doing so will make the table much easier to read in its textual representation!
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
 | Left     |  Center  |    Right |
 |:---------+:--------:+---------:|
 | left     |  center  |    right |
-))))</pre></p><p>The <code>+</code> and <code>=</code> characters are interchangeable with <code>|</code> and <code>-</code> respectively on the alignment row only, so that you can indulge your artistic sensibilities to some small degree. Table cells can be spanned to multiple columns by repeating the separator following the cell:</p><p><pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+))))</pre>
+</p>
+<p>
+  The <code>+</code> and <code>=</code> characters are interchangeable with <code>|</code> and <code>-</code> respectively on the alignment row only, so that you can indulge your artistic sensibilities to some small degree. Table cells can be spanned to multiple columns by repeating the separator following the cell:
+</p>
+<p>
+  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
 |         Trial |     1    ||     2    ||
 |     Component | Min | Max | Min | Max |
 |--------------:+----:+----:+----:+----:|
 |   Frobnicator |  23 |  42 |  20 |  56 |
 | Confoobmotron |  57 | 130 |  63 | 112 |
-))))</pre></p><span />
+))))</pre>
+</p>

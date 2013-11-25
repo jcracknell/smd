@@ -39,6 +39,7 @@ object HtmlWriter {
     /** Formats an [[smd.out.html.HtmlAttribute.Boolean]] as it should be rendered by the [[smd.out.html.HtmlWriter]]. */
     def formatBooleanAttribute(attr: HtmlAttribute.Boolean): String = s"""${attr.name}="${attr.name}""""
 
+    def baseIndent: String = ""
     /** The character sequence to be used as an indent by the [[smd.out.html.HtmlWriter]]. */
     def indent: String = "  "
     /** The newline sequence to be used by the [[smd.out.html.HtmlWriter]]. */
@@ -47,16 +48,26 @@ object HtmlWriter {
 }
 
 class StandardHtmlWriter(writer: Writer, conf: HtmlWriter.Configuration) extends HtmlWriter {
+  private var _level: Int = 0
 
   def writeBlock(tag: String, attrs: HtmlAttribute*)(content: => Unit): Unit = {
+    writeOpenTag(tag, attrs)
+    _level += 1
+    writeIndent()
+    content
+    _level -= 1
+    writeIndent()
+    writeCloseTag(tag)
+    writeIndent()
+  }
+
+  def writeSpan(tag: String, attrs: HtmlAttribute*)(content: => Unit): Unit = {
     writeOpenTag(tag, attrs)
     content
     writeCloseTag(tag)
   }
 
-  def writeSpan(tag: String, attrs: HtmlAttribute*)(content: => Unit): Unit = writeBlock(tag, attrs: _*)(content)
-
-  def writePre(tag: String, attrs: HtmlAttribute*)(content: => Unit): Unit = writeBlock(tag, attrs: _*)(content)
+  def writePre(tag: String, attrs: HtmlAttribute*)(content: => Unit): Unit = writeSpan(tag, attrs: _*)(content)
 
   def writeEmpty(tag: String, attrs: HtmlAttribute*): Unit = {
     writeEmptyTag(tag, attrs)
@@ -71,6 +82,12 @@ class StandardHtmlWriter(writer: Writer, conf: HtmlWriter.Configuration) extends
   def writeText(text: HtmlString): Unit =  writer.write(text.value)
 
   def writeRaw(text: String): Unit = writer.write(text)
+
+  protected def level(content: => Unit): Unit = {
+    _level += 1
+    content
+    _level -= 1
+  }
 
   protected def writeOpenTag(tag: String, attrs: Seq[HtmlAttribute]): Unit = {
     writer.write(conf.openTagBegin)
@@ -104,5 +121,10 @@ class StandardHtmlWriter(writer: Writer, conf: HtmlWriter.Configuration) extends
         writer.write(conf.formatBooleanAttribute(attr))
     }
 
-  protected def writeIndent(): Unit = { }
+  protected def writeIndent(): Unit = {
+    writer.write(conf.newline)
+    writer.write(conf.baseIndent)
+    for(i <- 0 until _level)
+      writer.write(conf.indent)
+  }
 }
