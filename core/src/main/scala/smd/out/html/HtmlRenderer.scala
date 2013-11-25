@@ -164,6 +164,6 @@ class HtmlRenderer(
     def visit(node: Text): Unit = writer.writeText(node.value)
 
     def visit(node: Entity): Unit =
-      node.codePoints foreach { cp => writer.writeRaw(s"&$cp;") }
+      node.codePoints foreach { cp => writer.writeRaw(s"&#$cp;") }
   }
 }
