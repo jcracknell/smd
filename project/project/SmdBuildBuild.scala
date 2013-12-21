@@ -7,7 +7,8 @@ object SmdBuildBuild extends Build {
     base = file("."),
     settings = Defaults.defaultSettings ++ Seq(
       libraryDependencies ++= Seq(
-        "io.spray" %% "spray-json" % "latest.release"
+        "io.spray" %% "spray-json" % "latest.release",
+        "org.freemarker" % "freemarker" % "latest.release"
       ),
       resolvers := Resolver withDefaultResolvers Seq(
         "spray" at "http://repo.spray.io/"

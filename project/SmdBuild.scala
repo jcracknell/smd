@@ -2,8 +2,8 @@ import sbt._
 import Keys._
 
 object SmdBuild extends Build {
-  val generateSources = TaskKey[Unit]("generate-sources", "Generate dynamically generated source files used by the project.")
   val generateResources = TaskKey[Unit]("generate-resources", "Generate dynamically generate resource files used by the project.")
+  val freemarker = TaskKey[Unit]("freemarker")
 
   val baseSettings = Defaults.defaultSettings ++ Seq(
     version :=      "0.1",
@@ -24,6 +24,30 @@ object SmdBuild extends Build {
       Seq(
         "org.scalatest" %% "scalatest" % "latest.release" % "test"
       )
+    },
+    freemarker <<= (unmanagedSourceDirectories in Compile) map { (sources) =>
+      sources.get foreach { sourceDir =>
+        (sourceDir ** "*.fm").get foreach { templateFile =>
+          val templatePath = IO.relativize(sourceDir, templateFile).get
+          val outputFile = sourceDir/templatePath.stripSuffix(".fm")
+          println(s"Processing ${templateFile} -> ${outputFile}")
+
+          val cfg = new _root_.freemarker.template.Configuration()
+          cfg.setDirectoryForTemplateLoading(sourceDir)
+          cfg.setObjectWrapper(new _root_.freemarker.template.DefaultObjectWrapper())
+
+          val template = cfg.getTemplate(templatePath)
+
+          val ostream = new java.io.FileOutputStream(outputFile)
+          try {
+            val writer = new java.io.OutputStreamWriter(ostream, "UTF-8")
+            try {
+              template.process(new java.lang.Object, writer)
+              writer.flush()
+            } finally { writer.close() }
+          } finally { ostream.close() }
+        }
+      }
     }
   )
 
@@ -48,18 +72,7 @@ object SmdBuild extends Build {
   lazy val `smd.parsing` =  Project(
     id =         "parsing",
     base =       file("parsing"),
-    settings = baseSettings ++ Seq(
-      generateSources <<= scalaSource in Compile map { (baseDir: File) =>
-        val generators = Seq(
-          new SequencingHeuristicsGenerator,
-          new ImplicitParserOpsGenerator
-        ) ++ (
-          (2 to SequenceParserNGenerator.MaxN).map(new SequenceParserNGenerator(_)).toList
-        )
-
-        generators foreach { _.generate(baseDir) }
-      }
-    )
+    settings = baseSettings ++ Seq()
   )
 
   lazy val `smd.readme` = Project(
