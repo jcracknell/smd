@@ -40,11 +40,11 @@ object Expression {
     def visit(node: VerbatimLiteral): A
     def visit(node: IriLiteral): A
     def visit(node: Addition): A
+    def visit(node: Application): A
     def visit(node: BitwiseAnd): A
     def visit(node: BitwiseNot): A
     def visit(node: BitwiseOr): A
     def visit(node: BitwiseXOr): A
-    def visit(node: Call): A
     def visit(node: Conditional): A
     def visit(node: Division): A
     def visit(node: Equals): A
@@ -57,13 +57,13 @@ object Expression {
     def visit(node: LogicalAnd): A
     def visit(node: LogicalNot): A
     def visit(node: LogicalOr): A
+    def visit(node: Member): A
     def visit(node: Modulo): A
     def visit(node: Multiplication): A
     def visit(node: Negative): A
     def visit(node: NotEquals): A
     def visit(node: Positive): A
     def visit(node: RightShift): A
-    def visit(node: StaticProperty): A
     def visit(node: StrictEquals): A
     def visit(node: StrictNotEquals): A
     def visit(node: Subtraction): A
@@ -435,6 +435,10 @@ case class Addition(lhs: Expression, rhs: Expression) extends Expression with Bi
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
+case class Application(body: Expression, args: Seq[Argument]) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
 case class BitwiseAnd(lhs: Expression, rhs: Expression) extends Expression with Binary {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
@@ -448,10 +452,6 @@ case class BitwiseOr(lhs: Expression, rhs: Expression) extends Expression with B
 }
 
 case class BitwiseXOr(lhs: Expression, rhs: Expression) extends Expression with Binary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class Call(body: Expression, args: Seq[Argument]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -503,6 +503,10 @@ case class LogicalOr(lhs: Expression, rhs: Expression) extends Expression with B
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
+case class Member(body: Expression, name: String) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
 case class Modulo(lhs: Expression, rhs: Expression) extends Expression with Binary {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
@@ -524,10 +528,6 @@ case class Positive(expr: Expression) extends Expression with Unary {
 }
 
 case class RightShift(lhs: Expression, rhs: Expression) extends Expression with Binary {
-  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
-}
-
-case class StaticProperty(body: Expression, member: String) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 

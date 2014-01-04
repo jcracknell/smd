@@ -20,7 +20,7 @@ class BinaryExpressionsProductionsSpec extends ParsingScenarios {
   describe("BitwiseOrExpression") {
     parsing("@a.foo() | 42") as logicalOrExpression should produce (
       BitwiseOr(
-        Call(StaticProperty(Identifier("a"), "foo"), Seq()),
+        Application(Member(Identifier("a"), "foo"), Seq()),
         NumericLiteral(42d)
       )
     )

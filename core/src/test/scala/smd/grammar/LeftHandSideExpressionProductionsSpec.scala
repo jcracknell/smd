@@ -8,49 +8,49 @@ class LeftHandSideExpressionProductionsSpec extends ParsingScenarios {
   import Grammar.leftHandSideExpression
 
   parsing("@a()") as leftHandSideExpression should produce (
-    Call(
+    Application(
       body = Identifier("a"),
       args = Seq()
     )
   )
 
   parsing("@a.b") as leftHandSideExpression should produce (
-    StaticProperty(
+    Member(
       body = Identifier("a"),
-      member = "b"
+      name = "b"
     )
   )
 
   parsing("@a.b()") as leftHandSideExpression should produce (
-    Call(
-      body = StaticProperty(
+    Application(
+      body = Member(
                body = Identifier("a"),
-               member = "b"
+               name = "b"
              ),
       args = Seq()
     )
   )
 
   parsing("@a.b('c')") as leftHandSideExpression should produce (
-    Call(
-      body = StaticProperty(
+    Application(
+      body = Member(
         body = Identifier("a"),
-        member = "b"
+        name = "b"
       ),
       args = Seq(Argument(None, StringLiteral("c")))
     )
   )
 
   parsing("@some(foo = bar)") as leftHandSideExpression should produce (
-    Call(Identifier("some"), Seq("foo" -> IriLiteral("bar")))
+    Application(Identifier("some"), Seq("foo" -> IriLiteral("bar")))
   )
 
   parsing("@some(foo=bar)") as leftHandSideExpression should produce (
-    Call(Identifier("some"), Seq("foo" -> IriLiteral("bar")))
+    Application(Identifier("some"), Seq("foo" -> IriLiteral("bar")))
   )
 
   parsing("""@code(lang=scala, ```def foo(): String = { "bar" }```)""") as leftHandSideExpression should produce (
-    Call(Identifier("code"), Seq(
+    Application(Identifier("code"), Seq(
       "lang" -> IriLiteral("scala"),
       VerbatimLiteral("""def foo(): String = { "bar" }""")
     ))
