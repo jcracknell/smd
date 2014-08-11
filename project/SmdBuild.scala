@@ -7,7 +7,7 @@ object SmdBuild extends Build {
 
   val baseSettings = Defaults.defaultSettings ++ Seq(
     version :=      "0.1",
-    scalaVersion := "2.10.3",
+    scalaVersion := "2.11.2",
     scalacOptions ++= Seq(
       "-deprecation",
       "-feature",
