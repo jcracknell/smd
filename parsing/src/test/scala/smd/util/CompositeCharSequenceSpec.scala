@@ -3,7 +3,7 @@ package util
 
 import org.scalatest.{Inside, FunSpec, Matchers}
 
-class CompositeCharSequenceSpec extends FunSpec with Matchers with PatternMatchers {
+class CompositeCharSequenceSpec extends FunSpec with Matchers {
   /** Produce a string representation of the provided [[java.lang.CharSequence]], possibly a
     * [[smd.util.CompositeCharSequence]], as `toString` an a [[java.lang.CharSequence]] must return
     * the equivalent string representation. */
@@ -19,9 +19,9 @@ class CompositeCharSequenceSpec extends FunSpec with Matchers with PatternMatche
       val cs = CompositeCharSequence.balanced(Seq("one", "two"))
       cs.toString should be ("onetwo")
 
-      cs should matchPattern {
-        case CompositeCharSequence("one", "two") => matched
-      }
+
+
+      cs should matchPattern { case CompositeCharSequence("one", "two") =>  }
     }
     it("should work for 3 parts") {
       val cs = CompositeCharSequence.balanced(Seq("one", "two", "three"))
@@ -31,7 +31,7 @@ class CompositeCharSequenceSpec extends FunSpec with Matchers with PatternMatche
         case CompositeCharSequence(
           CompositeCharSequence("one", "two"),
           "three"
-        ) => matched
+        ) =>
       }
     }
     it("should work for 4 parts") {
@@ -42,7 +42,7 @@ class CompositeCharSequenceSpec extends FunSpec with Matchers with PatternMatche
         case CompositeCharSequence(
           CompositeCharSequence("one", "two"),
           CompositeCharSequence("three", "four")
-        ) => matched
+        ) =>
       }
     }
     it("should work for 5 parts") {
@@ -63,7 +63,7 @@ class CompositeCharSequenceSpec extends FunSpec with Matchers with PatternMatche
             CompositeCharSequence("four", "five"),
             "six"
           )
-        ) => matched
+        ) =>
       }
     }
   }
@@ -96,7 +96,7 @@ class CompositeCharSequenceSpec extends FunSpec with Matchers with PatternMatche
             "a",
             CompositeCharSequence("b", "c")
           )
-        ) => matched
+        ) =>
       }
       CompositeCharSequence.weighted(Seq("a","b", "c","abcd"), balancedBelow = 0) should matchPattern {
         case CompositeCharSequence(
@@ -105,17 +105,17 @@ class CompositeCharSequenceSpec extends FunSpec with Matchers with PatternMatche
             CompositeCharSequence("b", "c")
           ),
           "abcd"
-        ) => matched
+        ) =>
       }
     }
     it("should construct the expected tree 2") {
       val left = CompositeCharSequence.weighted(Seq("abcdefgh", "a", "b", "c", "d", "e", "f", "g", "h"), balancedBelow = 0)
       left.toString should be ("abcdefghabcdefgh")
-      left should matchPattern { case CompositeCharSequence("abcdefgh", _) => matched }
+      left should matchPattern { case CompositeCharSequence("abcdefgh", _) => }
 
       val right = CompositeCharSequence.weighted(Seq("a", "b", "c", "d", "e", "f", "g", "h", "abcdefgh"), balancedBelow = 0)
       right.toString should be ("abcdefghabcdefgh")
-      right should matchPattern { case CompositeCharSequence(_, "abcdefgh") => matched }
+      right should matchPattern { case CompositeCharSequence(_, "abcdefgh") => }
     }
   }
 }
