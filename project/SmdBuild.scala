@@ -55,24 +55,17 @@ object SmdBuild extends Build {
     id =           "smd",
     base =         file("."),
     settings =     baseSettings,
-    aggregate =    Seq(`smd.core`, `smd.parsing`)
+    aggregate =    Seq(`smd.core`)
   )
 
   lazy val `smd.core` =  Project(
-    id =           "core",
-    base =         file("core"),
-    dependencies = Seq(`smd.parsing` % "compile->compile;test->test"),
+    id = "core",
+    base = file("core"),
     settings = baseSettings ++ Seq(
       generateResources <<= resourceDirectory in Compile map { (baseDir: File) =>
         NamedEntitiesGenerator.generate(baseDir)
       }
     )
-  )
-
-  lazy val `smd.parsing` =  Project(
-    id =         "parsing",
-    base =       file("parsing"),
-    settings = baseSettings ++ Seq()
   )
 
   lazy val `smd.readme` = Project(
