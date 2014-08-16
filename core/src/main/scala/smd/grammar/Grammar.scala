@@ -299,6 +299,7 @@ trait Grammar extends Parsers {
     | link
     | autoLink
     | code
+    | objectLiteralExpression // attributes
     | embeddableExpression
     )
 
