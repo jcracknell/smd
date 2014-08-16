@@ -31,7 +31,7 @@ class HtmlRenderer(
 
     def visit(node: Blockquote): Unit =
       'blockquote.block {
-        node.children foreach { _.accept(this) }
+        node.content foreach { _.accept(this) }
       }
 
     def visit(node: ExpressionBlock): Unit =
@@ -44,21 +44,21 @@ class HtmlRenderer(
 
     def visit(node: Heading): Unit =
       if(node.level <= 6)
-        s"h${node.level}".block('id -> "") { renderNodes(node.children) }
+        s"h${node.level}".block('id -> "") { renderNodes(node.content) }
       else
-        'div.block("data-heading-level" -> node.level) { renderNodes(node.children) }
+        'div.block("data-heading-level" -> node.level) { renderNodes(node.content) }
 
     def visit(node: Paragraph): Unit =
-      'p.block { renderNodes(node.children) }
+      'p.block { renderNodes(node.content) }
 
     def visit(node: Reference): Unit = { }
 
     def visit(node: DefinitionList.Loose): Unit =
       'dl.block('class -> "dl-loose") {
         node.items foreach { item =>
-          'dt.block { renderNodes(item.term.children) }
+          'dt.block { renderNodes(item.term.content) }
           item.defs foreach { definition =>
-            'dd.block { renderNodes(definition.children) }
+            'dd.block { renderNodes(definition.content) }
           }
         }
       }
@@ -66,9 +66,9 @@ class HtmlRenderer(
     def visit(node: DefinitionList.Tight): Unit =
       'dl.block('class -> "dl-tight") {
         node.items foreach { item =>
-          'dt.block { renderNodes(item.term.children) }
+          'dt.block { renderNodes(item.term.content) }
           item.defs foreach { definition =>
-            'dd.block { renderNodes(definition.children) }
+            'dd.block { renderNodes(definition.content) }
           }
         }
       }
@@ -79,7 +79,7 @@ class HtmlRenderer(
         node.counter.start map ("data-counter-start" -> _)
       ) {
         node.items foreach { item =>
-          'li.block { renderNodes(item.children) }
+          'li.block { renderNodes(item.content) }
         }
       }
 
@@ -89,7 +89,7 @@ class HtmlRenderer(
         node.counter.start map ("data-counter-start" -> _)
       ) {
         node.items foreach { item =>
-          'li.block { renderNodes(item.children) }
+          'li.block { renderNodes(item.content) }
         }
       }
 
@@ -99,7 +99,7 @@ class HtmlRenderer(
           node.head foreach { row =>
             'tr.block {
               row.cells foreach { cell =>
-                'th.block('colspan -> cell.span when cell.span > 1) { renderNodes(cell.children) }
+                'th.block('colspan -> cell.span when cell.span > 1) { renderNodes(cell.content) }
               }
             }
           }
@@ -108,7 +108,7 @@ class HtmlRenderer(
           node.body foreach { row =>
             'tr.block {
               row.cells foreach { cell =>
-                'td.block('colspan -> cell.span when cell.span > 1) { renderNodes(cell.children) }
+                'td.block('colspan -> cell.span when cell.span > 1) { renderNodes(cell.content) }
               }
             }
           }
@@ -118,37 +118,37 @@ class HtmlRenderer(
     def visit(node: UnorderedList.Loose): Unit =
       'ul.block('class -> "ul-loose") {
         node.items map { item =>
-          'li.block { renderNodes(item.children) }
+          'li.block { renderNodes(item.content) }
         }
       }
 
     def visit(node: UnorderedList.Tight): Unit =
       'ul.block('class -> "ul-tight") {
         node.items map { item =>
-          'li.block { renderNodes(item.children) }
+          'li.block { renderNodes(item.content) }
         }
       }
 
     def visit(node: Attributes): Unit = { }
 
     def visit(node: Emphasis): Unit =
-      'em.inline { renderNodes(node.children) }
+      'em.inline { renderNodes(node.content) }
 
     def visit(node: Link): Unit =
-      'a.inline('href -> "") { renderNodes(node.children) }
+      'a.inline('href -> "") { renderNodes(node.content) }
 
 
     def visit(node: Quoted): Unit =
-      'q.inline('class -> node.kind.toString.toLowerCase) { renderNodes(node.children) }
+      'q.inline('class -> node.kind.toString.toLowerCase) { renderNodes(node.content) }
 
     def visit(node: Strong): Unit =
-      'strong.inline { renderNodes(node.children) }
+      'strong.inline { renderNodes(node.content) }
 
     def visit(node: Subscript): Unit =
-      'sub.inline { renderNodes(node.children) }
+      'sub.inline { renderNodes(node.content) }
 
     def visit(node: Superscript): Unit =
-      'sup.inline { renderNodes(node.children) }
+      'sup.inline { renderNodes(node.content) }
 
     def visit(node: AutoLink): Unit =
       'a.inline('href -> node.uri) { writer.writeText(node.uri) }

@@ -22,6 +22,10 @@ object Markdown {
   trait Visitor[+A] extends Block.Visitor[A] with Inline.Visitor[A]
 }
 
+trait Composite[+A] {
+  def content: Seq[A]
+}
+
 trait Referenceable {
   def refId: Option[ReferenceId]
 }
@@ -98,14 +102,9 @@ object Inline {
   trait Visitor[+A] extends Atomic.Visitor[A] with Span.Visitor[A]
 }
 
-
-trait Composite[+A] {
-  def children: Seq[A]
-}
-
 //region Block
 
-case class Blockquote(children: Seq[Block]) extends Block with Composite[Block] {
+case class Blockquote(content: Seq[Block]) extends Block with Composite[Block] {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -113,11 +112,11 @@ case class ExpressionBlock(expr: Expression) extends Block {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Heading(level: Int, children: Seq[Inline]) extends Block with Composite[Inline] {
+case class Heading(level: Int, content: Seq[Inline]) extends Block with Composite[Inline] {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Paragraph(children: Seq[Inline]) extends Block with Composite[Inline] {
+case class Paragraph(content: Seq[Inline]) extends Block with Composite[Inline] {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -131,7 +130,7 @@ case class Table(head: Seq[Table.Row], body: Seq[Table.Row]) extends Block {
 
 object Table {
   case class Row(cells: Cell*)
-  case class Cell(alignment: CellAlignment, span: Int, children: Seq[Inline]) extends Composite[Inline]
+  case class Cell(alignment: CellAlignment, span: Int, content: Seq[Inline]) extends Composite[Inline]
 
   sealed abstract class CellAlignment
   object CellAlignment {
@@ -164,8 +163,8 @@ object DefinitionList {
   }
 
   case class Item[+A](term: Term, defs: Definition[A]*)
-  case class Term(children: Seq[Inline]) extends Composite[Inline]
-  case class Definition[+A](children: Seq[A]) extends Composite[A]
+  case class Term(content: Seq[Inline]) extends Composite[Inline]
+  case class Definition[+A](content: Seq[A]) extends Composite[A]
 }
 
 sealed abstract class OrderedList extends List {
@@ -184,7 +183,7 @@ object OrderedList {
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Item[+A](children: Seq[A]) extends Composite[A]
+  case class Item[+A](content: Seq[A]) extends Composite[A]
 
   /** Counter information for an ordered list.
     *
@@ -256,7 +255,7 @@ object UnorderedList {
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Item[+A](children: Seq[A]) extends Composite[A]
+  case class Item[+A](content: Seq[A]) extends Composite[A]
 }
 
 //endregion
@@ -338,15 +337,15 @@ case class Entity(codePoints: Seq[Int]) extends Atomic {
 
 //region Span
 
-case class Emphasis(children: Seq[Inline]) extends Span {
+case class Emphasis(content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Link(children: Seq[Inline], ref: Option[ReferenceId], args: Seq[Argument]) extends Span {
+case class Link(content: Seq[Inline], ref: Option[ReferenceId], args: Seq[Argument]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Quoted(children: Seq[Inline], kind: Quoted.QuoteKind) extends Span {
+case class Quoted(content: Seq[Inline], kind: Quoted.QuoteKind) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -358,15 +357,15 @@ object Quoted {
   }
 }
 
-case class Strong(children: Seq[Inline]) extends Span {
+case class Strong(content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Subscript(children: Seq[Inline]) extends Span {
+case class Subscript(content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Superscript(children: Seq[Inline]) extends Span {
+case class Superscript(content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
