@@ -563,9 +563,9 @@ trait Grammar extends Parsers {
   }
 
   lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] = {
-    val property = (propertyName <~ sp.? ~ "=" ~ sp.?) ~ &(expr)
+    val property = (propertyName <~ sp.? ~ "=" ~ sp.?) ~ &(expr) ^* { case (n, v) => dom.Attribute(n, v) }
     val separator = sp.? ~ "," ~ sp.?
-    val properties = repSep(0, property, separator) ^* { _.collect { case Left(p) => p } }
+    val properties = repSepR(0, property, separator)
 
     "{" ~ sp.? ~> properties <~ sp.? ~ "}" ^* { p => dom.ObjectLiteral(p) }
   }

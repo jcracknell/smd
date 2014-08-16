@@ -298,7 +298,7 @@ object Span {
 
 //region Atomic
 
-case class Attributes(attrs: Seq[(String, Expression)]) extends Atomic {
+case class Attributes(attrs: Seq[Attribute]) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -409,13 +409,20 @@ case class NumericLiteral(value: Double) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-case class ObjectLiteral(props: Seq[(String, Expression)]) extends Expression {
+case class ObjectLiteral(props: Seq[Attribute]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
 object ObjectLiteral {
   def apply(): ObjectLiteral = apply(Seq())
-  def apply(p0: (String, Expression), ps: (String, Expression)*): ObjectLiteral = apply(p0 +: ps)
+  def apply(p0: Attribute, ps: Attribute*): ObjectLiteral = apply(p0 +: ps)
+}
+
+/** A property of an [[smd.dom.ObjectLiteral]] or [[smd.dom.Attributes]]. */
+sealed case class Attribute(name: String, value: Expression)
+
+object Attribute {
+  implicit def tuple2Property(tup: (String, Expression)): Attribute = Attribute(tup._1, tup._2)
 }
 
 sealed abstract class StringLikeLiteral extends Expression {
