@@ -16,7 +16,7 @@ class ParsingResultSpec extends FunSpec with Matchers {
     describe("range") {
       it("should have correct start and end values") {
         (success.range.start) should be (0)
-        (success.range.lastElement) should be (2)
+        (success.range.last) should be (2)
       }
     }
   }
