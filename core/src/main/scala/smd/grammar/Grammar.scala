@@ -276,7 +276,7 @@ trait Grammar extends Parsers {
   }
 
   lazy val heading: Parser[dom.Heading] =
-    spaceChars_? ~> "#".*>=(1) ~ blockInlines ^~ ((h, is) => dom.Heading(h.length, is))
+    sp.? ~> "#".*>=(1) ~ blockInlines ^~ ((h, is) => dom.Heading(h.length, is))
 
   lazy val paragraph: Parser[dom.Paragraph] =
     blockInlines ^* dom.Paragraph

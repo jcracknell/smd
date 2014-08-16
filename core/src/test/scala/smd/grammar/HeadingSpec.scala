@@ -22,4 +22,20 @@ class HeadingSpec extends ParsingScenarios {
       Text("Heading"), Space(), Text("2")
     ))
   )
+
+  parsing("""
+  |/* comment */ ## Heading Text
+  """) as heading should produce (
+    Heading(2, Seq(
+      Text("Heading"), Space(), Text("Text")
+    ))
+  )
+  parsing("""
+  |// comment
+  |## Heading Text
+  """) as heading should produce (
+    Heading(2, Seq(
+      Text("Heading"), Space(), Text("Text")
+    ))
+  )
 }
