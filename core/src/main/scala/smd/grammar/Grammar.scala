@@ -312,6 +312,7 @@ trait Grammar extends Parsers {
   lazy val inline: Parser[Inline] = (
     text
   | lineBreak
+  | attributes
   | space
   | strong
   | emphasis
@@ -320,16 +321,20 @@ trait Grammar extends Parsers {
   | autoLink
   | code
   | entity
-  | attributes
   | inlineExpression
   | superscript
   | subscript
   | symbol
   )
 
-  lazy val attributes: Parser[dom.Attributes] = rule {
-    &(objectLiteralExpression) ^* { (expr) => dom.Attributes(expr.props) }
-  }
+  /** An object literal expression defining attributes of the enclosing block. */
+  lazy val attributes: Parser[dom.Attributes] =
+    // N.B. that a preceding space is consumed if there is a trailing space so as to avoid
+    // creating multiple space nodes.
+    (
+      space ~> objectLiteralExpression <~ ?=(space)
+    |          objectLiteralExpression
+    ) ^* { expr => dom.Attributes(expr.props) }
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[dom.Link] = {

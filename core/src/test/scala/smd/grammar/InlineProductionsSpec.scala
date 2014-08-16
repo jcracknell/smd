@@ -1,12 +1,31 @@
 package smd
 package grammar
 
+import smd.dom
 import smd.dom._
 import smd.parsing.ParsingScenarios
 
 class InlineProductionsSpec extends ParsingScenarios {
   import Grammar.inline
 
+  describe("Attribute") {
+    parsing("{ b = c }") as inline should produce (Attributes(Seq("b" -> IriLiteral("c"))))
+
+    describe("space handling") {
+      parsing("a{ b = c }d") as inline.* should produce (Seq(
+        Text("a"), Attributes(Seq("b" -> IriLiteral("c"))), Text("d")
+      ))
+      parsing("a { b = c }d") as inline.* should produce (Seq(
+        Text("a"), Space(), Attributes(Seq("b" -> IriLiteral("c"))), Text("d")
+      ))
+      parsing("a{ b = c } d") as inline.* should produce (Seq(
+        Text("a"), Attributes(Seq("b" -> IriLiteral("c"))), Space(), Text("d")
+      ))
+      parsing("a { b = c } d") as inline.* should produce (Seq(
+        Text("a"), Attributes(Seq("b" -> IriLiteral("c"))), Space(), Text("d")
+      ))
+    }
+  }
   describe("AutoLink") {
     parsing("<https://github.com>") as inline should produce (AutoLink("https://github.com"))
     parsing("<mailto:john.doe@gmail.com>") as inline should produce (AutoLink("mailto:john.doe@gmail.com"))
