@@ -313,11 +313,16 @@ trait Grammar extends Parsers {
   | autoLink
   | code
   | entity
+  | attributes
   | inlineExpression
   | superscript
   | subscript
   | symbol
   )
+
+  lazy val attributes: Parser[dom.Attributes] = rule {
+    &(objectLiteralExpression) ^* { (expr) => dom.Attributes(expr.props) }
+  }
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[dom.Link] = {
@@ -407,6 +412,7 @@ trait Grammar extends Parsers {
     '[', ']',   // labels
     '<', '>',   // autolinks
     '|',        // table cell delimiter
+    '{', '}',   // attributes
     '@'         // twirl
   )
 

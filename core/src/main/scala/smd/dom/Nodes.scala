@@ -270,6 +270,7 @@ sealed abstract class Atomic extends Inline with Visitable[Atomic.Visitor] {
 
 object Atomic {
   trait Visitor[+A] {
+    def visit(node: Attributes): A
     def visit(node: AutoLink): A
     def visit(node: Code): A
     def visit(node: InlineExpression): A
@@ -296,6 +297,10 @@ object Span {
 }
 
 //region Atomic
+
+case class Attributes(attrs: Seq[(String, Expression)]) extends Atomic {
+  def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
 
 case class AutoLink(uri: String) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)

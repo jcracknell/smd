@@ -127,6 +127,8 @@ class HtmlRenderer(
         }
       }
 
+    def visit(node: Attributes): Unit = { }
+
     def visit(node: Emphasis): Unit =
       'em.inline { renderNodes(node.children) }
 
