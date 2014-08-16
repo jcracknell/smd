@@ -184,7 +184,7 @@ object OrderedList {
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Item[+A](refId: Option[ReferenceId], children: Seq[A]) extends Composite[A] with Referenceable
+  case class Item[+A](children: Seq[A]) extends Composite[A]
 
   /** Counter information for an ordered list.
     *

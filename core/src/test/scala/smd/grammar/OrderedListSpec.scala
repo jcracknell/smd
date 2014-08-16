@@ -17,10 +17,10 @@ class OrderedListSpec extends ParsingScenarios {
   | 2. Item 2
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("1")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
@@ -31,10 +31,10 @@ class OrderedListSpec extends ParsingScenarios {
   | 2) Item 2
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingParenthesis, Some(1), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("1")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
@@ -45,10 +45,10 @@ class OrderedListSpec extends ParsingScenarios {
   | (2) Item 2
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.Arabic, SeparatorStyle.EnclosingParentheses, Some(1), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("1")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
@@ -59,10 +59,10 @@ class OrderedListSpec extends ParsingScenarios {
   | #. Item 2
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, None, None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("1")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
@@ -73,10 +73,10 @@ class OrderedListSpec extends ParsingScenarios {
   | 4. Item 4
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(3), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("3")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("4")
       ))
     ))
@@ -87,10 +87,10 @@ class OrderedListSpec extends ParsingScenarios {
   |  iv. Item 4
   """) as orderedList should produce(
     OrderedList.Tight(Counter(NumeralStyle.LowerRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("3")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("4")
       ))
     ))
@@ -101,10 +101,10 @@ class OrderedListSpec extends ParsingScenarios {
   |  IV. Item 4
   """) as orderedList should produce(
     OrderedList.Tight(Counter(NumeralStyle.UpperRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("3")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("4")
       ))
     ))
@@ -115,10 +115,10 @@ class OrderedListSpec extends ParsingScenarios {
   | c. Item c
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.LowerAlpha, SeparatorStyle.TrailingDot, Some(2), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("b")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("c")
       ))
     ))
@@ -129,10 +129,10 @@ class OrderedListSpec extends ParsingScenarios {
   | C. Item C
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.UpperAlpha, SeparatorStyle.TrailingDot, Some(2), None), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("B")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("C")
       ))
     ))
@@ -143,41 +143,27 @@ class OrderedListSpec extends ParsingScenarios {
   | ex:2. Item 2
   """) as orderedList should produce (
     OrderedList.Tight(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), Some("ex")), Seq(
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("1")
       )),
-      OrderedList.Item(None, Seq(
+      OrderedList.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
   )
 
   parsing("""
-  | 1[first]. Item 1
-  | 2[second]. Item 2
-  """) as orderedList should produce (
-    OrderedList.Tight(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), None), Seq(
-      OrderedList.Item(Some(ReferenceId("first")), Seq(
-        Text("Item"), Space(), Text("1")
-      )),
-      OrderedList.Item(Some(ReferenceId("second")), Seq(
-        Text("Item"), Space(), Text("2")
-      ))
-    ))
-  )
-
-  parsing("""
-  | (ex:#[good]) good example
+  | (ex:#) good example
   |
-  | (ex:#[bad]) bad example
+  | (ex:#) bad example
   """) as orderedList should produce (
     OrderedList.Loose(Counter(NumeralStyle.Arabic, SeparatorStyle.EnclosingParentheses, None, Some("ex")), Seq(
-      OrderedList.Item(Some(ReferenceId("good")), Seq(
+      OrderedList.Item(Seq(
         Paragraph(Seq(
           Text("good"), Space(), Text("example")
         ))
       )),
-      OrderedList.Item(Some(ReferenceId("bad")), Seq(
+      OrderedList.Item(Seq(
         Paragraph(Seq(
           Text("bad"), Space(), Text("example")
         ))

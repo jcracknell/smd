@@ -85,7 +85,6 @@ trait Grammar extends Parsers {
       | [0-9]+                              # arabic
       | [a-z]+                              # alpha/roman
       )
-      (\[[^\n\r\u2028\u2029]+\])?           # optional reference id
       [.)]                                  # end separator
       [\t\ ]                                # must be followed by at least one space
       """.r
@@ -96,22 +95,22 @@ trait Grammar extends Parsers {
         (numeralStyle, numeral)               <- numeralStyles
         (separatorStyle, sepBefore, sepAfter) <- separatorStyles
       } yield new ListGrammar[dom.OrderedList] {
-        type MarkerProduct = (Option[String], CharSequence, Option[dom.ReferenceId])
-        lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) ~ referenceId.? <~ sepAfter
+        type MarkerProduct = (Option[String], CharSequence)
+        lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) <~ sepAfter
 
         def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
-          items.head match { case ((counterName, start, _), _) =>
+          items.head match { case ((counterName, start), _) =>
             dom.OrderedList.Loose(
               dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+              items map { case (_, children) => dom.OrderedList.Item(children) }
             )
           }
 
         def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
-          items.head match { case ((counterName, start, _), _) =>
+          items.head match { case ((counterName, start), _) =>
             dom.OrderedList.Tight(
               dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case ((_, _, ref), children) => dom.OrderedList.Item(ref, children) }
+              items map { case (_, children) => dom.OrderedList.Item(children) }
             )
           }
       }
