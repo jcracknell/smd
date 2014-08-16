@@ -77,8 +77,8 @@ sealed abstract class Block extends Markdown with Visitable[Block.Visitor]
 
 object Block {
   trait Visitor[+A] {
-    def visit(node: Blockquote): A
     def visit(node: ExpressionBlock): A
+    def visit(node: Blockquote): A
     def visit(node: Heading): A
     def visit(node: Paragraph): A
     def visit(node: Reference): A

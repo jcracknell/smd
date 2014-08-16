@@ -1,9 +1,9 @@
 <h1 id="">
   SMD
 </h1>
-<p>
-  <pre class="inline-expression">Call(Identifier(toc),List())</pre>
-</p>
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(toc),List())</pre>
+</div>
 <h2 id="">
   Summary of Omissions and Extensions
 </h2>
@@ -58,39 +58,39 @@
 <p>
   A span of text can <em>emphasized</em> or marked as <strong>strong</strong> by enclosing it in asterixes (<code>*</code>). Emphasis and strong are typically rendered using italicized and bold text respectively.
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(*emphasized* and **strong** text))))</pre>
-</p>
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(*emphasized* and **strong** text))))</pre>
+</div>
 <h3 id="">
   Links
 </h3>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral([google](http://www.google.com)))))</pre>
-</p>
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral([google](http://www.google.com)))))</pre>
+</div>
 <h3 id="">
   Subscript and Superscript
 </h3>
 <p>
   Text can be made subscript or superscript by enclosing it with tilde (<code>~</code>) or caret (<code>^</code>) characters respectively.
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(H~2~0 January 1^st^))))</pre>
-</p>
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(H~2~0 January 1^st^))))</pre>
+</div>
 <h3 id="">
   Code
 </h3>
 <p>
   Enclosing a snippet of text with a sequence of between 1 and 16 backtick characters (<code>`</code>) creates a code snippet. A code snippet preserves the formatting of the enclosed text verbatim, ignoring all escape sequences and markup. A code snippet cannot span multiple lines.
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(`12 * 12 = 144`))))</pre>
-</p>
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(`12 * 12 = 144`))))</pre>
+</div>
 <p>
   A single space character is discarded following the opening backtick sequence and preceding the closing sequence to handle snippets beginning or ending with a backtick.
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(`` `echo &quot;Hello World!&quot;` ``))))</pre>
-</p>
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(`` `echo &quot;Hello World!&quot;` ``))))</pre>
+</div>
 <h3 id="">
   Entities
 </h3>
@@ -112,11 +112,11 @@
 <p>
   The presence of the semicolon is optional in all cases save that of a named HTML entity, however it can serve to disambiguate the end of the entity.
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 \eacute; \Eacute; \u82; \#130;
 ))))</pre>
-</p>
+</div>
 <p>
   Any character can be preceded with a backslash to create a valid character escape, preventing the usual syntax rules from applying. For example, an asterix can be escaped as <code>\*</code> to prevent it from being interpreted as emphasis.
 </p>
@@ -126,13 +126,13 @@
 <p>
   An explicit line break can be introduced by preceding the end of a line with the escape character (<code>\</code>).
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 Line 1,
 still line 1 \
 line 2.
 ))))</pre>
-</p>
+</div>
 <h2 id="">
   Block Syntax
 </h2>
@@ -154,27 +154,27 @@ line 2.
 <p>
   Lists can be either <em>tight</em> or <em>loose</em>. The items of a <em>tight</em> list contain span markup and cannot span multiple paragraphs:
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
   * Item 2
 ))))</pre>
-</p>
+</div>
 <p>
   The items of a <em>loose</em> list can contain multiple paragraphs. A loose list is defined as <q class="single">a list which is not tight</q>; thus if a single empty line is introduced into a tight list, the entire list becomes loose:
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
 
   * Item 2
 ))))</pre>
-</p>
+</div>
 <p>
   A block can be included into a preceding list element by <em>indenting</em> (at minimum) the first line of the block with a tab character or four spaces. This technique is used to create list items spanning multiple paragraphs and sublists:
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
 
     Still in item 1.
@@ -187,7 +187,7 @@ Not in item 2.
       * Sublist item 1
       * Sublist item 2
 ))))</pre>
-</p>
+</div>
 <h4 id="">
   Unordered Lists
 </h4>
@@ -248,22 +248,22 @@ Not in item 2.
 <p>
   The cell separators of a table do not need to be aligned perfectly, but doing so will make the table much easier to read in its textual representation!
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 | Left     |  Center  |    Right |
 |:---------+:--------:+---------:|
 | left     |  center  |    right |
 ))))</pre>
-</p>
+</div>
 <p>
   The <code>+</code> and <code>=</code> characters are interchangeable with <code>|</code> and <code>-</code> respectively on the alignment row only, so that you can indulge your artistic sensibilities to some small degree. Table cells can be spanned to multiple columns by repeating the separator following the cell:
 </p>
-<p>
-  <pre class="inline-expression">Call(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="expression-block">
+  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 |         Trial |     1    ||     2    ||
 |     Component | Min | Max | Min | Max |
 |--------------:+----:+----:+----:+----:|
 |   Frobnicator |  23 |  42 |  20 |  56 |
 | Confoobmotron |  57 | 130 |  63 | 112 |
 ))))</pre>
-</p>
+</div>

@@ -27,6 +27,7 @@ trait Grammar extends Parsers {
   | reference
   | definitionList
   | table
+  | expressionBlock
   | paragraph
   )
 
@@ -259,6 +260,12 @@ trait Grammar extends Parsers {
       val alignments = al.flatMap({ case (a, n) => List.fill(n)(a) }).toList
       dom.Table(head = mkRows(hd, alignments), body = mkRows(bd, alignments))
     }
+  }
+
+  /* An expression which stands alone as a block, without being wrapped in a paragraph. */
+  lazy val expressionBlock: Parser[dom.ExpressionBlock] = rule {
+    // N.B. the block must be followed by a blank line, otherwise it is a paragraph
+    sp.? ~> embeddableExpression <~ sp.? ~ ?=(blankLine) ^* dom.ExpressionBlock
   }
 
   lazy val blockquote: Parser[dom.Blockquote] = {

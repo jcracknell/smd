@@ -35,9 +35,11 @@ class HtmlRenderer(
       }
 
     def visit(node: ExpressionBlock): Unit =
-      'pre.pre('class -> "markdown-expression") {
-        // TODO: Expression evaluation
-        writer.writeText(node.expr.toString)
+      'div.block('class -> "expression-block") {
+        'pre.pre('class -> "markdown-expression") {
+          // TODO: Expression evaluation
+          writer.writeText(node.expr.toString)
+        }
       }
 
     def visit(node: Heading): Unit =
