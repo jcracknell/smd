@@ -11,26 +11,28 @@ class UnorderedListSpec extends ParsingScenarios {
   | * Item 1
   | * Item 2
   """) as unorderedList should produce (
-    UnorderedList.Tight(Seq(
-      UnorderedList.Tight.Item(Seq(
-        Text("Item"), Space(), Text("1")
-      )),
-      UnorderedList.Tight.Item(Seq(
-        Text("Item"), Space(), Text("2")
-      ))
+    TightUnorderedList(Seq(
+      TightUnorderedList.Item(
+        Seq(Text("Item"), Space(), Text("1")),
+        Seq()
+      ),
+      TightUnorderedList.Item(
+        Seq(Text("Item"), Space(), Text("2")),
+        Seq()
+      )
     ))
   )
 
-  parsing( """
+  parsing("""
   |* Item 1
   |continues
   | * Item 2
   """) as unorderedList should produce (
-    UnorderedList.Tight(Seq(
-      UnorderedList.Tight.Item(Seq(
+    TightUnorderedList(Seq(
+      TightUnorderedList.Item(Seq(
         Text("Item"), Space(), Text("1"), Space(), Text("continues")
       )),
-      UnorderedList.Tight.Item(Seq(
+      TightUnorderedList.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
@@ -42,13 +44,13 @@ class UnorderedListSpec extends ParsingScenarios {
   |
   | * Item 2
   """) as unorderedList should produce (
-    UnorderedList.Loose(Seq(
-      UnorderedList.Loose.Item(Seq(
+    LooseUnorderedList(Seq(
+      LooseUnorderedList.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("1")
         ))
       )),
-      UnorderedList.Loose.Item(Seq(
+      LooseUnorderedList.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("2")
         ))
@@ -62,13 +64,13 @@ class UnorderedListSpec extends ParsingScenarios {
   |
   |    continues
   """) as unorderedList should produce (
-    UnorderedList.Loose(Seq(
-      UnorderedList.Loose.Item(Seq(
+    LooseUnorderedList(Seq(
+      LooseUnorderedList.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("1")
         ))
       )),
-      UnorderedList.Loose.Item(Seq(
+      LooseUnorderedList.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("2")
         )),
@@ -76,6 +78,56 @@ class UnorderedListSpec extends ParsingScenarios {
           Text("continues")
         ))
       ))
+    ))
+  )
+
+  parsing("""
+  |  * a
+  |      * b
+  |          * c
+  |      * d
+  |          * e
+  |          * f
+  |  * g
+  """) as unorderedList should produce (
+    TightUnorderedList(Seq(
+      TightUnorderedList.Item(
+        Seq(Text("a")),
+        Seq(
+          TightUnorderedList(Seq(
+            TightUnorderedList.Item(
+              Seq(Text("b")),
+              Seq(
+                TightUnorderedList(Seq(
+                  TightUnorderedList.Item(
+                    Seq(Text("c")),
+                    Seq()
+                  )
+                ))
+              )
+            ),
+            TightUnorderedList.Item(
+              Seq(Text("d")),
+              Seq(
+                TightUnorderedList(Seq(
+                  TightUnorderedList.Item(
+                    Seq(Text("e")),
+                    Seq()
+                  ),
+                  TightUnorderedList.Item(
+                    Seq(Text("f")),
+                    Seq()
+                  )
+                ))
+              )
+            )
+          ))
+        )
+      ),
+      TightUnorderedList.Item(
+        Seq(Text("g")),
+        Seq()
+      )
     ))
   )
 }

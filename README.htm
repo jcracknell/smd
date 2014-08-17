@@ -1,151 +1,196 @@
-<h1 id="">
+<h1 id="" class="smd-heading" data-smd-heading-level="1">
   SMD
 </h1>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(toc),List())</pre>
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(toc),List())</pre>
 </div>
-<h2 id="">
+<h2 id="" class="smd-heading" data-smd-heading-level="2">
   Summary of Omissions and Extensions
 </h2>
 <p>
   SMD implements a markdown dialect which deviates substantially from <a href="">the original syntax</a> developped by John Gruber, but endeavours to conform in spirit; defining a lightweight markup language which is easy to understand and whose rendered output closely resembles the input text (insofar as this is possible).
 </p>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Omissions
 </h3>
-<ul class="ul-tight">
-  <li>
-    Underscore syntax for bold and italic text.
+<ul class="smd-ul-tight">
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Underscore syntax for bold and italic text.
+    </div>
+    
   </li>
-  <li>
-    Image embedding of the form <code>![title](href)</code>, as this functionality is better handled as a macro.
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Image embedding of the form <code>![title](href)</code>, as this functionality is better handled as a macro.
+    </div>
+    
   </li>
-  <li>
-    Embedded HTML.
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Embedded HTML.
+    </div>
+    
   </li>
-  <li>
-    Indented code blocks; a feature I like to describe as <q class="single">easy to invoke by accident, yet difficult to use with purpose</q>.
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Indented code blocks; a feature I like to describe as <q class="single">easy to invoke by accident, yet difficult to use with purpose</q>.
+    </div>
+    
   </li>
-  <li>
-    <q class="single">Setext</q> (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax supporting only two levels.
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      <q class="single">Setext</q> (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax supporting only two levels.
+    </div>
+    
   </li>
   
 </ul>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Extensions
 </h3>
-<ul class="ul-tight">
-  <li>
-    <a href="">Superscript and subscript</a>, as seen in pandoc.
+<ul class="smd-ul-tight">
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      <a href="">Superscript and subscript</a>, as seen in pandoc.
+    </div>
+    
   </li>
-  <li>
-    C-style comments, both single and multi-line
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      C-style comments, both single and multi-line
+    </div>
+    
   </li>
-  <li>
-    <a href="">Definition Lists</a>, as seen in PHP Markdown Extra/reStructuredText/pandoc
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      <a href="">Definition Lists</a>, as seen in PHP Markdown Extra/reStructuredText/pandoc
+    </div>
+    
   </li>
-  <li>
-    <a href="">Pipe tables</a>, as seen in PHP Markdown Extra
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      <a href="">Pipe tables</a>, as seen in PHP Markdown Extra
+    </div>
+    
   </li>
   
 </ul>
-<h2 id="">
+<h2 id="" class="smd-heading" data-smd-heading-level="2">
   Span Syntax
 </h2>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Strong and Emphasis
 </h3>
 <p>
   A span of text can <em>emphasized</em> or marked as <strong>strong</strong> by enclosing it in asterixes (<code>*</code>). Emphasis and strong are typically rendered using italicized and bold text respectively.
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(*emphasized* and **strong** text))))</pre>
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(*emphasized* and **strong** text))))</pre>
 </div>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Links
 </h3>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral([google](http://www.google.com)))))</pre>
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral([google](http://www.google.com)))))</pre>
 </div>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Subscript and Superscript
 </h3>
 <p>
   Text can be made subscript or superscript by enclosing it with tilde (<code>~</code>) or caret (<code>^</code>) characters respectively.
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(H~2~0 January 1^st^))))</pre>
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(H~2~0 January 1^st^))))</pre>
 </div>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Code
 </h3>
 <p>
   Enclosing a snippet of text with a sequence of between 1 and 16 backtick characters (<code>`</code>) creates a code snippet. A code snippet preserves the formatting of the enclosed text verbatim, ignoring all escape sequences and markup. A code snippet cannot span multiple lines.
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(`12 * 12 = 144`))))</pre>
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(`12 * 12 = 144`))))</pre>
 </div>
 <p>
   A single space character is discarded following the opening backtick sequence and preceding the closing sequence to handle snippets beginning or ending with a backtick.
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(`` `echo &quot;Hello World!&quot;` ``))))</pre>
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(`` `echo &quot;Hello World!&quot;` ``))))</pre>
 </div>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Entities
 </h3>
-<ul class="ul-tight">
-  <li>
-    Named HTML entities of the form <code>\eacute;</code>
+<ul class="smd-ul-tight">
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Named HTML entities of the form <code>\eacute;</code>
+    </div>
+    
   </li>
-  <li>
-    Decimal escapes of the form <code>\#201;</code>
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Decimal escapes of the form <code>\#201;</code>
+    </div>
+    
   </li>
-  <li>
-    Hexadecimal escapes of the form <code>\#u201;</code>, <code>\u201;</code>, <code>\#x201;</code> or <code>\x201;</code>
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Hexadecimal escapes of the form <code>\#u201;</code>, <code>\u201;</code>, <code>\#x201;</code> or <code>\x201;</code>
+    </div>
+    
   </li>
-  <li>
-    Character escapes of the form <code>\n</code>, <code>\t</code> as seen in most programming languages, though their usefulness here is debatable.
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      Character escapes of the form <code>\n</code>, <code>\t</code> as seen in most programming languages, though their usefulness here is
+    </div>
+    <ol class="smd-ol-tight smd-ol-loweralpha smd-ol-trailingdot" data-smd-counter-start="-67147507">
+      <li class="smd-ol-tight-item">
+        
+      </li>
+      
+    </ol>
+    
   </li>
   
 </ul>
 <p>
   The presence of the semicolon is optional in all cases save that of a named HTML entity, however it can serve to disambiguate the end of the entity.
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 \eacute; \Eacute; \u82; \#130;
 ))))</pre>
 </div>
 <p>
   Any character can be preceded with a backslash to create a valid character escape, preventing the usual syntax rules from applying. For example, an asterix can be escaped as <code>\*</code> to prevent it from being interpreted as emphasis.
 </p>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Line Breaks
 </h3>
 <p>
   An explicit line break can be introduced by preceding the end of a line with the escape character (<code>\</code>).
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 Line 1,
 still line 1 \
 line 2.
 ))))</pre>
 </div>
-<h2 id="">
+<h2 id="" class="smd-heading" data-smd-heading-level="2">
   Block Syntax
 </h2>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Paragraphs
 </h3>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Headings
 </h3>
 <p>
   A heading is preceded by a variable number of pound characters (<code>#</code>) determining the level of the heading. Setext-style (underlined) headings as seen in other markdown dialects are unsupported.
 </p>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Lists
 </h3>
 <p>
@@ -154,8 +199,8 @@ line 2.
 <p>
   Lists can be either <em>tight</em> or <em>loose</em>. The items of a <em>tight</em> list contain span markup and cannot span multiple paragraphs:
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
   * Item 2
 ))))</pre>
@@ -163,8 +208,8 @@ line 2.
 <p>
   The items of a <em>loose</em> list can contain multiple paragraphs. A loose list is defined as <q class="single">a list which is not tight</q>; thus if a single empty line is introduced into a tight list, the entire list becomes loose:
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
 
   * Item 2
@@ -173,8 +218,8 @@ line 2.
 <p>
   A block can be included into a preceding list element by <em>indenting</em> (at minimum) the first line of the block with a tab character or four spaces. This technique is used to create list items spanning multiple paragraphs and sublists:
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
   * Item 1
 
     Still in item 1.
@@ -188,55 +233,79 @@ Not in item 2.
       * Sublist item 2
 ))))</pre>
 </div>
-<h4 id="">
+<h4 id="" class="smd-heading" data-smd-heading-level="4">
   Unordered Lists
 </h4>
 <p>
   As seen previously, an unordered list is denoted by a marker consisting of the <code>*</code>, <code>-</code> or <code>+</code> character. Your choice of marker character has no effect whatsoever.
 </p>
-<h4 id="">
+<h4 id="" class="smd-heading" data-smd-heading-level="4">
   Ordered Lists
 </h4>
 <p>
   The following separator styles are supported:
 </p>
-<ul class="ul-tight">
-  <li>
-    trailing-dot, of the form <code>1.</code>
+<ul class="smd-ul-tight">
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      trailing-dot, of the form <code>1.</code>
+    </div>
+    
   </li>
-  <li>
-    trailing-parenthesis, of the form <code>1)</code>
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      trailing-parenthesis, of the form <code>1)</code>
+    </div>
+    
   </li>
-  <li>
-    enclosing-parentheses, of the form <code>(1)</code>
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      enclosing-parentheses, of the form <code>(1)</code>
+    </div>
+    
   </li>
   
 </ul>
 <p>
   The following counter styles are supported:
 </p>
-<ul class="ul-tight">
-  <li>
-    arabic (<code>1</code>, <code>2</code>, ...)
+<ul class="smd-ul-tight">
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      arabic (<code>1</code>, <code>2</code>, ...)
+    </div>
+    
   </li>
-  <li>
-    lower-alpha (<code>a</code>, <code>b</code>, ...)
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      lower-alpha (<code>a</code>, <code>b</code>, ...)
+    </div>
+    
   </li>
-  <li>
-    upper-alpha (<code>A</code>, <code>B</code>, ...)
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      upper-alpha (<code>A</code>, <code>B</code>, ...)
+    </div>
+    
   </li>
-  <li>
-    lower-roman (<code>i</code>, <code>ii</code>, ...)
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      lower-roman (<code>i</code>, <code>ii</code>, ...)
+    </div>
+    
   </li>
-  <li>
-    upper-roman (<code>I</code>, <code>II</code>, ...)
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      upper-roman (<code>I</code>, <code>II</code>, ...)
+    </div>
+    
   </li>
   
 </ul>
-<h4 id="">
+<h4 id="" class="smd-heading" data-smd-heading-level="4">
   Definition Lists
 </h4>
-<h3 id="">
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
   Tables
 </h3>
 <p>
@@ -248,8 +317,8 @@ Not in item 2.
 <p>
   The cell separators of a table do not need to be aligned perfectly, but doing so will make the table much easier to read in its textual representation!
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 | Left     |  Center  |    Right |
 |:---------+:--------:+---------:|
 | left     |  center  |    right |
@@ -258,8 +327,8 @@ Not in item 2.
 <p>
   The <code>+</code> and <code>=</code> characters are interchangeable with <code>|</code> and <code>-</code> respectively on the alignment row only, so that you can indulge your artistic sensibilities to some small degree. Table cells can be spanned to multiple columns by repeating the separator following the cell:
 </p>
-<div class="expression-block">
-  <pre class="markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
 |         Trial |     1    ||     2    ||
 |     Component | Min | Max | Min | Max |
 |--------------:+----:+----:+----:+----:|

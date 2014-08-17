@@ -1,7 +1,6 @@
 import scala.annotation.tailrec
 
 package object smd {
-
   implicit class Unfoldable[A](val self: A) {
     @inline private def unfoldRight[B](seed: A, unspool: A => Option[(B, A)]): Stream[B] =
       unspool(seed) match {

@@ -48,21 +48,21 @@ class ReferenceSpec extends ParsingScenarios {
   |[google]: //comment
   |  http://www.google.com
   """) as reference should produce (
-    Reference(ReferenceId("google"), List(IriLiteral("http://www.google.com")))
+    Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
   )
 
   parsing("""
   |[google]: /* comment
   | comment */http://www.google.com
   """) as reference should produce (
-    Reference(ReferenceId("google"), List(IriLiteral("http://www.google.com")))
+    Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com")))
   )
 
   parsing("""
   |[google]: http://www.google.com,
   |  "The google home page"
   """) as reference should produce (
-    Reference(ReferenceId("google"), List(
+    Reference(ReferenceId("google"), Seq(
       IriLiteral("http://www.google.com"),
       StringLiteral("The google home page")
     ))
@@ -72,7 +72,7 @@ class ReferenceSpec extends ParsingScenarios {
   |[google]: http://www.google.com, //comment
   |  "The google home page"
   """) as reference should produce (
-    Reference(ReferenceId("google"), List(
+    Reference(ReferenceId("google"), Seq(
       IriLiteral("http://www.google.com"),
       StringLiteral("The google home page")
     ))
@@ -82,7 +82,7 @@ class ReferenceSpec extends ParsingScenarios {
   |[google]: http://www.google.com, /* comment
   |   comment */ "The google home page"
   """) as reference should produce (
-    Reference(ReferenceId("google"), List(
+    Reference(ReferenceId("google"), Seq(
       IriLiteral("http://www.google.com"),
       StringLiteral("The google home page")
     ))

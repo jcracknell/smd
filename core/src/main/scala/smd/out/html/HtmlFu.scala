@@ -24,14 +24,6 @@ object HtmlAttributable {
     tup match { case (name, value) => Seq(HtmlAttribute.Value(name, value)) }
   }
 
-  implicit def valueFromSymbolAndAny[A](tup: (Symbol, A)) = HtmlAttributable {
-    tup match { case (s, a) => Seq(HtmlAttribute.Value(s.name, HtmlString.encode(a.toString))) }
-  }
-
-  implicit def valueFromStringAndAny[A](tup: (String, A)) = HtmlAttributable {
-    tup match { case (name, a) => Seq(HtmlAttribute.Value(name, HtmlString.encode(a.toString))) }
-  }
-
   implicit def booleanFromSymbol(s: Symbol) = HtmlAttributable { Seq(HtmlAttribute.Boolean(s.name)) }
 
   implicit def booleanFromString(name: String) = HtmlAttributable { Seq(HtmlAttribute.Boolean(name)) }
@@ -42,6 +34,14 @@ object HtmlAttributable {
 
   implicit def valueFromAttributableSeq[A <% HtmlAttributable](seq: Seq[A]): HtmlAttributable = HtmlAttributable {
     seq.flatMap(_.toAttributes)
+  }
+
+  implicit def valueFromSymbolAndAny[A](tup: (Symbol, A)) = HtmlAttributable {
+    tup match { case (s, a) => Seq(HtmlAttribute.Value(s.name, HtmlString.encode(a.toString))) }
+  }
+
+  implicit def valueFromStringAndAny[A](tup: (String, A)) = HtmlAttributable {
+    tup match { case (name, a) => Seq(HtmlAttribute.Value(name, HtmlString.encode(a.toString))) }
   }
 }
 

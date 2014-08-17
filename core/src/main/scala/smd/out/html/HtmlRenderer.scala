@@ -7,14 +7,15 @@ import java.io.{BufferedOutputStream, OutputStream, OutputStreamWriter}
 import java.nio.charset.Charset
 
 class HtmlRenderer(
-  configuration: HtmlWriter.Configuration = HtmlWriter.defaultConfiguration,
-  charSet: Charset                        = Charset.forName("UTF-8")
+  configuration: HtmlRenderer.Configuration = HtmlRenderer.defaultConfiguration,
+  charSet: Charset = Charset.forName("UTF-8"),
+  htmlWriterConfiguration: HtmlWriter.Configuration = HtmlWriter.defaultConfiguration
 ) extends Renderer {
 
   def render(document: Document, ostream: OutputStream): Unit =
     using(new BufferedOutputStream(ostream)) { ostream =>
       using(new OutputStreamWriter(ostream, charSet)) { writer =>
-        val htmlWriter = new StandardHtmlWriter(writer, configuration)
+        val htmlWriter = new StandardHtmlWriter(writer, htmlWriterConfiguration)
         val visitor = new RenderingVisitor(htmlWriter)
 
         document.content foreach { _.accept(visitor) }
@@ -35,61 +36,70 @@ class HtmlRenderer(
       }
 
     def visit(node: ExpressionBlock): Unit =
-      'div.block('class -> "expression-block") {
-        'pre.pre('class -> "markdown-expression") {
+      'div.block('class -> s"${configuration.cssNamespace}expression-block") {
+        'pre.pre('class -> s"${configuration.cssNamespace}markdown-expression") {
           // TODO: Expression evaluation
           writer.writeText(node.expr.toString)
         }
       }
 
     def visit(node: Heading): Unit =
-      if(node.level <= 6)
-        s"h${node.level}".block('id -> "") { renderNodes(node.content) }
-      else
-        'div.block("data-heading-level" -> node.level) { renderNodes(node.content) }
+      (if(node.level <= 6) s"h${node.level}" else "div").block(
+        'id -> "",
+        'class -> s"${configuration.cssNamespace}heading",
+        s"data-${configuration.attrNamespace}heading-level" -> node.level
+      ) { renderNodes(node.content) }
 
     def visit(node: Paragraph): Unit =
       'p.block { renderNodes(node.content) }
 
     def visit(node: Reference): Unit = { }
 
-    def visit(node: DefinitionList.Loose): Unit =
-      'dl.block('class -> "dl-loose") {
+    def visit(node: LooseDefinitionList): Unit =
+      'dl.block('class -> s"${configuration.cssNamespace}dl-loose") {
         node.items foreach { item =>
-          'dt.block { renderNodes(item.term.content) }
+          'dt.block('class -> s"${configuration.cssNamespace}dl-loose-term") { renderNodes(item.term.content) }
           item.defs foreach { definition =>
-            'dd.block { renderNodes(definition.content) }
+            'dd.block('class -> s"${configuration.cssNamespace}dl-loose-def") { renderNodes(definition.content) }
           }
         }
       }
 
-    def visit(node: DefinitionList.Tight): Unit =
-      'dl.block('class -> "dl-tight") {
+    def visit(node: TightDefinitionList): Unit =
+      'dl.block('class -> s"${configuration.cssNamespace}dl-tight") {
         node.items foreach { item =>
-          'dt.block { renderNodes(item.term.content) }
+          'dt.block('class -> s"${configuration.cssNamespace}dl-tight-term") { renderNodes(item.term.content) }
           item.defs foreach { definition =>
-            'dd.block { renderNodes(definition.content) }
+            'dd.block('class -> s"${configuration.cssNamespace}dl-tight-def") {
+              if(!definition.content.isEmpty)
+                'div.block('class -> s"${configuration.cssNamespace}dl-tight-def-content") { renderNodes(definition.content) }
+              renderNodes(definition.sublists)
+            }
           }
         }
       }
 
-    def visit(node: OrderedList.Loose): Unit =
+    def visit(node: LooseOrderedList): Unit =
       'ol.block(
-        'class -> s"ol-loose ol-${node.counter.numeralStyle.toString.toLowerCase} ol-${node.counter.separatorStyle.toString.toLowerCase}",
-        node.counter.start map ("data-counter-start" -> _)
+        'class -> s"${configuration.cssNamespace}ol-loose ${configuration.cssNamespace}ol-${node.counter.numeralStyle.toString.toLowerCase} ${configuration.cssNamespace}ol-${node.counter.separatorStyle.toString.toLowerCase}",
+        node.counter.start map (s"data-${configuration.attrNamespace}counter-start" -> _)
       ) {
         node.items foreach { item =>
-          'li.block { renderNodes(item.content) }
+          'li.block('class -> s"${configuration.cssNamespace}ol-loose-item") { renderNodes(item.content) }
         }
       }
 
-    def visit(node: OrderedList.Tight): Unit =
+    def visit(node: TightOrderedList): Unit =
       'ol.block(
-        'class -> s"ol-tight ol-${node.counter.numeralStyle.toString.toLowerCase} ol-${node.counter.separatorStyle.toString.toLowerCase}",
-        node.counter.start map ("data-counter-start" -> _)
+        'class -> s"${configuration.cssNamespace}ol-tight ${configuration.cssNamespace}ol-${node.counter.numeralStyle.toString.toLowerCase} ${configuration.cssNamespace}ol-${node.counter.separatorStyle.toString.toLowerCase}",
+        node.counter.start map (s"data-${configuration.attrNamespace}counter-start" -> _)
       ) {
         node.items foreach { item =>
-          'li.block { renderNodes(item.content) }
+          'li.block('class -> s"${configuration.cssNamespace}ol-tight-item") {
+            if(!item.content.isEmpty)
+              'div.block('class -> s"${configuration.cssNamespace}ol-tight-content") { renderNodes(item.content) }
+            renderNodes(item.sublists)
+          }
         }
       }
 
@@ -115,17 +125,21 @@ class HtmlRenderer(
         }
       }
 
-    def visit(node: UnorderedList.Loose): Unit =
-      'ul.block('class -> "ul-loose") {
+    def visit(node: LooseUnorderedList): Unit =
+      'ul.block('class -> s"${configuration.cssNamespace}ul-loose") {
         node.items map { item =>
-          'li.block { renderNodes(item.content) }
+          'li.block('class -> s"${configuration.cssNamespace}ul-loose-item") { renderNodes(item.content) }
         }
       }
 
-    def visit(node: UnorderedList.Tight): Unit =
-      'ul.block('class -> "ul-tight") {
+    def visit(node: TightUnorderedList): Unit =
+      'ul.block('class -> s"${configuration.cssNamespace}ul-tight") {
         node.items map { item =>
-          'li.block { renderNodes(item.content) }
+          'li.block('class -> s"${configuration.cssNamespace}ul-tight-item") {
+            if(!item.content.isEmpty)
+              'div.block('class -> s"${configuration.cssNamespace}ul-tight-content") { renderNodes(item.content) }
+            renderNodes(item.sublists)
+          }
         }
       }
 
@@ -157,7 +171,7 @@ class HtmlRenderer(
       'code.pre { writer.writeText(node.value) }
 
     def visit(node: InlineExpression): Unit =
-      'pre.pre('class -> "inline-expression") { writer.writeText(node.expr.toString) }
+      'pre.pre('class -> s"${configuration.cssNamespace}inline-expression") { writer.writeText(node.expr.toString) }
 
     def visit(node: LineBreak): Unit = 'br.empty
 
@@ -169,5 +183,14 @@ class HtmlRenderer(
 
     def visit(node: Entity): Unit =
       node.codePoints foreach { cp => writer.writeRaw(s"&#$cp;") }
+  }
+}
+
+object HtmlRenderer {
+  val defaultConfiguration: Configuration = new Configuration { }
+
+  trait Configuration {
+    def cssNamespace: String = "smd-"
+    def attrNamespace: String = "smd-"
   }
 }
