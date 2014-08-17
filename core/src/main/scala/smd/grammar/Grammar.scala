@@ -45,9 +45,9 @@ trait Grammar extends Parsers {
 
   //region Lists
 
-  val unorderedList = new ListGrammar[dom.UnorderedList] {
+  lazy val unorderedList = new ListGrammar[dom.UnorderedList] {
     type MarkerProduct = Any
-    lazy val marker = "*" | "-" | "+"
+    lazy val marker = unorderedListMarker
 
     def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.UnorderedList =
       dom.UnorderedList.Loose(items map { case (_, children) => dom.UnorderedList.Loose.Item(children) })
@@ -57,63 +57,29 @@ trait Grammar extends Parsers {
   }
 
   lazy val orderedList: Parser[dom.OrderedList] = {
-    // Arabic numerals must come first as the default in the event of an initial placeholder marker.
-    val numeralStyles = Seq(
-      (dom.OrderedList.NumeralStyle.Arabic,     """[0-9]+""".r.p                    ),
-      (dom.OrderedList.NumeralStyle.LowerRoman, """[mdclxvi][mdclxviMDCLXVI]*""".r.p),
-      (dom.OrderedList.NumeralStyle.UpperRoman, """[MDCLXVI][mdclxviMDCLXVI]*""".r.p),
-      (dom.OrderedList.NumeralStyle.LowerAlpha, """[a-z][a-zA-Z]*""".r.p            ),
-      (dom.OrderedList.NumeralStyle.UpperAlpha, """[A-Z][a-zA-Z]*""".r.p            )
-    )
-
-    val separatorStyles = Seq(
-      (dom.OrderedList.SeparatorStyle.TrailingDot,          ε,     ".".p),
-      (dom.OrderedList.SeparatorStyle.TrailingParenthesis,  ε,     ")".p),
-      (dom.OrderedList.SeparatorStyle.EnclosingParentheses, "(".p, ")".p)
-    )
-
-    val counterName_? = (("""[\p{Lower}\p{Upper}\p{Digit}_-]+""".r <~ ":") ^* (_.matched)).?
-
-    // For performance reasons we use a regex to quickly check if there is a valid counter ahead
-    // This is also a relatively concise and comprehensible reference for the counter grammar.
-    val counterish = 
-      """(?iux)                             # ignore case, unicode character classes, comments
-      [\ ]{0,3}                             # non-indent space
-      [(]?                                  # begin separator
-      ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
-      (
-        \#                                  # auto-number
-      | [0-9]+                              # arabic
-      | [a-z]+                              # alpha/roman
-      )
-      [.)]                                  # end separator
-      [\t\ ]                                # must be followed by at least one space
-      """.r
-
     // TODO: is there a sane way we can enforce the same counter name across all list elements?
-    ?=(counterish) ~> |<< {
-      for {
-        (numeralStyle, numeral)               <- numeralStyles
-        (separatorStyle, sepBefore, sepAfter) <- separatorStyles
-      } yield new ListGrammar[dom.OrderedList] {
-        type MarkerProduct = (Option[String], CharSequence)
-        lazy val marker = sepBefore ~> counterName_? ~ ("#" | numeral ^^(_.parsed)) <~ sepAfter
+    ?=(orderedListMarkerLike) ~> |<< {
+      orderedListMarkerVariants map { case (numeralStyle, separatorStyle, markerParser) =>
+        new ListGrammar[dom.OrderedList] {
+          type MarkerProduct = (Option[String], CharSequence)
+          def marker = markerParser
 
-        def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
-          items.head match { case ((counterName, start), _) =>
-            dom.OrderedList.Loose(
-              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case (_, children) => dom.OrderedList.Loose.Item(children) }
-            )
-          }
+          def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
+            items.head match { case ((counterName, start), _) =>
+              dom.OrderedList.Loose(
+                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+                items map { case (_, children) => dom.OrderedList.Loose.Item(children) }
+              )
+            }
 
-        def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
-          items.head match { case ((counterName, start), _) =>
-            dom.OrderedList.Tight(
-              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case (_, children) => dom.OrderedList.Tight.Item(children) }
-            )
-          }
+          def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.OrderedList =
+            items.head match { case ((counterName, start), _) =>
+              dom.OrderedList.Tight(
+                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
+                items map { case (_, children) => dom.OrderedList.Tight.Item(children) }
+              )
+            }
+        }
       }
     }
   }
@@ -200,6 +166,52 @@ trait Grammar extends Parsers {
     /** A 'loose' list item can contain subsequent blocks of content. */
     lazy val itemLoose = itemInitialBlock ~ itemSubsequentBlock.* ^* { case ((m, a), bs) => (m, a ++ bs.flatten) }
   }
+
+  protected lazy val unorderedListMarker = "*" | "-" | "+"
+
+  protected lazy val orderedListMarkerVariants: Seq[(dom.OrderedList.NumeralStyle, dom.OrderedList.SeparatorStyle, Parser[(Option[String], CharSequence)])] = {
+    // Arabic numerals must come first as the default in the event of an initial placeholder marker.
+    val numeralStyles = Seq(
+      (dom.OrderedList.NumeralStyle.Arabic,     """[0-9]+""".r.p                    ),
+      (dom.OrderedList.NumeralStyle.LowerRoman, """[mdclxvi][mdclxviMDCLXVI]*""".r.p),
+      (dom.OrderedList.NumeralStyle.UpperRoman, """[MDCLXVI][mdclxviMDCLXVI]*""".r.p),
+      (dom.OrderedList.NumeralStyle.LowerAlpha, """[a-z][a-zA-Z]*""".r.p            ),
+      (dom.OrderedList.NumeralStyle.UpperAlpha, """[A-Z][a-zA-Z]*""".r.p            )
+    )
+
+    val separatorStyles = Seq(
+      (dom.OrderedList.SeparatorStyle.TrailingDot,          ε,     ".".p),
+      (dom.OrderedList.SeparatorStyle.TrailingParenthesis,  ε,     ")".p),
+      (dom.OrderedList.SeparatorStyle.EnclosingParentheses, "(".p, ")".p)
+    )
+
+    val counterName_? = (("""[\p{Lower}\p{Upper}\p{Digit}_-]+""".r <~ ":") ^* (_.matched)).?
+
+    for {
+      (numeralStyle, numeral)               <- numeralStyles
+      (separatorStyle, sepBefore, sepAfter) <- separatorStyles
+    } yield (
+      numeralStyle,
+      separatorStyle,
+      sepBefore ~> counterName_? ~ ("#" | numeral ^^ (_.parsed)) <~ sepAfter 
+    )
+  }
+
+  // For performance reasons we use a regex to quickly check if there is a valid counter ahead
+  // This is also a relatively concise and comprehensible reference for the counter grammar.
+  protected lazy val orderedListMarkerLike = 
+    """(?iux)                             # ignore case, unicode character classes, comments
+    [\ ]{0,3}                             # non-indent space
+    [(]?                                  # begin separator
+    ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
+    (
+      \#                                  # auto-number
+    | [0-9]+                              # arabic
+    | [a-z]+                              # alpha/roman
+    )
+    [.)]                                  # end separator
+    [\t\ ]                                # must be followed by at least one space
+    """.r
 
   //endregion
 
