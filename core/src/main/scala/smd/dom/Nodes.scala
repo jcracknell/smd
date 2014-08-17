@@ -148,42 +148,62 @@ sealed abstract class List extends Block {
 //region Lists
 
 sealed abstract class DefinitionList extends List {
-  type Item <: DefinitionList.Item[_ <: Markdown]
+  type Item <: DefinitionList.Item[_]
 }
 
 object DefinitionList {
-  case class Loose(items: Seq[DefinitionList.Item[Block]]) extends DefinitionList {
-    type Item = DefinitionList.Item[Block]
-    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
-  }
-
-  case class Tight(items: Seq[DefinitionList.Item[Inline]]) extends DefinitionList {
-    type Item = DefinitionList.Item[Inline]
-    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
-  }
-
-  case class Item[+A](term: Term, defs: Definition[A]*)
   case class Term(content: Seq[Inline]) extends Composite[Inline]
-  case class Definition[+A](content: Seq[A]) extends Composite[A]
+  case class Definition[+A <: Markdown](content: Seq[A]) extends Composite[A]
+
+  sealed abstract class Item[+A <: Markdown] {
+    def term: Term
+    def defs: Seq[Definition[A]]
+  }
+
+  case class Loose(items: Seq[DefinitionList.Loose.Item]) extends DefinitionList {
+    type Item = DefinitionList.Loose.Item
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+  }
+
+  object Loose {
+    case class Item(term: Term, defs: Seq[Definition[Block]]) extends DefinitionList.Item[Block]
+  }
+
+  case class Tight(items: Seq[DefinitionList.Tight.Item]) extends DefinitionList {
+    type Item = DefinitionList.Tight.Item
+    def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
+  }
+
+  object Tight {
+    case class Item(term: Term, defs: Seq[Definition[Inline]]) extends DefinitionList.Item[Inline]
+  }
 }
 
 sealed abstract class OrderedList extends List {
-  type Item <: OrderedList.Item[_ <: Markdown]
+  type Item <: OrderedList.Item[_]
   def counter: OrderedList.Counter
 }
 
 object OrderedList {
-  case class Loose(counter: Counter, items: Seq[OrderedList.Item[Block]]) extends OrderedList {
-    type Item = OrderedList.Item[Block]
+  case class Loose(counter: Counter, items: Seq[OrderedList.Loose.Item]) extends OrderedList {
+    type Item = OrderedList.Loose.Item
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Tight(counter: Counter, items: Seq[OrderedList.Item[Inline]]) extends OrderedList {
-    type Item = OrderedList.Item[Inline]
+  object Loose {
+    case class Item(content: Seq[Block]) extends OrderedList.Item[Block]
+  }
+
+  case class Tight(counter: Counter, items: Seq[OrderedList.Tight.Item]) extends OrderedList {
+    type Item = OrderedList.Tight.Item
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Item[+A](content: Seq[A]) extends Composite[A]
+  object Tight {
+    case class Item(content: Seq[Inline]) extends OrderedList.Item[Inline]
+  }
+
+  sealed abstract class Item[+A <: Markdown] extends Composite[A]
 
   /** Counter information for an ordered list.
     *
@@ -241,21 +261,29 @@ object OrderedList {
 }
 
 sealed abstract class UnorderedList extends List {
-  type Item <: UnorderedList.Item[_ <: Markdown]
+  type Item <: UnorderedList.Item[_]
 }
 
 object UnorderedList {
-  case class Loose(items: Seq[UnorderedList.Item[Block]]) extends UnorderedList {
-    type Item = UnorderedList.Item[Block]
+  case class Loose(items: Seq[UnorderedList.Loose.Item]) extends UnorderedList {
+    type Item = UnorderedList.Loose.Item
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Tight(items: Seq[UnorderedList.Item[Inline]]) extends UnorderedList {
-    type Item = UnorderedList.Item[Inline]
+  object Loose {
+    case class Item(content: Seq[Block]) extends UnorderedList.Item[Block]
+  }
+
+  case class Tight(items: Seq[UnorderedList.Tight.Item]) extends UnorderedList {
+    type Item = UnorderedList.Tight.Item
     def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
   }
 
-  case class Item[+A](content: Seq[A]) extends Composite[A]
+  object Tight {
+    case class Item(content: Seq[Inline]) extends UnorderedList.Item[Inline]
+  }
+
+  sealed abstract class Item[+A <: Markdown] extends Composite[A]
 }
 
 //endregion

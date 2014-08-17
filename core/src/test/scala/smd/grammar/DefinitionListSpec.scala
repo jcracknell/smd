@@ -12,13 +12,15 @@ class DefinitionListSpec extends ParsingScenarios {
   |: definition
   """) as definitionList should produce (
     DefinitionList.Tight(Seq(
-      DefinitionList.Item(
+      DefinitionList.Tight.Item(
         DefinitionList.Term(Seq(
           Text("term")
         )),
-        DefinitionList.Definition(Seq(
-          Text("definition")
-        ))
+        Seq(
+          DefinitionList.Definition(Seq(
+            Text("definition")
+          ))
+        )
       )
     ))
   )
@@ -29,11 +31,13 @@ class DefinitionListSpec extends ParsingScenarios {
   |    line
   """) as definitionList should produce (
     DefinitionList.Tight(Seq(
-      DefinitionList.Item(
+      DefinitionList.Tight.Item(
         DefinitionList.Term(Seq(Text("term"))),
-        DefinitionList.Definition(Seq(
-          Text("multi"), Space(), Text("line")
-        ))
+        Seq(
+          DefinitionList.Definition(Seq(
+            Text("multi"), Space(), Text("line")
+          ))
+        )
       )
     ))
   )
@@ -44,9 +48,11 @@ class DefinitionListSpec extends ParsingScenarios {
   |   line
   """) as definitionList should produce (
     DefinitionList.Tight(Seq(
-      DefinitionList.Item(
+      DefinitionList.Tight.Item(
         DefinitionList.Term(Seq(Text("term"))),
-        DefinitionList.Definition(Seq(Text("multi")))
+        Seq(
+          DefinitionList.Definition(Seq(Text("multi")))
+        )
       )
     ))
   )
@@ -56,13 +62,15 @@ class DefinitionListSpec extends ParsingScenarios {
   |~ definition
   """) as definitionList should produce (
     DefinitionList.Tight(Seq(
-      DefinitionList.Item(
+      DefinitionList.Tight.Item(
         DefinitionList.Term(Seq(
           Text("term")
         )),
-        DefinitionList.Definition(Seq(
-          Text("definition")
-        ))
+        Seq(
+          DefinitionList.Definition(Seq(
+            Text("definition")
+          ))
+        )
       )
     ))
   )
@@ -76,15 +84,19 @@ class DefinitionListSpec extends ParsingScenarios {
   |: def2
   """) as definitionList should produce (
     DefinitionList.Tight(Seq(
-      DefinitionList.Item(
+      DefinitionList.Tight.Item(
         DefinitionList.Term(Seq(Text("term1"))),
-        DefinitionList.Definition(Seq(Text("def1"))),
-        DefinitionList.Definition(Seq(Text("def2")))
+        Seq(
+          DefinitionList.Definition(Seq(Text("def1"))),
+          DefinitionList.Definition(Seq(Text("def2")))
+        )
       ),
-      DefinitionList.Item(
+      DefinitionList.Tight.Item(
         DefinitionList.Term(Seq(Text("term2"))),
-        DefinitionList.Definition(Seq(Text("def1"))),
-        DefinitionList.Definition(Seq(Text("def2")))
+        Seq(
+          DefinitionList.Definition(Seq(Text("def1"))),
+          DefinitionList.Definition(Seq(Text("def2")))
+        )
       )
     ))
   )
@@ -99,23 +111,27 @@ class DefinitionListSpec extends ParsingScenarios {
   |: def2
   """) as definitionList should produce (
     DefinitionList.Loose(Seq(
-      DefinitionList.Item(
+      DefinitionList.Loose.Item(
         DefinitionList.Term(Seq(Text("term1"))),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def1")))
-        )),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def2")))
-        ))
+        Seq(
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def1")))
+          )),
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def2")))
+          ))
+        )
       ),
-      DefinitionList.Item(
+      DefinitionList.Loose.Item(
         DefinitionList.Term(Seq(Text("term2"))),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def1")))
-        )),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def2")))
-        ))
+        Seq(
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def1")))
+          )),
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def2")))
+          ))
+        )
       )
     ))
   )
@@ -127,14 +143,16 @@ class DefinitionListSpec extends ParsingScenarios {
   |: def2
   """) as definitionList should produce (
     DefinitionList.Loose(Seq(
-      DefinitionList.Item(
+      DefinitionList.Loose.Item(
         DefinitionList.Term(Seq(Text("term"))),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def1")))
-        )),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def2")))
-        ))
+        Seq(
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def1")))
+          )),
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def2")))
+          ))
+        )
       )
     ))
   )
@@ -146,14 +164,16 @@ class DefinitionListSpec extends ParsingScenarios {
   |: def2
   """) as definitionList should produce (
     DefinitionList.Loose(Seq(
-      DefinitionList.Item(
+      DefinitionList.Loose.Item(
         DefinitionList.Term(Seq(Text("term"))),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def1")))
-        )),
-        DefinitionList.Definition(Seq(
-          Paragraph(Seq(Text("def2")))
-        ))
+        Seq(
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def1")))
+          )),
+          DefinitionList.Definition(Seq(
+            Paragraph(Seq(Text("def2")))
+          ))
+        )
       )
     ))
   )

@@ -12,10 +12,10 @@ class UnorderedListSpec extends ParsingScenarios {
   | * Item 2
   """) as unorderedList should produce (
     UnorderedList.Tight(Seq(
-      UnorderedList.Item(Seq(
+      UnorderedList.Tight.Item(Seq(
         Text("Item"), Space(), Text("1")
       )),
-      UnorderedList.Item(Seq(
+      UnorderedList.Tight.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
@@ -27,10 +27,10 @@ class UnorderedListSpec extends ParsingScenarios {
   | * Item 2
   """) as unorderedList should produce (
     UnorderedList.Tight(Seq(
-      UnorderedList.Item(Seq(
+      UnorderedList.Tight.Item(Seq(
         Text("Item"), Space(), Text("1"), Space(), Text("continues")
       )),
-      UnorderedList.Item(Seq(
+      UnorderedList.Tight.Item(Seq(
         Text("Item"), Space(), Text("2")
       ))
     ))
@@ -43,12 +43,12 @@ class UnorderedListSpec extends ParsingScenarios {
   | * Item 2
   """) as unorderedList should produce (
     UnorderedList.Loose(Seq(
-      UnorderedList.Item(Seq(
+      UnorderedList.Loose.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("1")
         ))
       )),
-      UnorderedList.Item(Seq(
+      UnorderedList.Loose.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("2")
         ))
@@ -63,12 +63,12 @@ class UnorderedListSpec extends ParsingScenarios {
   |    continues
   """) as unorderedList should produce (
     UnorderedList.Loose(Seq(
-      UnorderedList.Item(Seq(
+      UnorderedList.Loose.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("1")
         ))
       )),
-      UnorderedList.Item(Seq(
+      UnorderedList.Loose.Item(Seq(
         Paragraph(Seq(
           Text("Item"), Space(), Text("2")
         )),

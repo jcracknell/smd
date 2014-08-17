@@ -50,10 +50,10 @@ trait Grammar extends Parsers {
     lazy val marker = "*" | "-" | "+"
 
     def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.UnorderedList =
-      dom.UnorderedList.Loose(items map { case (_, children) => dom.UnorderedList.Item(children) })
+      dom.UnorderedList.Loose(items map { case (_, children) => dom.UnorderedList.Loose.Item(children) })
 
     def mkTight(items: Seq[(MarkerProduct, Seq[Inline])]): dom.UnorderedList =
-      dom.UnorderedList.Tight(items map { case (_, children) => dom.UnorderedList.Item(children) })
+      dom.UnorderedList.Tight(items map { case (_, children) => dom.UnorderedList.Tight.Item(children) })
   }
 
   lazy val orderedList: Parser[dom.OrderedList] = {
@@ -103,7 +103,7 @@ trait Grammar extends Parsers {
           items.head match { case ((counterName, start), _) =>
             dom.OrderedList.Loose(
               dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case (_, children) => dom.OrderedList.Item(children) }
+              items map { case (_, children) => dom.OrderedList.Loose.Item(children) }
             )
           }
 
@@ -111,7 +111,7 @@ trait Grammar extends Parsers {
           items.head match { case ((counterName, start), _) =>
             dom.OrderedList.Tight(
               dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-              items map { case (_, children) => dom.OrderedList.Item(children) }
+              items map { case (_, children) => dom.OrderedList.Tight.Item(children) }
             )
           }
       }
@@ -135,7 +135,7 @@ trait Grammar extends Parsers {
       _ map { case (rawTerm, rawDefs) =>
         val term = parseExtents(blockInlines_?, Seq(rawTerm))
         val defs = rawDefs map { case (_, rawDef) => dom.DefinitionList.Definition(parseExtents(blockInlines_?, rawDef)) }
-        dom.DefinitionList.Item(dom.DefinitionList.Term(term), defs: _*)
+        dom.DefinitionList.Tight.Item(dom.DefinitionList.Term(term), defs)
       } match { case items =>
         dom.DefinitionList.Tight(items)
       }
@@ -145,7 +145,7 @@ trait Grammar extends Parsers {
       _ collect { case Left((rawTerm, rawDefs)) =>
         val term = dom.DefinitionList.Term(parseExtents(blockInlines_?, Seq(rawTerm)))
         val defs = rawDefs map { case (_, rawDef) => dom.DefinitionList.Definition(parseExtents(blocks, rawDef))}
-        dom.DefinitionList.Item(term, defs: _*)
+        dom.DefinitionList.Loose.Item(term, defs)
       } match { case items =>
         dom.DefinitionList.Loose(items)
       }
