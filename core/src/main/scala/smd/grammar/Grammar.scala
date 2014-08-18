@@ -504,9 +504,15 @@ trait Grammar extends Parsers {
     `if` ~> cond ~ &(expr) ~ (`else` ~> &(expr)).? ^~ { (c, t, e) => dom.Conditional(c, t, e) }
   }
 
-  lazy val logicalOrExpression = binOp(logicalAndExpression,  "||" ~ ?!("=")       ^^^ dom.LogicalOr)
+  lazy val logicalOrExpression = binOp(logicalAndExpression,  
+    "||" ~ ?!("=")                      ^^^ dom.LogicalOr
+  | "or" ~ ?!(identifierExpressionPart) ^^^ dom.LogicalOr
+  )
 
-  lazy val logicalAndExpression = binOp(bitwiseOrExpression,  "&&" ~ ?!("=")       ^^^ dom.LogicalAnd)
+  lazy val logicalAndExpression = binOp(bitwiseOrExpression,
+    "&&"  ~ ?!("=")                      ^^^ dom.LogicalAnd
+  | "and" ~ ?!(identifierExpressionPart) ^^^ dom.LogicalAnd
+  )
 
   lazy val bitwiseOrExpression = binOp(bitwiseXOrExpression,  "|"  ~ ?!("|" | "=") ^^^ dom.BitwiseOr)
 
@@ -551,10 +557,11 @@ trait Grammar extends Parsers {
     ).* ^* { case (lhs, ops) => (lhs /: ops) { (body, op) => op._1(body, op._2) } }
 
   lazy val unaryExpression: Parser[Expression] = (
-    "!" ~ sp.? ~> &(unaryExpression) ^* dom.LogicalNot
-  | "-" ~ sp.? ~> &(unaryExpression) ^* dom.Negative
-  | "+" ~ sp.? ~> &(unaryExpression) ^* dom.Positive
-  | "~" ~ sp.? ~> &(unaryExpression) ^* dom.BitwiseNot
+    "!"                                  ~ sp.? ~> &(unaryExpression) ^* dom.LogicalNot
+  | "not" ~ ?!(identifierExpressionPart) ~ sp.? ~> &(unaryExpression) ^* dom.LogicalNot
+  | "-"                                  ~ sp.? ~> &(unaryExpression) ^* dom.Negative
+  | "+"                                  ~ sp.? ~> &(unaryExpression) ^* dom.Positive
+  | "~"                                  ~ sp.? ~> &(unaryExpression) ^* dom.BitwiseNot
   | leftHandSideExpression
   )
 
@@ -838,10 +845,11 @@ trait Grammar extends Parsers {
   //endregion
 
   lazy val keyword = LiteralSetParser(
-    "case", "catch", "class", "do", "else", "extends",
-    "false", "finally", "for", "if", "import", "new",
-    "null", "return", "super", "then", "this", "throw",
-    "true", "try", "val", "var", "while"
+    "and",     "case",  "catch",   "class", "do",     "else",
+    "extends", "false", "finally", "for",   "if",     "import",
+    "new",     "not",   "null",    "or",    "return", "super",
+    "then",    "this",  "throw",   "true",  "try",    "val",
+    "var",     "while"
   )
 
   //endregion
