@@ -79,7 +79,9 @@ object XNumber {
     case Double.NaN => NaN
     case Double.PositiveInfinity => PosInf
     case Double.NegativeInfinity => NegInf
-    case _ => new XNumber.Value { val value: Double = v }
+    case _ => new XNumber.Value {
+      val value: Double = v + 0d // Convert -0 to 0
+    }
   }
 
   def apply(value: Float): XNumber = XNumber(value.toDouble)

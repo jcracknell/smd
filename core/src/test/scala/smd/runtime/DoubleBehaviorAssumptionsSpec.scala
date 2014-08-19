@@ -38,6 +38,7 @@ class DoubleBehaviorAssumptionsSpec extends FunSpec with Matchers {
     ((-0d).toString) should be ("-0.0")
     // Assert we can force a conversion to positive zero
     ((0d + (-0d)).toString) should be ("0.0")
+    (Double.MinPositiveValue + 0d) should be (Double.MinPositiveValue)
   }
   it("if the magnitude is too large to represent, the operation overflows and the result is then an infinity of appropriate sign") {
     (Double.MaxValue + Double.MaxValue) should be (Double.PositiveInfinity)
