@@ -506,19 +506,15 @@ trait Grammar extends Parsers {
 
   lazy val logicalOrExpression = binOp(logicalAndExpression,  
     "||" ~ ?!("=")                      ^^^ dom.LogicalOr
+  | "|"  ~ ?!("=")                      ^^^ dom.LogicalOr
   | "or" ~ ?!(identifierExpressionPart) ^^^ dom.LogicalOr
   )
 
-  lazy val logicalAndExpression = binOp(bitwiseOrExpression,
+  lazy val logicalAndExpression = binOp(equalityExpression,
     "&&"  ~ ?!("=")                      ^^^ dom.LogicalAnd
+  | "&"   ~ ?!("=")                      ^^^ dom.LogicalAnd
   | "and" ~ ?!(identifierExpressionPart) ^^^ dom.LogicalAnd
   )
-
-  lazy val bitwiseOrExpression = binOp(bitwiseXOrExpression,  "|"  ~ ?!("|" | "=") ^^^ dom.BitwiseOr)
-
-  lazy val bitwiseXOrExpression = binOp(bitwiseAndExpression, "^"  ~ ?!("=")       ^^^ dom.BitwiseXOr)
-
-  lazy val bitwiseAndExpression = binOp(equalityExpression,   "&"  ~ ?!("&" | "=") ^^^ dom.BitwiseAnd)
 
   lazy val equalityExpression = binOp(relationalExpression,
     "===" ^^^ dom.StrictEquals
@@ -527,28 +523,22 @@ trait Grammar extends Parsers {
   | "!="  ^^^ dom.NotEquals
   )
 
-  lazy val relationalExpression: Parser[Expression] = binOp(shiftExpression,
-    ">="         ^^^ dom.GreaterThanOrEqualTo
-  | "<="         ^^^ dom.LessThanOrEqualTo
-  | ">"          ^^^ dom.GreaterThan
-  | "<"          ^^^ dom.LessThan
-  )
-
-  lazy val shiftExpression: Parser[Expression] = binOp(additiveExpression,
-    "<<"  ^^^ dom.LeftShift
-  | ">>>" ^^^ dom.UnsignedRightShift
-  | ">>"  ^^^ dom.RightShift
+  lazy val relationalExpression: Parser[Expression] = binOp(additiveExpression,
+    ">="  ^^^ dom.GreaterThanOrEqualTo
+  | "<="  ^^^ dom.LessThanOrEqualTo
+  | ">"   ^^^ dom.GreaterThan
+  | "<"   ^^^ dom.LessThan
   )
 
   lazy val additiveExpression: Parser[Expression] = binOp(multiplicativeExpression,
-    "+" ^^^ dom.Addition
-  | "-" ^^^ dom.Subtraction
+    "+"   ^^^ dom.Addition
+  | "-"   ^^^ dom.Subtraction
   )
 
   lazy val multiplicativeExpression: Parser[Expression] = binOp(unaryExpression,
-    "*" ^^^ dom.Multiplication
-  | "/" ^^^ dom.Division
-  | "%" ^^^ dom.Modulo
+    "*"   ^^^ dom.Multiplication
+  | "/"   ^^^ dom.Division
+  | "%"   ^^^ dom.Modulo
   )
 
   private def binOp[A](operand: Parser[A], ops: Parser[(A, A) => A]): Parser[A] =
@@ -561,8 +551,11 @@ trait Grammar extends Parsers {
   | "not" ~ ?!(identifierExpressionPart) ~ sp.? ~> &(unaryExpression) ^* dom.LogicalNot
   | "-"                                  ~ sp.? ~> &(unaryExpression) ^* dom.Negative
   | "+"                                  ~ sp.? ~> &(unaryExpression) ^* dom.Positive
-  | "~"                                  ~ sp.? ~> &(unaryExpression) ^* dom.BitwiseNot
-  | leftHandSideExpression
+  | exponentiationExpression
+  )
+
+  lazy val exponentiationExpression: Parser[Expression] = binOp(leftHandSideExpression,
+    "^" ^^^ dom.Exponentiation
   )
 
   lazy val leftHandSideExpression: Parser[Expression] = (

@@ -12,5 +12,4 @@ class UnaryExpressionProductionsSpec extends ParsingScenarios {
   parsing("nottrue") as unaryExpression should produce (IriLiteral("nottrue"))
   parsing("-3") as unaryExpression should produce (Negative(NumericLiteral(3d)))
   parsing("+42e0") as unaryExpression should produce (Positive(NumericLiteral(42d)))
-  parsing("~42") as unaryExpression should produce (BitwiseNot(NumericLiteral(42d)))
 }

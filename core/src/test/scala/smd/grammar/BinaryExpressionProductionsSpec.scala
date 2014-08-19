@@ -11,28 +11,19 @@ class BinaryExpressionsProductionsSpec extends ParsingScenarios {
     parsing("@a || @b") as logicalOrExpression should produce (
       LogicalOr(Identifier("a"), Identifier("b"))
     )
-  }
-  describe("LogicalAndExpression") {
-    parsing("true && false") as logicalOrExpression should produce (
-      LogicalAnd(BooleanLiteral(true), BooleanLiteral(false))
-    )
-  }
-  describe("BitwiseOrExpression") {
     parsing("@a.foo() | 42") as logicalOrExpression should produce (
-      BitwiseOr(
+      LogicalOr(
         Application(Member(Identifier("a"), "foo"), Seq()),
         NumericLiteral(42d)
       )
     )
   }
-  describe("BitwiseXOrExpression") {
-    parsing("42 ^ 7") as logicalOrExpression should produce (
-      BitwiseXOr(NumericLiteral(42), NumericLiteral(7))
+  describe("LogicalAndExpression") {
+    parsing("true && false") as logicalOrExpression should produce (
+      LogicalAnd(BooleanLiteral(true), BooleanLiteral(false))
     )
-  }
-  describe("BitwiseAndExpression") {
     parsing("42 & 7") as logicalOrExpression should produce (
-      BitwiseAnd(NumericLiteral(42), NumericLiteral(7))
+      LogicalAnd(NumericLiteral(42), NumericLiteral(7))
     )
   }
   describe("EqualityExpression") {
@@ -63,17 +54,6 @@ class BinaryExpressionsProductionsSpec extends ParsingScenarios {
       GreaterThanOrEqualTo(NumericLiteral(42), NumericLiteral(7))
     )
   }
-  describe("ShiftExpression") {
-    parsing("42 >> 7")  as logicalOrExpression should produce (
-      RightShift(NumericLiteral(42), NumericLiteral(7))
-    )
-    parsing("42 >>> 7") as logicalOrExpression should produce (
-      UnsignedRightShift(NumericLiteral(42), NumericLiteral(7))
-    )
-    parsing("42 << 7")  as logicalOrExpression should produce (
-      LeftShift(NumericLiteral(42), NumericLiteral(7))
-    )
-  }
   describe("AdditiveExpression") {
     parsing("42 + 7")  as logicalOrExpression should produce (
       Addition(NumericLiteral(42), NumericLiteral(7))
@@ -91,6 +71,11 @@ class BinaryExpressionsProductionsSpec extends ParsingScenarios {
     )
     parsing("42 % 7") as logicalOrExpression should produce (
       Modulo(NumericLiteral(42), NumericLiteral(7))
+    )
+  }
+  describe("ExponentiationExpression") {
+    parsing("42 ^ 7") as logicalOrExpression should produce (
+      Exponentiation(NumericLiteral(42), NumericLiteral(7))
     )
   }
 }
