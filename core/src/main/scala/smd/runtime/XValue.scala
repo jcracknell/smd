@@ -78,7 +78,7 @@ object XNumber {
   def apply(v: Double): XNumber = {
     if(Double.NegativeInfinity == v) return XNumber.NegInf
     if(Double.PositiveInfinity == v) return XNumber.PosInf
-    if(v.asInstanceOf[Double] != v) return XNumber.NaN
+    if(v != v) return XNumber.NaN
 
     new XNumber.Value { val value: Double = v }
   }
