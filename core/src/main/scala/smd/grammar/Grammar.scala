@@ -558,13 +558,14 @@ trait Grammar extends Parsers {
     "^" ^^^ dom.Exponentiation
   )
 
-  lazy val leftHandSideExpression: Parser[Expression] = (
-    primaryExpression ~ sp.? ~ (
+  lazy val leftHandSideExpression: Parser[Expression] = {
+    val rightSide = (
       parenthesizedArgumentList    ^* { args => (body: Expression) => dom.Application(body, args) }
     | "." ~ sp.? ~> identifierName ^* { name => (body: Expression) => dom.Member(body, name)      }
-    ).*
-    ^* { case (body, _, builders) => (body /: builders) { (x, bld) => bld(x) } }
-  )
+    )
+
+    primaryExpression ~ (sp.? ~> rightSide).* ^* { case (body, builders) => (body /: builders) { (x, bld) => bld(x) } }
+  }
 
   /** A parenthesized list of 0 or more arguments. */
   protected lazy val parenthesizedArgumentList = "(" ~ sp.? ~> argumentList.? <~ sp.? ~ ")" ^* { _.getOrElse(Seq()) }
