@@ -15,9 +15,16 @@ class ReferenceSpec extends ParsingScenarios {
   parsing("  [google]: (http://www.google.com)") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
   parsing("   [google]: http://www.google.com") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
   parsing("   [google]: (http://www.google.com)") as reference should produce (Reference(ReferenceId("google"), Seq(IriLiteral("http://www.google.com"))))
-  // trailing content following block arguments
-  parsing("[refid]: url, foo trailing") as reference should reject
-  // trailing content following formal arguments
+
+  parsing("[refid]: url, foo trailing") as reference should produce (
+    Reference(ReferenceId("refid"), Seq(
+      IriLiteral("url"),
+      IriLiteral("foo"),
+      IriLiteral("trailing")
+    ))
+  )
+
+  // trailing content following parenthesized arguments
   parsing("[refid]: (url, foo) trailing") as reference should reject
   // space preceding colon
   parsing("[refid] : http://www.google.com") as reference should reject

@@ -118,6 +118,7 @@ class LiteralExpressionProductionsSpec extends ParsingScenarios {
     parsing("123.123.123.123") as literalExpression should produce (IriLiteral("123.123.123.123"))
     parsing("1.1.1.1") as literalExpression should produce (IriLiteral("1.1.1.1"))
     parsing("0.0.0.0") as literalExpression should produce (IriLiteral("0.0.0.0"))
+    parsing("foo,bar") as literalExpression should produce (IriLiteral("foo,bar"))
 
     // RFC 2732 example IPv6 urls
     parsing("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html") as literalExpression should produce (IriLiteral("http://[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html"))

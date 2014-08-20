@@ -41,6 +41,26 @@ class LeftHandSideExpressionProductionsSpec extends ParsingScenarios {
     )
   )
 
+  parsing("@some(foo bar)") as leftHandSideExpression should produce (
+    Application(Identifier("some"), Seq(IriLiteral("foo"), IriLiteral("bar")))
+  )
+
+  parsing("@some(foo, bar)") as leftHandSideExpression should produce (
+    Application(Identifier("some"), Seq(IriLiteral("foo"), IriLiteral("bar")))
+  )
+
+  parsing("@some(foo bar baz)") as leftHandSideExpression should produce (
+    Application(Identifier("some"), Seq(IriLiteral("foo"), IriLiteral("bar"), IriLiteral("baz")))
+  )
+
+  parsing("@some(foo ,bar)") as leftHandSideExpression should produce (
+    Application(Identifier("some"), Seq(IriLiteral("foo"), IriLiteral("bar")))
+  )
+
+  parsing("@some(foo,bar)") as leftHandSideExpression should produce (
+    Application(Identifier("some"), Seq(IriLiteral("foo,bar")))
+  )
+
   parsing("@some(foo = bar)") as leftHandSideExpression should produce (
     Application(Identifier("some"), Seq("foo" -> IriLiteral("bar")))
   )

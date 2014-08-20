@@ -570,10 +570,15 @@ trait Grammar extends Parsers {
   /** A parenthesized list of 0 or more arguments. */
   protected lazy val parenthesizedArgumentList = "(" ~ sp.? ~> argumentList.? <~ sp.? ~ ")" ^* { _.getOrElse(Seq()) }
 
+
   /** An unparenthesized list of 1 or more arguments. */
-  protected lazy val argumentList = {
-    val argument = (propertyName <~ sp.? ~ "=" ~ sp.?).? ~ &(expr)
-    repSepR(1, argument, sp.? ~ "," ~ sp) ^* { _ map { case (n, v) => dom.Argument(n, v) } }
+  lazy val argumentList = {
+    lazy val argument = (
+      (propertyName <~ sp.? ~ "=" ~ sp.?) ~ &(expr) ^* { case (n, e) => (Some(n), e) }
+    | &(expr) ^* { e => (None, e) }
+    )
+
+    repSepR(1, argument, argumentSeparator) ^* { _ map { case (n, v) => dom.Argument(n, v) } }
   }
 
   /** An identifier, literal, array, object, or parenthesized expression. */
@@ -603,10 +608,8 @@ trait Grammar extends Parsers {
 
   lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] = {
     val property = (propertyName <~ sp.? ~ "=" ~ sp.?) ~ &(expr) ^* { case (n, v) => dom.Attribute(n, v) }
-    val separator = sp.? ~ "," ~ sp.?
-    val properties = repSepR(0, property, separator)
 
-    "{" ~ sp.? ~> properties <~ sp.? ~ "}" ^* { p => dom.ObjectLiteral(p) }
+    "{" ~ sp.? ~> repSepR(0, property, argumentSeparator) <~ sp.? ~ "}" ^* { p => dom.ObjectLiteral(p) }
   }
 
   protected lazy val propertyName = (
@@ -615,6 +618,9 @@ trait Grammar extends Parsers {
   | numericLiteralExpression  ^* { _.value.toString }
   | identifierName
   )
+
+  /** An argument separator - at least one space with an optional comma. */
+  lazy val argumentSeparator: Parser[Any] = ("," ~ sp.?) | (sp ~ ("," ~ sp.?).?)
 
   // Identifiers
 
