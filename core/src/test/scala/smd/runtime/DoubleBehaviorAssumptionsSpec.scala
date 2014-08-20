@@ -29,16 +29,12 @@ class DoubleBehaviorAssumptionsSpec extends FunSpec with Matchers {
     (42d + Double.NegativeInfinity) should be (Double.NegativeInfinity)
   }
   it("the sum of two negative zeroes is -0") {
-    // Here we diverge from spec by not distinguishing between positive and negative zero.
-    // Instead we guarantee that a) there is no distinction between 0 and -0, and b) that
-    // all values managed by our implementation are positive
-    (0d == -0d) should be (true)
-    // Assert we can test for -0
-    (0d.toString) should be ("0.0")
-    ((-0d).toString) should be ("-0.0")
-    // Assert we can force a conversion to positive zero
+    (((-0d) + (-0d)).toString) should be ("-0.0")
+  }
+  it("the sum of two positive zeroes, or of two zeroes of opposite sign, is +0") {
+    ((0d + 0d).toString) should be ("0.0")
     ((0d + (-0d)).toString) should be ("0.0")
-    (Double.MinPositiveValue + 0d) should be (Double.MinPositiveValue)
+    (((-0d) + 0d).toString) should be ("0.0")
   }
   it("if the magnitude is too large to represent, the operation overflows and the result is then an infinity of appropriate sign") {
     (Double.MaxValue + Double.MaxValue) should be (Double.PositiveInfinity)

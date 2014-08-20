@@ -75,13 +75,12 @@ sealed abstract class XNumber extends XValue {
 }
 
 object XNumber {
-  def apply(v: Double): XNumber = v match {
-    case Double.NaN => NaN
-    case Double.PositiveInfinity => PosInf
-    case Double.NegativeInfinity => NegInf
-    case _ => new XNumber.Value {
-      val value: Double = v + 0d // Convert -0 to 0
-    }
+  def apply(v: Double): XNumber = {
+    if(Double.NegativeInfinity == v) return XNumber.NegInf
+    if(Double.PositiveInfinity == v) return XNumber.PosInf
+    if(v.asInstanceOf[Double] != v) return XNumber.NaN
+
+    new XNumber.Value { val value: Double = v }
   }
 
   def apply(value: Float): XNumber = XNumber(value.toDouble)
