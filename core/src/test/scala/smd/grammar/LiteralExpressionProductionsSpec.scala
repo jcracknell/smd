@@ -76,6 +76,7 @@ class LiteralExpressionProductionsSpec extends ParsingScenarios {
     parsing("www.cracknell.ca/some/path?q=bla") as literalExpression should produce (IriLiteral("www.cracknell.ca/some/path?q=bla"))
     parsing("www.cracknell.ca/some/path#fragment") as literalExpression should produce (IriLiteral("www.cracknell.ca/some/path#fragment"))
     parsing("www.cracknell.ca/some/path?q=bla#fragment") as literalExpression should produce (IriLiteral("www.cracknell.ca/some/path?q=bla#fragment"))
+    parsing("resum\\eacute;.com") as literalExpression should produce (IriLiteral("resumé.com"))
     parsing("james@www.cracknell.ca") as literalExpression should produce (IriLiteral("james@www.cracknell.ca"))
     parsing("www.cracknell.ca:80") as literalExpression should produce (IriLiteral("www.cracknell.ca:80"))
     parsing("james@www.cracknell.ca:80") as literalExpression should produce (IriLiteral("james@www.cracknell.ca:80"))

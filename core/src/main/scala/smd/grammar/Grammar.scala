@@ -681,7 +681,7 @@ trait Grammar extends Parsers {
       /*            at-expressions: */ '@',
       /*     elided array elements: */ ',',
       /*      statement terminator: */ ';',
-      /*       the unary operators: */ '+', '-', '~', '!'
+      /*       the unary operators: */ '+', '-', '!'
     )))
 
     (
@@ -689,12 +689,12 @@ trait Grammar extends Parsers {
         keyword ~ ?!(iriAtom)
       | commentStart
       )
-    ~ ?!(illegalStart) ~ iriAtom.+
-    ) ^^ { p => dom.IriLiteral(p.parsed.toString) }
+    ~ ?!(illegalStart) ~> iriAtom.+
+    ) ^* { as => dom.IriLiteral(as.mkString) }
   }
 
   /** An indivisible portion of an IRI literal. */
-  protected val iriAtom: Parser[Any] = {
+  protected val iriAtom: Parser[CharSequence] = {
     val ipv4Address = {
       val octet = (
         "25" ~ CodePoint.Range('0', '5')
@@ -766,11 +766,12 @@ trait Grammar extends Parsers {
     val nonTerminalChar = GraphemeParser(Grapheme.SingleCodePoint(CodePoint.Values(',', ';', ':')))
 
     (
-      char
-    | nonTerminalChar ~ &(iriAtom)
-    | "%" ~ hexDigit.*(2)
-    | "(" ~ (&(iriAtom) | nonTerminalChar).* ~ ")"
-    | "[" ~ (ipv6Address | ipvFutureAddress) ~ "]"
+      escape                                       ^* { cps => new String(cps.flatMap(Character.toChars(_)).toArray) }
+    | char                                         ^^ { _.parsed }
+    | nonTerminalChar ~ &(iriAtom)                 ^* { case (g, a) => new smd.util.CompositeCharSequence(g.charSequence, a) }
+    | "%" ~ hexDigit.*(2)                          ^^ { _.parsed }
+    | "(" ~ (&(iriAtom) | nonTerminalChar).* ~ ")" ^^ { _.parsed }
+    | "[" ~ (ipv6Address | ipvFutureAddress) ~ "]" ^^ { _.parsed }
     )
   }
 
