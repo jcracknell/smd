@@ -695,22 +695,13 @@ trait Grammar extends Parsers {
 
   /** An indivisible portion of an IRI literal. */
   protected val iriAtom: Parser[CharSequence] = {
-    val ipv4Address = {
-      val octet = (
-        "25" ~ CodePoint.Range('0', '5')
-      | "2"  ~ CodePoint.Range('0', '4') ~ digit
-      | "1"  ~ digit.*(2)
-      | nonZeroDigit ~ digit
-      | digit
-      )
-
-      octet ~ ("." ~ octet).*(3)
-    }
+    val ipv4Octet = """(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]{2}|[0-9])"""
+    val ipv4Address = s"""${ipv4Octet}(.${ipv4Octet}){3}""".r.p
 
     val ipv6Address = {
-      val h16: Parser[Any] = hexDigit.*(1,4)
-      val ch16: Parser[Any] = ":" ~ h16
-      val ls32: Parser[Any] = h16 ~ ":" ~ h16 | ipv4Address
+      val h16: Parser[Any]  = """(?i)[0-9a-f]{1,4}""".r.p
+      val ch16: Parser[Any] = """(?i):[0-9a-f]{1,4}""".r.p
+      val ls32: Parser[Any] = """(?i)[0-9a-f]{1,4}:[0-9a-f]{1,4}""".r.p | ipv4Address
 
       (
         h16                         ~ ch16.*(5) ~ ":" ~ ls32
@@ -725,14 +716,7 @@ trait Grammar extends Parsers {
       )
     }
 
-    val ipvFutureAddress =
-      "v" ~ hexDigit.+ ~ "." ~ CodePoint.Values(
-        ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Set(
-          '-', '.', '_', '~',                                     // unreserved
-          '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=', // sub-delims
-          ':'
-        )
-      ).+
+    val ipvFutureAddress = """(?i)v[0-9a-f]\.[a-z0-9-._~!$&'()*+,;=:]+""".r.p
 
     /** Valid IRI characters as defined in $iriRfc, less those whose location must be controlled in order to make
       * IRI literals usable in expressions. */
