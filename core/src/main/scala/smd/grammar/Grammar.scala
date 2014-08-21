@@ -269,8 +269,8 @@ trait Grammar extends Parsers {
 
     val cellContent = (?!(` || ` | rowEnd) ~ blockAtom).* ^^ { _.parsed }
 
-    val alignRow = +> ~> (align       ~  <+>).* ~ align       ~ <+ ^~ { (as, fa, fs) => as :+ (fa, fs) }
-    val row      = |> ~> (cellContent ~  <|>).* ~ cellContent ~ <| ^~ { (cs, fc, fs) => cs :+ (fc, fs) }
+    val alignRow = +> ~> (align       ~  <+>).* ~ align       ~ <+ ^~ { (as, fa, fs) => as :+ ((fa, fs)) }
+    val row      = |> ~> (cellContent ~  <|>).* ~ cellContent ~ <| ^~ { (cs, fc, fs) => cs :+ ((fc, fs)) }
 
     val commentRows_? = (
       (spaceChars_? ~ multiLineComment).+ ~ (blankLine | singleLineComment)
