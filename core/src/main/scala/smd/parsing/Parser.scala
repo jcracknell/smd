@@ -27,6 +27,8 @@ abstract class Parser[+A] { lhs =>
         (implicit heuristic: OrderedChoiceHeuristic[this.type, R, C]): C =
     heuristic(this, rhs)
 
+  def ||| [B >: A](rhs: Parser[B]): LongestChoiceParser[B] = LongestChoiceParser(this, rhs)
+
   def ~ [R <: Parser[_], S <: Parser[_]]
         (rhs: ParserMagnet[R])
         (implicit heuristic: SequencingHeuristic[this.type, R, S]): S =
