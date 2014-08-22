@@ -343,8 +343,16 @@ object Span {
 
 //region Atomic
 
-case class Attributes(attrs: Seq[Attribute]) extends Atomic {
+case class Attributes(attrs: Seq[Attributes.Attribute]) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
+}
+
+object Attributes {
+  case class Attribute(name: String, value: Expression)
+
+  object Attribute {
+    implicit def tuple2ToAttribute(tup: (String, Expression)): Attribute = Attribute(tup._1, tup._2)
+  }
 }
 
 case class AutoLink(uri: String) extends Atomic {
@@ -454,20 +462,16 @@ case class NumericLiteral(value: Double) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-case class ObjectLiteral(props: Seq[Attribute]) extends Expression {
+case class ObjectLiteral(props: Seq[ObjectLiteral.Property]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
 object ObjectLiteral {
-  def apply(): ObjectLiteral = apply(Seq())
-  def apply(p0: Attribute, ps: Attribute*): ObjectLiteral = apply(p0 +: ps)
-}
+  case class Property(name: String, value: Expression)
 
-/** A property of an [[smd.dom.ObjectLiteral]] or [[smd.dom.Attributes]]. */
-sealed case class Attribute(name: String, value: Expression)
-
-object Attribute {
-  implicit def tuple2Property(tup: (String, Expression)): Attribute = Attribute(tup._1, tup._2)
+  object Property {
+    implicit def tuple2ToProperty(tup: (String, Expression)): Property = Property(tup._1, tup._2)
+  }
 }
 
 sealed abstract class StringLikeLiteral extends Expression {

@@ -373,7 +373,7 @@ trait Grammar extends Parsers {
     (
       space ~> objectLiteral <~ ?=(space)
     |          objectLiteral
-    ) ^* { atts => dom.Attributes(atts map { case (n, v) => dom.Attribute(n, v) }) }
+    ) ^* { atts => dom.Attributes(atts map { case (n, v) => dom.Attributes.Attribute(n, v) }) }
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[dom.Link] = {
@@ -606,7 +606,7 @@ trait Grammar extends Parsers {
   }
 
   lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] =
-    objectLiteral ^* { attrs => dom.ObjectLiteral(attrs map { case (n, v) => dom.Attribute(n, v) }) }
+    objectLiteral ^* { attrs => dom.ObjectLiteral(attrs map { case (n, v) => dom.ObjectLiteral.Property(n, v) }) }
 
   lazy val objectLiteral: Parser[Seq[(String, dom.Expression)]] =
     "{" ~ sp.? ~> repSepR(0, propertyLabel ~ &(expr), argumentSeparator) <~ sp.? ~ "}"

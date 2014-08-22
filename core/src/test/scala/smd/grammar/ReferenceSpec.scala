@@ -38,7 +38,7 @@ class ReferenceSpec extends ParsingScenarios {
   """) as reference should produce (
     Reference(ReferenceId("my github account"), Seq(
       IriLiteral("https://github.com/jcracknell"),
-      ObjectLiteral("class" -> StringLiteral("special"))
+      ObjectLiteral(Seq("class" -> StringLiteral("special")))
     ))
   )
 
@@ -47,7 +47,7 @@ class ReferenceSpec extends ParsingScenarios {
   """) as reference should produce (
     Reference(ReferenceId("my github account"), Seq(
       IriLiteral("https://github.com/jcracknell"),
-      ObjectLiteral("class" -> StringLiteral("special"))
+      ObjectLiteral(Seq("class" -> StringLiteral("special")))
     ))
   )
 
