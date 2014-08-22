@@ -337,7 +337,7 @@ trait Grammar extends Parsers {
     | link
     | autoLink
     | code
-    | objectLiteralExpression // attributes
+    | objectLiteral // attributes
     | embeddableExpression
     )
 
@@ -371,9 +371,9 @@ trait Grammar extends Parsers {
     // N.B. that a preceding space is consumed if there is a trailing space so as to avoid
     // creating multiple space nodes.
     (
-      space ~> objectLiteralExpression <~ ?=(space)
-    |          objectLiteralExpression
-    ) ^* { expr => dom.Attributes(expr.props) }
+      space ~> objectLiteral <~ ?=(space)
+    |          objectLiteral
+    ) ^* { atts => dom.Attributes(atts map { case (n, v) => dom.Attribute(n, v) }) }
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[dom.Link] = {
@@ -574,7 +574,7 @@ trait Grammar extends Parsers {
   /** An unparenthesized list of 1 or more arguments. */
   lazy val argumentList = {
     lazy val argument = (
-      (propertyName <~ sp.? ~ "=" ~ sp.?) ~ &(expr) ^* { case (n, e) => (Some(n), e) }
+      propertyLabel ~ &(expr) ^* { case (n, e) => (Some(n), e) }
     | &(expr) ^* { e => (None, e) }
     )
 
@@ -605,18 +605,22 @@ trait Grammar extends Parsers {
     "[" ~ sp.? ~> arrayElements <~ sp.? ~ "]" ^* { es => dom.ArrayLiteral(es) }
   }
 
-  lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] = {
-    val property = (propertyName <~ sp.? ~ "=" ~ sp.?) ~ &(expr) ^* { case (n, v) => dom.Attribute(n, v) }
+  lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] =
+    objectLiteral ^* { attrs => dom.ObjectLiteral(attrs map { case (n, v) => dom.Attribute(n, v) }) }
 
-    "{" ~ sp.? ~> repSepR(0, property, argumentSeparator) <~ sp.? ~ "}" ^* { p => dom.ObjectLiteral(p) }
+  lazy val objectLiteral: Parser[Seq[(String, dom.Expression)]] =
+    "{" ~ sp.? ~> repSepR(0, propertyLabel ~ &(expr), argumentSeparator) <~ sp.? ~ "}"
+
+  protected lazy val propertyLabel: Parser[String] = {
+    val propertyName = (
+      stringLiteralExpression   ^* { _.value          }
+    | verbatimLiteralExpression ^* { _.value          }
+    | numericLiteralExpression  ^* { _.value.toString }
+    | identifierName
+    )
+
+    propertyName <~ sp.? ~ "=" ~ sp.?
   }
-
-  protected lazy val propertyName = (
-    stringLiteralExpression   ^* { _.value          }
-  | verbatimLiteralExpression ^* { _.value          }
-  | numericLiteralExpression  ^* { _.value.toString }
-  | identifierName
-  )
 
   /** An argument separator - at least one space with an optional comma. */
   lazy val argumentSeparator: Parser[Any] = ("," ~ sp.?) | (sp ~ ("," ~ sp.?).?)
