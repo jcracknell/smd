@@ -24,7 +24,7 @@ sealed abstract class ParsingResult[+A] {
 
   /** The index at which parsing started $ifAccepted. */
   @throws[UnsupportedOperationException]
-  def index: Int
+  def startIndex: Int
 
   /** The index prior to which parsing ended $ifAccepted. */
   @throws[UnsupportedOperationException]
@@ -37,10 +37,6 @@ sealed abstract class ParsingResult[+A] {
   /** The parsed sub-sequence of the input $ifAccepted. */
   @throws[UnsupportedOperationException]
   def parsed: CharSequence
-
-  /** The range of input indices which was consumed. */
-  @throws[UnsupportedOperationException]
-  def range: Range = index until endIndex
 
   /** Creates a copy of this [[smd.parsing.ParsingResult]] with the provided replacement product.
     *
@@ -60,17 +56,17 @@ object ParsingResult {
 }
 
 /** An accepted [[smd.parsing.ParsingResult]]. */
-class Accepted[+A](val product: A, protected val source: CharSequence, val index: Int, val endIndex: Int) extends ParsingResult[A] {
+class Accepted[+A](val product: A, protected val source: CharSequence, val startIndex: Int, val endIndex: Int) extends ParsingResult[A] {
   def accepted: Boolean = true
   def rejected: Boolean = false
-  def length: Int = endIndex - index
-  def parsed: CharSequence = source.subSequenceProxy(index, endIndex)
-  def copy[B](replacement: B): ParsingResult[B] = new Accepted[B](replacement, source, index, endIndex)
+  def length: Int = endIndex - startIndex
+  def parsed: CharSequence = source.subSequenceProxy(startIndex, endIndex)
+  def copy[B](replacement: B): ParsingResult[B] = new Accepted[B](replacement, source, startIndex, endIndex)
 
-  override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode((product, source, index, endIndex))
+  override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode((product, source, startIndex, endIndex))
 
   override def equals(obj: scala.Any): Boolean = obj match {
-    case that: Accepted[_] => this.index   == that.index &&
+    case that: Accepted[_] => this.startIndex   == that.startIndex &&
                               this.length  == that.length &&
                               this.product == that.product &&
                               this.source  == that.source
@@ -82,7 +78,7 @@ class Accepted[+A](val product: A, protected val source: CharSequence, val index
 
 object Accepted {
   def unapply[A](parsingResult: ParsingResult[A]): Option[(A, Int, Int)] = parsingResult match {
-    case p: Accepted[A] => Some((p.product, p.index, p.length))
+    case p: Accepted[A] => Some((p.product, p.startIndex, p.length))
     case _ => None
   }
 
@@ -110,7 +106,7 @@ case object Rejected extends ParsingResult[Nothing] {
     throw new UnsupportedOperationException(s"Attempt to access $op of ${getClass.getCanonicalName}.")
 
   def product: Nothing = unsupported("product")
-  def index: Int = unsupported("index")
+  def startIndex: Int = unsupported("index")
   def endIndex: Int = unsupported("index")
   def length: Int = unsupported("length")
   def parsed: CharSequence = unsupported("parsed")

@@ -7,7 +7,7 @@ import smd.unicode.GraphemeExemplars
 class RegexParserSpec extends FunSpec with Matchers with GraphemeExemplars {
   object SuccessAt {
     def unapply[A](pr: ParsingResult[A]): Option[(A, Int, Int)] =
-      if(pr.rejected) None else Some((pr.product, pr.index, pr.length))
+      if(pr.rejected) None else Some((pr.product, pr.startIndex, pr.length))
   }
 
   it("should match") {

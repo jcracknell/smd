@@ -13,11 +13,9 @@ class ParsingResultSpec extends FunSpec with Matchers {
     it("should have rejected = false") {
       success.rejected should be (false)
     }
-    describe("range") {
-      it("should have correct start and end values") {
-        (success.range.start) should be (0)
-        (success.range.last) should be (2)
-      }
+    it("should have the correct start and end indices") {
+      (success.startIndex) should be (0)
+      (success.endIndex) should be (3)
     }
   }
   describe("Rejected") {
@@ -27,12 +25,11 @@ class ParsingResultSpec extends FunSpec with Matchers {
     it("should have rejected = true") {
       Rejected.rejected should be (true)
     }
-    describe("range") {
-      it("should throw an UnsupportedOperationException") {
-        intercept[UnsupportedOperationException] {
-          Rejected.range
-        }
-      }
+    it("should throw UnsupportedOperationExceptions") {
+      intercept[UnsupportedOperationException] { Rejected.startIndex }
+      intercept[UnsupportedOperationException] { Rejected.endIndex }
+      intercept[UnsupportedOperationException] { Rejected.length }
+      intercept[UnsupportedOperationException] { Rejected.parsed }
     }
   }
 }
