@@ -8,9 +8,9 @@ import smd.parsing._
 object Grammar extends Grammar
 
 trait Grammar extends Parsers {
-  protected def parseExtents[A](parser: Parser[A], extents: Seq[CharSequence]): A =
-    // TODO: error checking
-    parser.parse(extents).product
+  protected def parseExtents[A](parser: Parser[A], extents: Seq[InputExtent]): A =
+    // TODO: error handling
+    parser.parse(ParsingContext(InputExtent(extents))).product
 
   lazy val document: Parser[dom.Document] = blocks ^* dom.Document
 
@@ -163,7 +163,7 @@ trait Grammar extends Parsers {
     lazy val unmarkedLine     = rule { ?!(anyMarker) ~ indent.? ~> blockLine   }
     lazy val continuationLine = rule { ?!(anyMarker) ~ indent   ~> blockLine   }
 
-    lazy val itemLoose: Parser[(MarkerProduct, Seq[CharSequence])] = {
+    lazy val itemLoose: Parser[(MarkerProduct, Seq[InputExtent])] = {
       val initialBlock      = markedLine       ~ unmarkedLine.* ^* { case ((m, a), bs) => (m, a +: bs) }
       val continuationBlock = continuationLine ~ unmarkedLine.* ^* { case (a, bs) => a +: bs }
 
@@ -172,7 +172,7 @@ trait Grammar extends Parsers {
       }
     }
 
-    lazy val itemTight: Parser[(MarkerProduct, Seq[CharSequence], Seq[CharSequence])] = {
+    lazy val itemTight: Parser[(MarkerProduct, Seq[InputExtent], Seq[InputExtent])] = {
       // Special handling is required for tight list items because as soon as a list marker is encountered
       // at the start of a line, the content ends and we enter a sublist.
       val content = (
@@ -280,7 +280,7 @@ trait Grammar extends Parsers {
     val headRows = repSepS(1, commentRows_?, ?!(alignRow) ~> row)
     val bodyRows = repSepS(1, commentRows_?,                 row)
 
-    def mkRows(rows: Seq[Seq[(CharSequence, Int)]], alignments: List[dom.Table.CellAlignment]) =
+    def mkRows(rows: Seq[Seq[(InputExtent, Int)]], alignments: List[dom.Table.CellAlignment]) =
       rows map { row =>
         val cells =  (row.toList, alignments) unfoldRight {
           case ((c, span) :: cs, as) =>

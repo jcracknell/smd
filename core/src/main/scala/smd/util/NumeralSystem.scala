@@ -3,7 +3,7 @@ package util
 
 import scala.util.Try
 import scala.annotation.{switch, tailrec}
-import smd.parsing.{Parser, Parsers}
+import smd.parsing.{ParsingContext, InputExtent, Parser, Parsers}
 
 trait NumeralSystem {
   /** The minimum value representable in this [[smd.util.NumeralSystem]]. */
@@ -81,7 +81,7 @@ object NumeralSystem {
     }
 
     def decode(s: CharSequence, start: Int, end: Int): Option[Int] =
-      Grammar.numeral.parse(s.subSequenceProxy(start, end)).productOption
+      Grammar.numeral.parse(ParsingContext(InputExtent(s).subSequence(start, end))).productOption
 
     protected object Grammar extends Parsers {
       lazy val numeral =

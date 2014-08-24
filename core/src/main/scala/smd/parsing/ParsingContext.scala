@@ -5,7 +5,7 @@ import smd.unicode.GraphemeInfo
 
 trait ParsingContext { context =>
   /** The input character sequence to be parsed. */
-  def input: CharSequence
+  def input: InputExtent
 
   /** The current index in the input sequence. */
   def index: Int
@@ -49,9 +49,9 @@ trait ParsingContext { context =>
 }
 
 object ParsingContext {
-  def apply(str: CharSequence, index: Int = 0): ParsingContext = new RootContext(str, index)
+  def apply(input: InputExtent, index: Int = 0): ParsingContext = new RootContext(input, index)
 
-  class RootContext(val input: CharSequence, var index: Int) extends ParsingContext { root =>
+  class RootContext(val input: InputExtent, var index: Int) extends ParsingContext { root =>
     protected val graphemeLut = GraphemeInfo.createLookup(input)
 
     val length = input.length()
@@ -74,8 +74,7 @@ object ParsingContext {
     def copy: ParsingContext = new DependantContext(index)
 
     class DependantContext(var index: Int) extends ParsingContext {
-      val input: CharSequence = root.input
-
+      val input: InputExtent = root.input
       val length = input.length()
 
       def graphemeAt(i: Int): GraphemeInfo = root.graphemeLut(i)

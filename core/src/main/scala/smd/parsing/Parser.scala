@@ -5,8 +5,7 @@ import smd.util.CompositeCharSequence
 
 abstract class Parser[+A] { lhs =>
   def parse(context: ParsingContext): ParsingResult[A]
-  def parse(input: CharSequence): ParsingResult[A] = parse(ParsingContext(input))
-  def parse(inputParts: Seq[CharSequence]): ParsingResult[A] = parse(CompositeCharSequence.weighted(inputParts))
+  def parse(input: InputExtent): ParsingResult[A] = parse(ParsingContext(input))
 
   private lazy val opt = OptionalParser(this)
   private lazy val rep0 = RepetitionParser(this, None, None)

@@ -36,7 +36,7 @@ sealed abstract class ParsingResult[+A] {
 
   /** The parsed sub-sequence of the input $ifAccepted. */
   @throws[UnsupportedOperationException]
-  def parsed: CharSequence
+  def parsed: InputExtent
 
   /** Creates a copy of this [[smd.parsing.ParsingResult]] with the provided replacement product.
     *
@@ -56,20 +56,20 @@ object ParsingResult {
 }
 
 /** An accepted [[smd.parsing.ParsingResult]]. */
-class Accepted[+A](val product: A, protected val source: CharSequence, val startIndex: Int, val endIndex: Int) extends ParsingResult[A] {
+class Accepted[+A](val product: A, protected val input: InputExtent, val startIndex: Int, val endIndex: Int) extends ParsingResult[A] {
   def accepted: Boolean = true
   def rejected: Boolean = false
   def length: Int = endIndex - startIndex
-  def parsed: CharSequence = source.subSequenceProxy(startIndex, endIndex)
-  def copy[B](replacement: B): ParsingResult[B] = new Accepted[B](replacement, source, startIndex, endIndex)
+  def parsed: InputExtent = input.subSequence(startIndex, endIndex)
+  def copy[B](replacement: B): ParsingResult[B] = new Accepted[B](replacement, input, startIndex, endIndex)
 
-  override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode((product, source, startIndex, endIndex))
+  override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode((product, input, startIndex, endIndex))
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case that: Accepted[_] => this.startIndex   == that.startIndex &&
                               this.length  == that.length &&
                               this.product == that.product &&
-                              this.source  == that.source
+                              this.input  == that.input
     case _ => false
   }
 
@@ -109,6 +109,6 @@ case object Rejected extends ParsingResult[Nothing] {
   def startIndex: Int = unsupported("index")
   def endIndex: Int = unsupported("index")
   def length: Int = unsupported("length")
-  def parsed: CharSequence = unsupported("parsed")
+  def parsed: InputExtent = unsupported("parsed")
   def copy[B](replacement: B): ParsingResult[B] = unsupported("copy")
 }
