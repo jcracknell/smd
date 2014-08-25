@@ -29,15 +29,15 @@ abstract class InputExtent extends CharSequence {
 object InputExtent {
   import scala.language.implicitConversions
 
-  def apply(source: CharSequence): InputExtent = new Root(source)
+  implicit def apply(source: CharSequence): InputExtent = source match {
+    case ie: InputExtent => ie
+    case _ => new Root(source)
+  }
+
   def apply(parts: Seq[InputExtent]): InputExtent = Composite.balanced(parts)
 
   def unapply(extent: InputExtent): Option[CharSequence] = Some(extent.toString)
 
-  implicit def charSequenceToInputExtent(cs: CharSequence): InputExtent = cs match {
-    case ie: InputExtent => ie
-    case _ => new Root(cs)
-  }
 
   case class Root(source: CharSequence) extends InputExtent {
     def sourceIndexAt(i: Int): Int = i
