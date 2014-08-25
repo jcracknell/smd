@@ -1,6 +1,9 @@
 import scala.annotation.tailrec
 
 package object smd {
+  val Lazy = smd.util.Lazy
+  type Lazy[A] = smd.util.Lazy[A]
+
   implicit class Unfoldable[A](val self: A) {
     @inline private def unfoldRight[B](seed: A, unspool: A => Option[(B, A)]): Stream[B] =
       unspool(seed) match {
