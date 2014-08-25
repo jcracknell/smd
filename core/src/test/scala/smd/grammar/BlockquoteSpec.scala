@@ -10,9 +10,9 @@ class BlockquoteSpec extends ParsingScenarios {
   parsing("""
   |> Blockquote
   """) as blockquote should produce (
-    Blockquote(Seq(
-      Paragraph(Seq(
-        Text("Blockquote")
+    Blockquote(SourceRange.Unknown, Seq(
+      Paragraph(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Blockquote")
       ))
     ))
   )
@@ -21,9 +21,9 @@ class BlockquoteSpec extends ParsingScenarios {
   |> Blockquote
   |> line 2
   """) as blockquote should produce (
-    Blockquote(Seq(
-      Paragraph(Seq(
-        Text("Blockquote"), Space(), Text("line"), Space(), Text("2")
+    Blockquote(SourceRange.Unknown, Seq(
+      Paragraph(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Blockquote"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "line"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -32,9 +32,9 @@ class BlockquoteSpec extends ParsingScenarios {
   |> Blockquote
   |line 2
   """) as blockquote should produce (
-    Blockquote(Seq(
-      Paragraph(Seq(
-        Text("Blockquote"), Space(), Text("line"), Space(), Text("2")
+    Blockquote(SourceRange.Unknown, Seq(
+      Paragraph(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Blockquote"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "line"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -44,12 +44,12 @@ class BlockquoteSpec extends ParsingScenarios {
   |
   |> continues
   """) as blockquote should produce (
-    Blockquote(Seq(
-      Paragraph(Seq(
-        Text("Blockquote")
+    Blockquote(SourceRange.Unknown, Seq(
+      Paragraph(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Blockquote")
       )),
-      Paragraph(Seq(
-        Text("continues")
+      Paragraph(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "continues")
       ))
     ))
   )

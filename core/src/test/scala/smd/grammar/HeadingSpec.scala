@@ -10,32 +10,32 @@ class HeadingSpec extends ParsingScenarios {
   parsing("""
   |# Heading 1
   """) as heading should produce (
-    Heading(1, Seq(
-      Text("Heading"), Space(), Text("1")
+    Heading(SourceRange.Unknown, 1, Seq(
+      Text(SourceRange.Unknown, "Heading"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
     ))
   )
 
   parsing("""
   |## Heading 2
   """) as heading should produce (
-    Heading(2, Seq(
-      Text("Heading"), Space(), Text("2")
+    Heading(SourceRange.Unknown, 2, Seq(
+      Text(SourceRange.Unknown, "Heading"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
     ))
   )
 
   parsing("""
   |/* comment */ ## Heading Text
   """) as heading should produce (
-    Heading(2, Seq(
-      Text("Heading"), Space(), Text("Text")
+    Heading(SourceRange.Unknown, 2, Seq(
+      Text(SourceRange.Unknown, "Heading"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "Text")
     ))
   )
   parsing("""
   |// comment
   |## Heading Text
   """) as heading should produce (
-    Heading(2, Seq(
-      Text("Heading"), Space(), Text("Text")
+    Heading(SourceRange.Unknown, 2, Seq(
+      Text(SourceRange.Unknown, "Heading"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "Text")
     ))
   )
 }

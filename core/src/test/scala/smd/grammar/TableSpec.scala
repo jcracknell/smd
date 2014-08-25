@@ -15,17 +15,17 @@ class TableSpec extends ParsingScenarios {
   ||-----|-----|
   ||body1|body2|
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head2")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body2")))
         )
       )
     )
@@ -36,17 +36,17 @@ class TableSpec extends ParsingScenarios {
   ||-----|-----
   ||body1|body2
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head2")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body2")))
         )
       )
     )
@@ -63,15 +63,15 @@ class TableSpec extends ParsingScenarios {
   ||-----
   ||body1
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head1")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head1")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body1")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body1")))
         )
       )
     )
@@ -82,15 +82,15 @@ class TableSpec extends ParsingScenarios {
   ||-----|
   ||body1|
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head1")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head1")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body1")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body1")))
         )
       )
     )
@@ -103,24 +103,24 @@ class TableSpec extends ParsingScenarios {
   ||     | /* comment */ |
   || /**/| //comment
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head2")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body2")))
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq()),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq())
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq()),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq())
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq())
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq())
         )
       )
     )
@@ -131,19 +131,19 @@ class TableSpec extends ParsingScenarios {
   ||:------+:------:+-------:|
   || left  | center |  right |
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left,   1, Seq(Text("Left"))),
-          Table.Cell(Table.CellAlignment.Center, 1, Seq(Text("Center"))),
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("Right")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left,   1, Seq(Text(SourceRange.Unknown, "Left"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Center, 1, Seq(Text(SourceRange.Unknown, "Center"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "Right")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left,   1, Seq(Text("left"))),
-          Table.Cell(Table.CellAlignment.Center, 1, Seq(Text("center"))),
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("right")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left,   1, Seq(Text(SourceRange.Unknown, "left"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Center, 1, Seq(Text(SourceRange.Unknown, "center"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "right")))
         )
       )
     )
@@ -157,21 +157,21 @@ class TableSpec extends ParsingScenarios {
   |/* Trial 2 */
   ||body3|body4|
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("head2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "head2")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body1"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body2")))
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body3"))),
-          Table.Cell(Table.CellAlignment.Left, 1, Seq(Text("body4")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body3"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left, 1, Seq(Text(SourceRange.Unknown, "body4")))
         )
       )
     )
@@ -184,35 +184,35 @@ class TableSpec extends ParsingScenarios {
   ||   Frobnicator |  23 |  42 |  20 |  56 |
   || Confoobmotron |  57 | 130 |  63 | 112 |
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Trial"))),
-          Table.Cell(Table.CellAlignment.Right, 2, Seq(Text("1"))),
-          Table.Cell(Table.CellAlignment.Right, 2, Seq(Text("2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Trial"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 2, Seq(Text(SourceRange.Unknown, "1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 2, Seq(Text(SourceRange.Unknown, "2")))
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Component"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Min"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Max"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Min"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Max")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Component"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Min"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Max"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Min"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Max")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Frobnicator"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("23"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("42"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("20"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("56")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Frobnicator"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "23"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "42"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "20"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "56")))
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("Confoobmotron"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("57"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("130"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("63"))),
-          Table.Cell(Table.CellAlignment.Right, 1, Seq(Text("112")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "Confoobmotron"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "57"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "130"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "63"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right, 1, Seq(Text(SourceRange.Unknown, "112")))
         )
       )
     )
@@ -226,30 +226,30 @@ class TableSpec extends ParsingScenarios {
   || span1  | span2          ||
   || span3                  |||
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left,   1, Seq(Text("Left"))),
-          Table.Cell(Table.CellAlignment.Center, 1, Seq(Text("Center"))),
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("Right")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left,   1, Seq(Text(SourceRange.Unknown, "Left"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Center, 1, Seq(Text(SourceRange.Unknown, "Center"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "Right")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left,   1, Seq(Text("span1"))),
-          Table.Cell(Table.CellAlignment.Center, 1, Seq(Text("span1"))),
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("span1")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left,   1, Seq(Text(SourceRange.Unknown, "span1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Center, 1, Seq(Text(SourceRange.Unknown, "span1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "span1")))
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left,   2, Seq(Text("span2"))),
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("span1")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left,   2, Seq(Text(SourceRange.Unknown, "span2"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "span1")))
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left,   1, Seq(Text("span1"))),
-          Table.Cell(Table.CellAlignment.Center, 2, Seq(Text("span2")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left,   1, Seq(Text(SourceRange.Unknown, "span1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Center, 2, Seq(Text(SourceRange.Unknown, "span2")))
         ),
         Table.Row(
-          Table.Cell(Table.CellAlignment.Left,   3, Seq(Text("span3")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Left,   3, Seq(Text(SourceRange.Unknown, "span3")))
         )
       )
     )
@@ -260,19 +260,19 @@ class TableSpec extends ParsingScenarios {
   ||-------------:|+:-----:|
   || body1 | body2 | body3 |
   """) as table should produce (
-    Table(
+    Table(SourceRange.Unknown, 
       head = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("head1"))),
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("head2"))),
-          Table.Cell(Table.CellAlignment.Center, 1, Seq(Text("head3")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "head1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "head2"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Center, 1, Seq(Text(SourceRange.Unknown, "head3")))
         )
       ),
       body = Seq(
         Table.Row(
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("body1"))),
-          Table.Cell(Table.CellAlignment.Right,  1, Seq(Text("body2"))),
-          Table.Cell(Table.CellAlignment.Center, 1, Seq(Text("body3")))
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "body1"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Right,  1, Seq(Text(SourceRange.Unknown, "body2"))),
+          Table.Cell(SourceRange.Unknown, Table.CellAlignment.Center, 1, Seq(Text(SourceRange.Unknown, "body3")))
         )
       )
     )

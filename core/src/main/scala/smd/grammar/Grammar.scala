@@ -12,6 +12,11 @@ trait Grammar extends Parsers {
     // TODO: error handling
     parser.parse(ParsingContext(InputExtent(extents))).product
 
+  protected implicit class ParsingResultOps[A](private val pr: ParsingResult[A]) {
+    def sourceRange: dom.SourceRange =
+      dom.SourceRange(pr.parsed.sourceStartIndex, pr.parsed.sourceEndIndex)
+  }
+
   lazy val document: Parser[dom.Document] = blocks ^* dom.Document
 
   //region Blocks
@@ -38,8 +43,8 @@ trait Grammar extends Parsers {
     // Divergence from spec: we accept any number of spaces, as we do not support indented code blocks
     val ref = spaceChars_? ~> referenceId <~ ":" ~ sp
 
-    ref ~ (parenthesizedArgumentList | argumentList) <~ sp.? ~ blankLine ^~ {
-      (r, as) => dom.Reference(r, as)
+    ref ~ (parenthesizedArgumentList | argumentList) <~ sp.? ~ blankLine ^^ { pr =>
+      pr.product match { case (r, as) => dom.Reference(pr.sourceRange, r, as) }
     }
   }
 
@@ -47,13 +52,23 @@ trait Grammar extends Parsers {
 
   lazy val unorderedList = new ListGrammar[dom.UnorderedList] {
     type MarkerProduct = Any
+    type Loose = dom.LooseUnorderedList
+    type Tight = dom.TightUnorderedList
+    type ItemTight = dom.TightUnorderedList.Item
+    type ItemLoose = dom.LooseUnorderedList.Item
+
     lazy val marker = unorderedListMarker
+    def mkLoose(sourceRange: dom.SourceRange, items: Seq[ItemLoose]): Loose =
+      dom.LooseUnorderedList(sourceRange, items)
 
-    def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.UnorderedList =
-      dom.LooseUnorderedList(items map { case (_, content) => dom.LooseUnorderedList.Item(content) })
+    def mkTight(sourceRange: dom.SourceRange, items: Seq[ItemTight]): Tight =
+      dom.TightUnorderedList(sourceRange, items)
 
-    def mkTight(items: Seq[(MarkerProduct, Seq[dom.Inline], Seq[dom.List])]): dom.UnorderedList =
-      dom.TightUnorderedList(items map { case (_, content, sublists) => dom.TightUnorderedList.Item(content, sublists) })
+    def mkItemLoose(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Block]): ItemLoose =
+      dom.LooseUnorderedList.Item(sourceRange, content)
+
+    def mkItemTight(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Inline], sublists: Seq[dom.List]): ItemTight = 
+      dom.TightUnorderedList.Item(sourceRange, content, sublists)
   }
 
   lazy val orderedList: Parser[dom.OrderedList] = {
@@ -62,22 +77,28 @@ trait Grammar extends Parsers {
       orderedListMarkerVariants map { case (numeralStyle, separatorStyle, markerParser) =>
         new ListGrammar[dom.OrderedList] {
           type MarkerProduct = (Option[String], CharSequence)
+          type Loose = dom.LooseOrderedList
+          type Tight = dom.TightOrderedList
+          type ItemLoose = (Lazy[dom.OrderedList.Counter], dom.LooseOrderedList.Item)
+          type ItemTight = (Lazy[dom.OrderedList.Counter], dom.TightOrderedList.Item)
+
           def marker = markerParser
 
-          def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): dom.OrderedList =
-            items.head match { case ((counterName, start), _) =>
-              dom.LooseOrderedList(
-                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-                items map { case (_, content) => dom.LooseOrderedList.Item(content) }
-              )
-            }
+          def mkLoose(sourceRange: dom.SourceRange, items: Seq[ItemLoose]): Loose =
+            dom.LooseOrderedList(sourceRange, items.head._1.get, items.map(_._2))
 
-          def mkTight(items: Seq[(MarkerProduct, Seq[Inline], Seq[dom.List])]): dom.OrderedList =
-            items.head match { case ((counterName, start), _, _) =>
-              dom.TightOrderedList(
-                dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName),
-                items map { case (_, content, sublists) => dom.TightOrderedList.Item(content, sublists) }
-              )
+          def mkTight(sourceRange: dom.SourceRange, items: Seq[ItemTight]): Tight =
+            dom.TightOrderedList(sourceRange, items.head._1.get, items.map(_._2))
+
+          def mkItemLoose(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Block]): ItemLoose =
+            (Lazy(mkCounter(mp)), dom.LooseOrderedList.Item(sourceRange, content))
+
+          def mkItemTight(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Inline], sublists: Seq[dom.List]): ItemTight =
+            (Lazy(mkCounter(mp)), dom.TightOrderedList.Item(sourceRange, content, sublists))
+
+          private def mkCounter(mp: MarkerProduct): dom.OrderedList.Counter = 
+            mp match { case (counterName, start) =>
+              dom.OrderedList.Counter(numeralStyle, separatorStyle, numeralStyle.decode(start), counterName)
             }
         }
       }
@@ -85,41 +106,54 @@ trait Grammar extends Parsers {
   }
 
   lazy val definitionList: Parser[dom.DefinitionList] = rule {
-    val term = blockLine
+    val term = blockLine ^^ { pr => (pr.sourceRange, pr.product) }
 
     val definitionMarker: Parser[Any] = nonIndentSpace_? ~ (":" | "~") ~ spaceChar.+
 
+    // Here we abuse the standard list grammar a bit, as the definitions of a definition "list" actually
+    // look like a regular list.
     val definitions = new ListGrammar[Seq[dom.DefinitionList.Definition]] {
       type MarkerProduct = Any
+      type Loose = Seq[dom.LooseDefinitionList.Definition]
+      type Tight = Seq[dom.TightDefinitionList.Definition]
+      type ItemLoose = dom.LooseDefinitionList.Definition
+      type ItemTight = dom.TightDefinitionList.Definition
+
       def marker = definitionMarker
 
-      def mkLoose(items: Seq[(MarkerProduct, Seq[Block])]): Seq[dom.DefinitionList.Definition] =
-        items map { case (_, content) => dom.LooseDefinitionList.Definition(content) }
+      def mkLoose(sourceRange: dom.SourceRange, items: Seq[ItemLoose]): Loose = items
 
-      def mkTight(items: Seq[(MarkerProduct, Seq[Inline], Seq[dom.List])]): Seq[dom.DefinitionList.Definition] =
-        items map { case (_, content, sublists) => dom.TightDefinitionList.Definition(content, sublists) }
+      def mkTight(sourceRange: dom.SourceRange, items: Seq[ItemTight]): Tight = items
+
+      def mkItemLoose(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Block]): ItemLoose =
+        dom.LooseDefinitionList.Definition(sourceRange, content)
+
+      def mkItemTight(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Inline], sublists: Seq[dom.List]): ItemTight = 
+        dom.TightDefinitionList.Definition(sourceRange, content, sublists)
     }
 
-    val itemTight = term ~ definitions.tightList
-    val itemLoose = (term <~ interBlock_?) ~ definitions.looseList
+    val itemTight = term ~ definitions.tightList                   ^^ { pr => (pr.sourceRange, pr.product) }
+    val itemLoose = (term <~ interBlock_?) ~ definitions.looseList ^^ { pr => (pr.sourceRange, pr.product) }
 
     val tightList = (
       // Here we know that itemTight would not have matched the beginning of loose definitions
       itemTight.+ <~ ?!(interBlock_? ~ itemLoose)
-    ) ^* { items => 
-      dom.TightDefinitionList(items map { case (termExtent, definitions) => 
-        var term = dom.DefinitionList.Term(parseExtents(blockInlines_?, Seq(termExtent)))
-        val defs = definitions collect { case d: dom.TightDefinitionList.Definition => d }
-        dom.TightDefinitionList.Item(term, defs)
-      })
+    ) ^^ { pr =>
+      val items = pr.product map { case (itemRange, ((termRange, termExtent), definitions)) =>
+        val term = dom.DefinitionList.Term(termRange, parseExtents(blockInlines_?, Seq(termExtent)))
+        val defs = definitions.map(_.asInstanceOf[dom.TightDefinitionList.Definition])
+        dom.TightDefinitionList.Item(itemRange, term, defs)
+      }
+      dom.TightDefinitionList(pr.sourceRange, items)
     }
 
-    val looseList = repSepR(1, itemLoose, interBlock_?) ^* { items =>
-      dom.LooseDefinitionList(items map { case (termExtent, definitions) =>
-        var term = dom.DefinitionList.Term(parseExtents(blockInlines_?, Seq(termExtent)))
-        val defs = definitions collect { case d: dom.LooseDefinitionList.Definition => d }
-        dom.LooseDefinitionList.Item(term, defs)
-      })
+    val looseList = repSepR(1, itemLoose, interBlock_?) ^^ { pr =>
+      val items = pr.product map { case (itemRange, ((termRange, termExtent), definitions)) =>
+        val term = dom.DefinitionList.Term(termRange, parseExtents(blockInlines_?, Seq(termExtent)))
+        val defs = definitions.map(_.asInstanceOf[dom.LooseDefinitionList.Definition])
+        dom.LooseDefinitionList.Item(itemRange, term, defs)
+      }
+      dom.LooseDefinitionList(pr.sourceRange, items)
     }
 
     tightList | looseList
@@ -127,33 +161,36 @@ trait Grammar extends Parsers {
 
   /** Generic grammar for lists. */
   abstract class ListGrammar[+L] extends Parser[L] with ListItemGrammar {
-    def mkLoose(items: Seq[(MarkerProduct, Seq[dom.Block])]): L
-    def mkTight(items: Seq[(MarkerProduct, Seq[dom.Inline], Seq[dom.List])]): L
+    type Loose <: L
+    type Tight <: L
+
+    def mkLoose(sourceRange: dom.SourceRange, items: Seq[ItemLoose]): Loose
+    def mkTight(sourceRange: dom.SourceRange, items: Seq[ItemTight]): Tight
 
     def parse(context: ParsingContext): ParsingResult[L] = list.parse(context)
 
-    lazy val list: Parser[L] = rule {  tightList | looseList }
+    lazy val list: Parser[L] = rule { tightList | looseList }
 
     // A 'tight' list is a sequence of tight list items not followed by loose content.
-    lazy val tightList = itemTight.+ <~ ?!(interBlock_? ~ (continuationLine | itemLoose)) ^* { rawItems =>
-      val items = rawItems map { case (m, contentExtents, sublistExtents) =>
-        val content  = if(contentExtents.isEmpty) Nil else parseExtents(blockInlines_?, contentExtents)
-        val sublists = if(sublistExtents.isEmpty) Nil else parseExtents((unorderedList | orderedList).*, sublistExtents)
-        (m, content, sublists)
-      }
-      mkTight(items)
+    lazy val tightList = itemTight.+ <~ ?!(interBlock_? ~ (continuationLine | itemLoose)) ^^ { pr =>
+      mkTight(pr.sourceRange, pr.product.map(_.get))
     }
 
-    lazy val looseList = repSepR(1, itemLoose, interBlock_?) ^* { p =>
-      val items = p collect { case (m, extents) => (m, parseExtents(blocks, extents)) }
-      mkLoose(items)
+    lazy val looseList = repSepR(1, itemLoose, interBlock_?) ^^ { pr =>
+      mkLoose(pr.sourceRange, pr.product.map(_.get))
     }
   }
 
   /** Generic grammar for list items. */
   trait ListItemGrammar {
     type MarkerProduct
+    type Loose
+    type Tight
+    type ItemTight
+    type ItemLoose
     def marker: Parser[MarkerProduct]
+    def mkItemTight(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Inline], sublists: Seq[dom.List]): ItemTight
+    def mkItemLoose(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Block]): ItemLoose
 
     // TODO: This differs from `listMarker` only in the case of definition list markers. This behavior
     // should be refactored so it is explicit.
@@ -163,16 +200,19 @@ trait Grammar extends Parsers {
     lazy val unmarkedLine     = rule { ?!(anyMarker) ~ indent.? ~> blockLine   }
     lazy val continuationLine = rule { ?!(anyMarker) ~ indent   ~> blockLine   }
 
-    lazy val itemLoose: Parser[(MarkerProduct, Seq[InputExtent])] = {
+    lazy val itemLoose: Parser[Lazy[ItemLoose]] = {
       val initialBlock      = markedLine       ~ unmarkedLine.* ^* { case ((m, a), bs) => (m, a +: bs) }
       val continuationBlock = continuationLine ~ unmarkedLine.* ^* { case (a, bs) => a +: bs }
 
-      initialBlock ~ (interBlock_? ~ continuationBlock).* ^* { case ((m, as), bs) =>
-        (m, as ++ (bs flatMap { case (ib, cb) => ib +: cb }))
+      initialBlock ~ (interBlock_? ~ continuationBlock).* ^^ Lazy.mapping { pr =>
+        pr.product match { case ((m, as), bs) =>
+          val content = parseExtents(blocks, as ++ (bs flatMap { case (ib, cb) => ib +: cb }))
+          mkItemLoose(pr.sourceRange, m, content)
+        }
       }
     }
 
-    lazy val itemTight: Parser[(MarkerProduct, Seq[InputExtent], Seq[InputExtent])] = {
+    lazy val itemTight: Parser[Lazy[ItemTight]] = {
       // Special handling is required for tight list items because as soon as a list marker is encountered
       // at the start of a line, the content ends and we enter a sublist.
       val content = (
@@ -182,8 +222,18 @@ trait Grammar extends Parsers {
       
       val noContent = markedLine ^* { case (m, a) => (m, Right(Seq(a))) }
 
-      (content | noContent) ~ unmarkedLine.* ^* { case ((m, as), bs) =>
-        (m, as.left.getOrElse(Nil), as.right.getOrElse(Nil) ++ bs)
+      (content | noContent) ~ unmarkedLine.* ^^ Lazy.mapping { pr =>
+        pr.product match { case ((m, as), bs) =>
+          val content = as.left.getOrElse(Nil) match {
+            case Seq() => Nil
+            case contentExtents => parseExtents(blockInlines_?, contentExtents)
+          }
+          val sublists = (as.right.getOrElse(Nil) ++ bs) match {
+            case Seq() => Nil
+            case sublistExtents => parseExtents((unorderedList | orderedList).*, sublistExtents)
+          }
+          mkItemTight(pr.sourceRange, m, content, sublists)
+        }
       }
     }
   }
@@ -267,7 +317,7 @@ trait Grammar extends Parsers {
       )
     }
 
-    val cellContent = (?!(` || ` | rowEnd) ~ blockAtom).* ^^ { _.parsed }
+    val cellContent = (?!(` || ` | rowEnd) ~ blockAtom).* ^^ { pr => (pr.sourceRange, pr.parsed) }
 
     val alignRow = +> ~> (align       ~  <+>).* ~ align       ~ <+ ^~ { (as, fa, fs) => as :+ ((fa, fs)) }
     val row      = |> ~> (cellContent ~  <|>).* ~ cellContent ~ <| ^~ { (cs, fc, fs) => cs :+ ((fc, fs)) }
@@ -280,12 +330,12 @@ trait Grammar extends Parsers {
     val headRows = repSepS(1, commentRows_?, ?!(alignRow) ~> row)
     val bodyRows = repSepS(1, commentRows_?,                 row)
 
-    def mkRows(rows: Seq[Seq[(InputExtent, Int)]], alignments: List[dom.Table.CellAlignment]) =
+    def mkRows(rows: Seq[Seq[((dom.SourceRange, InputExtent), Int)]], alignments: List[dom.Table.CellAlignment]) =
       rows map { row =>
         val cells =  (row.toList, alignments) unfoldRight {
-          case ((c, span) :: cs, as) =>
+          case (((sourceRange, extent), span) :: cs, as) =>
             val alignment = as.headOption.getOrElse(dom.Table.CellAlignment.Left)
-            val cell = dom.Table.Cell(alignment, span, parseExtents(blockInlines_?, Seq(c)))
+            val cell = dom.Table.Cell(sourceRange, alignment, span, parseExtents(blockInlines_?, Seq(extent)))
             // Emit the cell, dropping alignments equal to the number of spanned cells
             Some((cell, (cs, as.drop(span))))
           case _ => None
@@ -293,31 +343,32 @@ trait Grammar extends Parsers {
         dom.Table.Row(cells.toList: _*)
       }
 
-    headRows ~ alignRow ~ bodyRows ^~ { (hd, al, bd) =>
-      // Expand the alignments by the cells spanned by each alignment
-      val alignments = al.flatMap({ case (a, n) => List.fill(n)(a) }).toList
-      dom.Table(head = mkRows(hd, alignments), body = mkRows(bd, alignments))
+    headRows ~ alignRow ~ bodyRows ^^ { pr =>
+      pr.product match { case (hd, al, bd) =>
+        // Expand the alignments by the cells spanned by each alignment
+        val alignments = al.flatMap({ case (a, n) => List.fill(n)(a) }).toList
+        dom.Table(pr.sourceRange, mkRows(hd, alignments), mkRows(bd, alignments))
+      }
     }
   }
 
   /* An expression which stands alone as a block, without being wrapped in a paragraph. */
   lazy val expressionBlock: Parser[dom.ExpressionBlock] = rule {
     // N.B. the block must be followed by a blank line, otherwise it is a paragraph
-    sp.? ~> embeddableExpression <~ sp.? ~ ?=(blankLine) ^* dom.ExpressionBlock
+    sp.? ~> embeddableExpression <~ sp.? ~ ?=(blankLine) ^^ { pr => dom.ExpressionBlock(pr.sourceRange, pr.product) }
   }
 
   lazy val blockquote: Parser[dom.Blockquote] = {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
     val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parseExtents(&(blocks), init +: subs) }
 
-    repSep(1, blockquoteBlock, interBlock_?) ^* { p => dom.Blockquote(p.collect({ case Left(b) => b }).flatten) }
+    repSepR(1, blockquoteBlock, interBlock_?) ^^ { pr => dom.Blockquote(pr.sourceRange, pr.product.flatten) }
   }
 
   lazy val heading: Parser[dom.Heading] =
-    sp.? ~> "#".*>=(1) ~ blockInlines ^~ ((h, is) => dom.Heading(h.length, is))
+    sp.? ~> "#".*>=(1) ~ blockInlines ^^ { pr => pr.product match { case (h, is) => dom.Heading(pr.sourceRange, h.length, is) } }
 
-  lazy val paragraph: Parser[dom.Paragraph] =
-    blockInlines ^* dom.Paragraph
+  lazy val paragraph: Parser[dom.Paragraph] = blockInlines ^^ { pr => dom.Paragraph(pr.sourceRange, pr.product) }
 
   lazy val blockInlines: Parser[Seq[Inline]] =
     sp.? ~> (inline.+ <~ sp.?).+ ^*(_.flatten)
@@ -373,13 +424,15 @@ trait Grammar extends Parsers {
     (
       space ~> objectLiteral <~ ?=(space)
     |          objectLiteral
-    ) ^* { atts => dom.Attributes(atts map { case (n, v) => dom.Attributes.Attribute(n, v) }) }
+    ) ^^ { pr => dom.Attributes(pr.sourceRange, pr.product map { case (n, v) => dom.Attributes.Attribute(n, v) }) }
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[dom.Link] = {
     val label = "[" ~> (?!("]") ~> &(inline)).* <~ "]"
 
-    label ~ referenceId.? ~ parenthesizedArgumentList.? ^~ { (lbl, ref, args) => dom.Link(lbl, ref, args.getOrElse(Seq())) }
+    label ~ referenceId.? ~ parenthesizedArgumentList.? ^^ { pr =>
+      pr.product match { case (lbl, ref, args) => dom.Link(pr.sourceRange, lbl, ref, args.getOrElse(Seq())) }
+    }
   }
 
   /** A reference id enclosed in square brackets. */
@@ -389,28 +442,28 @@ trait Grammar extends Parsers {
 
   lazy val autoLink: Parser[dom.AutoLink] =
     // TODO: decoding? more forgiving?
-    "<" ~ ?=(englishAlpha.+ ~ ":") ~> (iriLiteralExpression ^* { iri => dom.AutoLink(iri.value) }) <~ ">"
+    "<" ~ ?=(englishAlpha.+ ~ ":") ~> (iriLiteralExpression ^^ { pr => dom.AutoLink(pr.sourceRange, pr.product.value) }) <~ ">"
 
-  lazy val subscript   = "~" ~> (?!(whitespaceChar | "~") ~> &(inline)).+ <~ "~" ^* dom.Subscript
-  lazy val superscript = "^" ~> (?!(whitespaceChar | "^") ~> &(inline)).+ <~ "^" ^* dom.Superscript
+  lazy val subscript   = "~" ~> (?!(whitespaceChar | "~") ~> &(inline)).+ <~ "~" ^^ { pr => dom.Subscript(pr.sourceRange, pr.product) }
+  lazy val superscript = "^" ~> (?!(whitespaceChar | "^") ~> &(inline)).+ <~ "^" ^^ { pr => dom.Superscript(pr.sourceRange, pr.product) }
 
-  lazy val strong = "**" ~> (?!("**") ~> &(inline)).+ <~ "**" ^* dom.Strong
+  lazy val strong = "**" ~> (?!("**") ~> &(inline)).+ <~ "**" ^^ { pr => dom.Strong(pr.sourceRange, pr.product) }
 
-  lazy val emphasis = "*" ~> (?!("*") ~> &(inline) | &(strong)).+ <~ "*" ^* dom.Emphasis
+  lazy val emphasis = "*" ~> (?!("*") ~> &(inline) | &(strong)).+ <~ "*" ^^ { pr => dom.Emphasis(pr.sourceRange, pr.product) }
 
   lazy val lineBreak =
-    sp ~ "\\" ~ ?=(blankLine) ~ sp ^^^ dom.LineBreak()
+    sp ~ "\\" ~ ?=(blankLine) ~ sp ^^ { pr => dom.LineBreak(pr.sourceRange) }
 
   lazy val text: Parser[dom.Text] = {
     val apos = "'" ~ Grapheme.Category(UnicodeCategory.Groups.Letter ++ UnicodeCategory.Groups.Number)
 
-    normalChar.+ ~ apos.* ^^ { r => dom.Text(r.parsed.toString)}
+    normalChar.+ ~ apos.* ^^ { pr => dom.Text(pr.sourceRange, pr.parsed.toString) }
   }
 
   /** Any non-empty combination of comments and whitespace not leaving or at the end of a block. */
-  lazy val space = sp ~ ?!(blankLine) ^^^ dom.Space()
+  lazy val space = sp ~ ?!(blankLine) ^^ { pr => dom.Space(pr.sourceRange) }
 
-  lazy val entity = escape ^* dom.Entity
+  lazy val entity = escape ^^ { pr => dom.Entity(pr.sourceRange, pr.product) }
 
   lazy val quoted = |<< {
     Seq(
@@ -418,20 +471,20 @@ trait Grammar extends Parsers {
       "'"  -> dom.Quoted.QuoteKind.Single
     ) map { case (qs, kind) =>
       val quot = qs.p
-      quot ~> (?!(quot) ~> &(inline)).* <~ quot ^* { is => dom.Quoted(is, kind) }
+      quot ~> (?!(quot) ~> &(inline)).* <~ quot ^^ { pr => dom.Quoted(pr.sourceRange, pr.product, kind) }
     }
   }
 
   /** Backtick-enclosed code. */
   lazy val code = {
     val grammar = new VerbatimStringGrammar { protected def contentAtom: Parser[Any] = ?!(newLine) ~ unicodeCharacter }
-    grammar ^* { s => dom.Code(s) }
+    grammar ^^ { pr => dom.Code(pr.sourceRange, pr.product) }
   }
 
   /* An inline expression starting with a twirl. */
-  lazy val inlineExpression = embeddableExpression ^* dom.InlineExpression
+  lazy val inlineExpression = embeddableExpression ^^ { pr => dom.InlineExpression(pr.sourceRange, pr.product) }
 
-  lazy val symbol = CodePoint.Values(specialCharValues) ^* { p => dom.Symbol(p.charSequence.toString) }
+  lazy val symbol = CodePoint.Values(specialCharValues) ^^ { pr => dom.Symbol(pr.sourceRange, pr.product.charSequence.toString) }
 
   /** Any non-empty combination of comments and whitespace not consuming a blank line. */
   protected lazy val sp = {

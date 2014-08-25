@@ -16,12 +16,12 @@ class OrderedListSpec extends ParsingScenarios {
   | 1. Item 1
   | 2. Item 2
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("1")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("2")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -30,12 +30,12 @@ class OrderedListSpec extends ParsingScenarios {
   | 1) Item 1
   | 2) Item 2
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingParenthesis, Some(1), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("1")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingParenthesis, Some(1), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("2")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -44,12 +44,12 @@ class OrderedListSpec extends ParsingScenarios {
   | (1) Item 1
   | (2) Item 2
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.EnclosingParentheses, Some(1), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("1")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.EnclosingParentheses, Some(1), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("2")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -58,12 +58,12 @@ class OrderedListSpec extends ParsingScenarios {
   | #. Item 1
   | #. Item 2
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, None, None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("1")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, None, None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("2")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -72,12 +72,12 @@ class OrderedListSpec extends ParsingScenarios {
   | 3. Item 3
   | 4. Item 4
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(3), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("3")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(3), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "3")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("4")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "4")
       ))
     ))
   )
@@ -86,12 +86,12 @@ class OrderedListSpec extends ParsingScenarios {
   | iii. Item 3
   |  iv. Item 4
   """) as orderedList should produce(
-    TightOrderedList(Counter(NumeralStyle.LowerRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("3")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.LowerRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "3")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("4")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "4")
       ))
     ))
   )
@@ -100,12 +100,12 @@ class OrderedListSpec extends ParsingScenarios {
   | III. Item 3
   |  IV. Item 4
   """) as orderedList should produce(
-    TightOrderedList(Counter(NumeralStyle.UpperRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("3")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.UpperRoman, SeparatorStyle.TrailingDot, Some(3), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "3")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("4")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "4")
       ))
     ))
   )
@@ -114,12 +114,12 @@ class OrderedListSpec extends ParsingScenarios {
   | b. Item b
   | c. Item c
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.LowerAlpha, SeparatorStyle.TrailingDot, Some(2), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("b")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.LowerAlpha, SeparatorStyle.TrailingDot, Some(2), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "b")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("c")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "c")
       ))
     ))
   )
@@ -128,12 +128,12 @@ class OrderedListSpec extends ParsingScenarios {
   | B. Item B
   | C. Item C
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.UpperAlpha, SeparatorStyle.TrailingDot, Some(2), None), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("B")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.UpperAlpha, SeparatorStyle.TrailingDot, Some(2), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "B")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("C")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "C")
       ))
     ))
   )
@@ -142,12 +142,12 @@ class OrderedListSpec extends ParsingScenarios {
   | ex:1. Item 1
   | ex:2. Item 2
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), Some("ex")), Seq(
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("1")
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), Some("ex")), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
       )),
-      TightOrderedList.Item(Seq(
-        Text("Item"), Space(), Text("2")
+      TightOrderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -157,15 +157,15 @@ class OrderedListSpec extends ParsingScenarios {
   |
   | (ex:#) bad example
   """) as orderedList should produce (
-    LooseOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.EnclosingParentheses, None, Some("ex")), Seq(
-      LooseOrderedList.Item(Seq(
-        Paragraph(Seq(
-          Text("good"), Space(), Text("example")
+    LooseOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.EnclosingParentheses, None, Some("ex")), Seq(
+      LooseOrderedList.Item(SourceRange.Unknown, Seq(
+        Paragraph(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "good"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "example")
         ))
       )),
-      LooseOrderedList.Item(Seq(
-        Paragraph(Seq(
-          Text("bad"), Space(), Text("example")
+      LooseOrderedList.Item(SourceRange.Unknown, Seq(
+        Paragraph(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "bad"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "example")
         ))
       ))
     ))
@@ -179,35 +179,35 @@ class OrderedListSpec extends ParsingScenarios {
   |      * e
   | 3. f
   """) as orderedList should produce (
-    TightOrderedList(Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), None), Seq(
-      TightOrderedList.Item(
-        Seq(Text("a")),
+    TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.Arabic, SeparatorStyle.TrailingDot, Some(1), None), Seq(
+      TightOrderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "a")),
         Seq(
-          TightOrderedList(Counter(NumeralStyle.LowerAlpha, SeparatorStyle.TrailingParenthesis, Some(1), None), Seq(
-            TightOrderedList.Item(
-              Seq(Text("b")),
+          TightOrderedList(SourceRange.Unknown, Counter(NumeralStyle.LowerAlpha, SeparatorStyle.TrailingParenthesis, Some(1), None), Seq(
+            TightOrderedList.Item(SourceRange.Unknown, 
+              Seq(Text(SourceRange.Unknown, "b")),
               Seq()
             ),
-            TightOrderedList.Item(
-              Seq(Text("c")),
+            TightOrderedList.Item(SourceRange.Unknown, 
+              Seq(Text(SourceRange.Unknown, "c")),
               Seq()
             )
           ))
         )
       ),
-      TightOrderedList.Item(
-        Seq(Text("d")),
+      TightOrderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "d")),
         Seq(
-          TightUnorderedList(Seq(
-            TightUnorderedList.Item(
-              Seq(Text("e")),
+          TightUnorderedList(SourceRange.Unknown, Seq(
+            TightUnorderedList.Item(SourceRange.Unknown, 
+              Seq(Text(SourceRange.Unknown, "e")),
               Seq()
             )
           ))
         )
       ),
-      TightOrderedList.Item(
-        Seq(Text("f")),
+      TightOrderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "f")),
         Seq()
       )
     ))

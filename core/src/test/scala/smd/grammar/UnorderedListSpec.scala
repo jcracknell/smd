@@ -11,13 +11,13 @@ class UnorderedListSpec extends ParsingScenarios {
   | * Item 1
   | * Item 2
   """) as unorderedList should produce (
-    TightUnorderedList(Seq(
-      TightUnorderedList.Item(
-        Seq(Text("Item"), Space(), Text("1")),
+    TightUnorderedList(SourceRange.Unknown, Seq(
+      TightUnorderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")),
         Seq()
       ),
-      TightUnorderedList.Item(
-        Seq(Text("Item"), Space(), Text("2")),
+      TightUnorderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")),
         Seq()
       )
     ))
@@ -28,12 +28,12 @@ class UnorderedListSpec extends ParsingScenarios {
   |continues
   | * Item 2
   """) as unorderedList should produce (
-    TightUnorderedList(Seq(
-      TightUnorderedList.Item(Seq(
-        Text("Item"), Space(), Text("1"), Space(), Text("continues")
+    TightUnorderedList(SourceRange.Unknown, Seq(
+      TightUnorderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "continues")
       )),
-      TightUnorderedList.Item(Seq(
-        Text("Item"), Space(), Text("2")
+      TightUnorderedList.Item(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
       ))
     ))
   )
@@ -44,15 +44,15 @@ class UnorderedListSpec extends ParsingScenarios {
   |
   | * Item 2
   """) as unorderedList should produce (
-    LooseUnorderedList(Seq(
-      LooseUnorderedList.Item(Seq(
-        Paragraph(Seq(
-          Text("Item"), Space(), Text("1")
+    LooseUnorderedList(SourceRange.Unknown, Seq(
+      LooseUnorderedList.Item(SourceRange.Unknown, Seq(
+        Paragraph(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
         ))
       )),
-      LooseUnorderedList.Item(Seq(
-        Paragraph(Seq(
-          Text("Item"), Space(), Text("2")
+      LooseUnorderedList.Item(SourceRange.Unknown, Seq(
+        Paragraph(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
         ))
       ))
     ))
@@ -64,18 +64,18 @@ class UnorderedListSpec extends ParsingScenarios {
   |
   |    continues
   """) as unorderedList should produce (
-    LooseUnorderedList(Seq(
-      LooseUnorderedList.Item(Seq(
-        Paragraph(Seq(
-          Text("Item"), Space(), Text("1")
+    LooseUnorderedList(SourceRange.Unknown, Seq(
+      LooseUnorderedList.Item(SourceRange.Unknown, Seq(
+        Paragraph(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")
         ))
       )),
-      LooseUnorderedList.Item(Seq(
-        Paragraph(Seq(
-          Text("Item"), Space(), Text("2")
+      LooseUnorderedList.Item(SourceRange.Unknown, Seq(
+        Paragraph(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")
         )),
-        Paragraph(Seq(
-          Text("continues")
+        Paragraph(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "continues")
         ))
       ))
     ))
@@ -90,32 +90,32 @@ class UnorderedListSpec extends ParsingScenarios {
   |          * f
   |  * g
   """) as unorderedList should produce (
-    TightUnorderedList(Seq(
-      TightUnorderedList.Item(
-        Seq(Text("a")),
+    TightUnorderedList(SourceRange.Unknown, Seq(
+      TightUnorderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "a")),
         Seq(
-          TightUnorderedList(Seq(
-            TightUnorderedList.Item(
-              Seq(Text("b")),
+          TightUnorderedList(SourceRange.Unknown, Seq(
+            TightUnorderedList.Item(SourceRange.Unknown, 
+              Seq(Text(SourceRange.Unknown, "b")),
               Seq(
-                TightUnorderedList(Seq(
-                  TightUnorderedList.Item(
-                    Seq(Text("c")),
+                TightUnorderedList(SourceRange.Unknown, Seq(
+                  TightUnorderedList.Item(SourceRange.Unknown, 
+                    Seq(Text(SourceRange.Unknown, "c")),
                     Seq()
                   )
                 ))
               )
             ),
-            TightUnorderedList.Item(
-              Seq(Text("d")),
+            TightUnorderedList.Item(SourceRange.Unknown, 
+              Seq(Text(SourceRange.Unknown, "d")),
               Seq(
-                TightUnorderedList(Seq(
-                  TightUnorderedList.Item(
-                    Seq(Text("e")),
+                TightUnorderedList(SourceRange.Unknown, Seq(
+                  TightUnorderedList.Item(SourceRange.Unknown, 
+                    Seq(Text(SourceRange.Unknown, "e")),
                     Seq()
                   ),
-                  TightUnorderedList.Item(
-                    Seq(Text("f")),
+                  TightUnorderedList.Item(SourceRange.Unknown, 
+                    Seq(Text(SourceRange.Unknown, "f")),
                     Seq()
                   )
                 ))
@@ -124,8 +124,8 @@ class UnorderedListSpec extends ParsingScenarios {
           ))
         )
       ),
-      TightUnorderedList.Item(
-        Seq(Text("g")),
+      TightUnorderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "g")),
         Seq()
       )
     ))

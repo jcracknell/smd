@@ -11,14 +11,14 @@ class DefinitionListSpec extends ParsingScenarios {
   |term
   |: definition
   """) as definitionList should produce (
-    TightDefinitionList(Seq(
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(
-          Text("term")
+    TightDefinitionList(SourceRange.Unknown, Seq(
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "term")
         )),
         Seq(
-          TightDefinitionList.Definition(Seq(
-            Text("definition")
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Text(SourceRange.Unknown, "definition")
           ))
         )
       )
@@ -30,12 +30,12 @@ class DefinitionListSpec extends ParsingScenarios {
   |  : multi
   |    line
   """) as definitionList should produce (
-    TightDefinitionList(Seq(
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term"))),
+    TightDefinitionList(SourceRange.Unknown, Seq(
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term"))),
         Seq(
-          TightDefinitionList.Definition(Seq(
-            Text("multi"), Space(), Text("line")
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Text(SourceRange.Unknown, "multi"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "line")
           ))
         )
       )
@@ -47,12 +47,12 @@ class DefinitionListSpec extends ParsingScenarios {
   |  : multi
   |   line
   """) as definitionList should produce (
-    TightDefinitionList(Seq(
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term"))),
+    TightDefinitionList(SourceRange.Unknown, Seq(
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term"))),
         Seq(
-          TightDefinitionList.Definition(Seq(
-            Text("multi"), Space(), Text("line")
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Text(SourceRange.Unknown, "multi"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "line")
           ))
         )
       )
@@ -63,14 +63,14 @@ class DefinitionListSpec extends ParsingScenarios {
   |term
   |~ definition
   """) as definitionList should produce (
-    TightDefinitionList(Seq(
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(
-          Text("term")
+    TightDefinitionList(SourceRange.Unknown, Seq(
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(
+          Text(SourceRange.Unknown, "term")
         )),
         Seq(
-          TightDefinitionList.Definition(Seq(
-            Text("definition")
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Text(SourceRange.Unknown, "definition")
           ))
         )
       )
@@ -88,19 +88,19 @@ class DefinitionListSpec extends ParsingScenarios {
   |: def1
   |: def2
   """) as definitionList should produce (
-    TightDefinitionList(Seq(
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term1"))),
+    TightDefinitionList(SourceRange.Unknown, Seq(
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term1"))),
         Seq(
-          TightDefinitionList.Definition(Seq(Text("def1"))),
-          TightDefinitionList.Definition(Seq(Text("def2")))
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def1"))),
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def2")))
         )
       ),
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term2"))),
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term2"))),
         Seq(
-          TightDefinitionList.Definition(Seq(Text("def1"))),
-          TightDefinitionList.Definition(Seq(Text("def2")))
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def1"))),
+          TightDefinitionList.Definition(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def2")))
         )
       )
     ))
@@ -116,26 +116,26 @@ class DefinitionListSpec extends ParsingScenarios {
   |: def1
   |: def2
   """) as definitionList should produce (
-    LooseDefinitionList(Seq(
-      LooseDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term1"))),
+    LooseDefinitionList(SourceRange.Unknown, Seq(
+      LooseDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term1"))),
         Seq(
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def1")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def1")))
           )),
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def2")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def2")))
           ))
         )
       ),
-      LooseDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term2"))),
+      LooseDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term2"))),
         Seq(
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def1")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def1")))
           )),
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def2")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def2")))
           ))
         )
       )
@@ -148,15 +148,15 @@ class DefinitionListSpec extends ParsingScenarios {
   |: def1
   |: def2
   """) as definitionList should produce (
-    LooseDefinitionList(Seq(
-      LooseDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term"))),
+    LooseDefinitionList(SourceRange.Unknown, Seq(
+      LooseDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term"))),
         Seq(
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def1")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def1")))
           )),
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def2")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def2")))
           ))
         )
       )
@@ -169,15 +169,15 @@ class DefinitionListSpec extends ParsingScenarios {
   |
   |: def2
   """) as definitionList should produce (
-    LooseDefinitionList(Seq(
-      LooseDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("term"))),
+    LooseDefinitionList(SourceRange.Unknown, Seq(
+      LooseDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "term"))),
         Seq(
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def1")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def1")))
           )),
-          LooseDefinitionList.Definition(Seq(
-            Paragraph(Seq(Text("def2")))
+          LooseDefinitionList.Definition(SourceRange.Unknown, Seq(
+            Paragraph(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "def2")))
           ))
         )
       )
@@ -194,29 +194,29 @@ class DefinitionListSpec extends ParsingScenarios {
   |f
   |  ~ g
   """) as definitionList should produce (
-    TightDefinitionList(Seq(
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("a"))),
+    TightDefinitionList(SourceRange.Unknown, Seq(
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "a"))),
         Seq(
-          TightDefinitionList.Definition(
-            Seq(Text("b")),
+          TightDefinitionList.Definition(SourceRange.Unknown, 
+            Seq(Text(SourceRange.Unknown, "b")),
             Seq(
-              TightUnorderedList(Seq(
-                TightUnorderedList.Item(Seq(Text("c"))),
-                TightUnorderedList.Item(Seq(Text("d")))
+              TightUnorderedList(SourceRange.Unknown, Seq(
+                TightUnorderedList.Item(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "c"))),
+                TightUnorderedList.Item(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "d")))
               ))
             )
           ),
-          TightDefinitionList.Definition(
-            Seq(Text("e"))
+          TightDefinitionList.Definition(SourceRange.Unknown, 
+            Seq(Text(SourceRange.Unknown, "e"))
           )
         )
       ),
-      TightDefinitionList.Item(
-        DefinitionList.Term(Seq(Text("f"))),
+      TightDefinitionList.Item(SourceRange.Unknown, 
+        DefinitionList.Term(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "f"))),
         Seq(
-          TightDefinitionList.Definition(
-            Seq(Text("g"))
+          TightDefinitionList.Definition(SourceRange.Unknown, 
+            Seq(Text(SourceRange.Unknown, "g"))
           )
         )
       )

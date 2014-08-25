@@ -10,7 +10,7 @@ class ExpressionBlockSpec extends ParsingScenarios {
   parsing("""
   |@url('foo')
   """) as expressionBlock should produce (
-    ExpressionBlock(Application(
+    ExpressionBlock(SourceRange.Unknown, Application(
       Identifier("url"),
       Seq(StringLiteral("foo"))
     ))
@@ -20,7 +20,7 @@ class ExpressionBlockSpec extends ParsingScenarios {
   |// This is a comment
   |   @url('foo')
   """) as expressionBlock should produce (
-    ExpressionBlock(Application(
+    ExpressionBlock(SourceRange.Unknown, Application(
       Identifier("url"),
       Seq(StringLiteral("foo"))
     ))
@@ -29,7 +29,7 @@ class ExpressionBlockSpec extends ParsingScenarios {
   parsing("""
   | @url('foo'); // comment
   """) as expressionBlock should produce (
-    ExpressionBlock(Application(
+    ExpressionBlock(SourceRange.Unknown, Application(
       Identifier("url"),
       Seq(StringLiteral("foo"))
     ))
@@ -39,7 +39,7 @@ class ExpressionBlockSpec extends ParsingScenarios {
   |@author /* comment
   | comment */
   """) as expressionBlock should produce (
-    ExpressionBlock(Identifier("author"))
+    ExpressionBlock(SourceRange.Unknown, Identifier("author"))
   )
 
   parsing("""@author word""") as expressionBlock should reject

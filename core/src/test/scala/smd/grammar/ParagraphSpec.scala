@@ -8,8 +8,8 @@ class ParagraphSpec extends ParsingScenarios {
   import Grammar.paragraph
   
   parsing("The paragraph.") as paragraph should produce (
-    Paragraph(Seq(
-      Text("The"), Space(), Text("paragraph.")
+    Paragraph(SourceRange.Unknown, Seq(
+      Text(SourceRange.Unknown, "The"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "paragraph.")
     ))
   )
 
@@ -17,8 +17,8 @@ class ParagraphSpec extends ParsingScenarios {
   |Line1
   |Line2
   """) as paragraph should produce (
-    Paragraph(Seq(
-      Text("Line1"), Space(), Text("Line2")
+    Paragraph(SourceRange.Unknown, Seq(
+      Text(SourceRange.Unknown, "Line1"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "Line2")
     ))
   )
 }

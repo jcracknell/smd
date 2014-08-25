@@ -16,7 +16,11 @@ object Node {
   trait Visitor[+A] extends Expression.Visitor[A] with Markdown.Visitor[A]
 }
 
-sealed abstract class Markdown extends Node with Visitable[Markdown.Visitor]
+trait MarkdownLike {
+  def sourceRange: SourceRange
+}
+
+sealed abstract class Markdown extends Node with Visitable[Markdown.Visitor] with MarkdownLike
 
 object Markdown {
   trait Visitor[+A] extends Block.Visitor[A] with Inline.Visitor[A]
@@ -102,33 +106,33 @@ object Inline {
 
 //region Block
 
-case class Blockquote(content: Seq[Block]) extends Block with Composite[Block] {
+case class Blockquote(sourceRange: SourceRange, content: Seq[Block]) extends Block with Composite[Block] {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class ExpressionBlock(expr: Expression) extends Block {
+case class ExpressionBlock(sourceRange: SourceRange, expr: Expression) extends Block {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Heading(level: Int, content: Seq[Inline]) extends Block with Composite[Inline] {
+case class Heading(sourceRange: SourceRange, level: Int, content: Seq[Inline]) extends Block with Composite[Inline] {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Paragraph(content: Seq[Inline]) extends Block with Composite[Inline] {
+case class Paragraph(sourceRange: SourceRange, content: Seq[Inline]) extends Block with Composite[Inline] {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Reference(ref: ReferenceId, args: Seq[Argument]) extends Block {
+case class Reference(sourceRange: SourceRange, ref: ReferenceId, args: Seq[Argument]) extends Block {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Table(head: Seq[Table.Row], body: Seq[Table.Row]) extends Block {
+case class Table(sourceRange: SourceRange, head: Seq[Table.Row], body: Seq[Table.Row]) extends Block {
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
 object Table {
   case class Row(cells: Cell*)
-  case class Cell(alignment: CellAlignment, span: Int, content: Seq[Inline]) extends Composite[Inline]
+  case class Cell(sourceRange: SourceRange, alignment: CellAlignment, span: Int, content: Seq[Inline]) extends Composite[Inline] with MarkdownLike
 
   sealed abstract class CellAlignment
   object CellAlignment {
@@ -148,7 +152,7 @@ trait LooseList { self: List =>
 }
 
 object LooseList {
-  trait Item extends Composite[Block]
+  trait Item extends Composite[Block] with MarkdownLike
 }
 
 trait TightList { self: List =>
@@ -156,7 +160,7 @@ trait TightList { self: List =>
 }
 
 object TightList {
-  trait Item extends Composite[Inline] {
+  trait Item extends Composite[Inline] with MarkdownLike {
     def sublists: Seq[List]
   }
 }
@@ -168,41 +172,41 @@ sealed abstract class DefinitionList extends List {
 }
 
 object DefinitionList {
-  case class Term(content: Seq[Inline]) extends Composite[Inline]
+  case class Term(sourceRange: SourceRange, content: Seq[Inline]) extends Composite[Inline]
   
-  sealed abstract class Definition
+  sealed abstract class Definition extends MarkdownLike
 
-  sealed abstract class Item {
+  sealed abstract class Item extends MarkdownLike {
     type Definition 
     def term: Term
     def defs: Seq[Definition]
   }
 }
 
-case class LooseDefinitionList(items: Seq[LooseDefinitionList.Item]) extends DefinitionList {
+case class LooseDefinitionList(sourceRange: SourceRange, items: Seq[LooseDefinitionList.Item]) extends DefinitionList {
   type Item = LooseDefinitionList.Item
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
 object LooseDefinitionList {
-  case class Item(term: DefinitionList.Term, defs: Seq[LooseDefinitionList.Definition]) extends DefinitionList.Item {
+  case class Item(sourceRange: SourceRange, term: DefinitionList.Term, defs: Seq[LooseDefinitionList.Definition]) extends DefinitionList.Item {
     type Definition = LooseDefinitionList.Definition
   }
 
-  case class Definition(content: Seq[Block]) extends DefinitionList.Definition with LooseList.Item
+  case class Definition(sourceRange: SourceRange, content: Seq[Block]) extends DefinitionList.Definition with LooseList.Item
 }
 
-case class TightDefinitionList(items: Seq[TightDefinitionList.Item]) extends DefinitionList {
+case class TightDefinitionList(sourceRange: SourceRange, items: Seq[TightDefinitionList.Item]) extends DefinitionList {
   type Item = TightDefinitionList.Item
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
 object TightDefinitionList {
-  case class Item(term: DefinitionList.Term, defs: Seq[TightDefinitionList.Definition]) extends DefinitionList.Item {
+  case class Item(sourceRange: SourceRange, term: DefinitionList.Term, defs: Seq[TightDefinitionList.Definition]) extends DefinitionList.Item {
     type Definition = TightDefinitionList.Definition
   }
 
-  case class Definition(content: Seq[Inline], sublists: Seq[List] = Nil) extends DefinitionList.Definition with TightList.Item
+  case class Definition(sourceRange: SourceRange, content: Seq[Inline], sublists: Seq[List] = Nil) extends DefinitionList.Definition with TightList.Item
 }
 
 sealed abstract class OrderedList extends List {
@@ -266,42 +270,42 @@ object OrderedList {
   }
 }
 
-case class LooseOrderedList(counter: OrderedList.Counter, items: Seq[LooseOrderedList.Item]) extends OrderedList with LooseList {
+case class LooseOrderedList(sourceRange: SourceRange, counter: OrderedList.Counter, items: Seq[LooseOrderedList.Item]) extends OrderedList with LooseList {
   type Item = LooseOrderedList.Item
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
 object LooseOrderedList {
-  case class Item(content: Seq[Block]) extends LooseList.Item
+  case class Item(sourceRange: SourceRange, content: Seq[Block]) extends LooseList.Item
 }
 
-case class TightOrderedList(counter: OrderedList.Counter, items: Seq[TightOrderedList.Item]) extends OrderedList with TightList {
+case class TightOrderedList(sourceRange: SourceRange, counter: OrderedList.Counter, items: Seq[TightOrderedList.Item]) extends OrderedList with TightList {
   type Item = TightOrderedList.Item
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
 object TightOrderedList {
-  case class Item(content: Seq[Inline], sublists: Seq[List] = Nil) extends TightList.Item
+  case class Item(sourceRange: SourceRange, content: Seq[Inline], sublists: Seq[List] = Nil) extends TightList.Item
 }
 
 sealed abstract class UnorderedList extends List
 
-case class LooseUnorderedList(items: Seq[LooseUnorderedList.Item]) extends UnorderedList with LooseList {
+case class LooseUnorderedList(sourceRange: SourceRange, items: Seq[LooseUnorderedList.Item]) extends UnorderedList with LooseList {
   type Item = LooseUnorderedList.Item
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
 object LooseUnorderedList {
-  case class Item(content: Seq[Block]) extends LooseList.Item
+  case class Item(sourceRange: SourceRange, content: Seq[Block]) extends LooseList.Item
 }
 
-case class TightUnorderedList(items: Seq[TightUnorderedList.Item]) extends UnorderedList with TightList {
+case class TightUnorderedList(sourceRange: SourceRange, items: Seq[TightUnorderedList.Item]) extends UnorderedList with TightList {
   type Item = TightUnorderedList.Item
   def accept[A](visitor: Block.Visitor[A]): A = visitor.visit(this)
 }
 
 object TightUnorderedList {
-  case class Item(content: Seq[Inline], sublists: Seq[List] = Nil) extends TightList.Item
+  case class Item(sourceRange: SourceRange, content: Seq[Inline], sublists: Seq[List] = Nil) extends TightList.Item
 }
 
 //endregion
@@ -343,7 +347,7 @@ object Span {
 
 //region Atomic
 
-case class Attributes(attrs: Seq[Attributes.Attribute]) extends Atomic {
+case class Attributes(sourceRange: SourceRange, attrs: Seq[Attributes.Attribute]) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -355,35 +359,35 @@ object Attributes {
   }
 }
 
-case class AutoLink(uri: String) extends Atomic {
+case class AutoLink(sourceRange: SourceRange, uri: String) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Code(value: String) extends Atomic {
+case class Code(sourceRange: SourceRange, value: String) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
-case class InlineExpression(expr: Expression) extends Atomic {
+case class InlineExpression(sourceRange: SourceRange, expr: Expression) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
-case class LineBreak() extends Atomic {
+case class LineBreak(sourceRange: SourceRange) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Space() extends Atomic {
+case class Space(sourceRange: SourceRange) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Symbol(value: String) extends Atomic {
+case class Symbol(sourceRange: SourceRange, value: String) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Text(value: String) extends Atomic {
+case class Text(sourceRange: SourceRange, value: String) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Entity(codePoints: Seq[Int]) extends Atomic {
+case class Entity(sourceRange: SourceRange, codePoints: Seq[Int]) extends Atomic {
   def accept[A](visitor: Atomic.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -391,15 +395,15 @@ case class Entity(codePoints: Seq[Int]) extends Atomic {
 
 //region Span
 
-case class Emphasis(content: Seq[Inline]) extends Span {
+case class Emphasis(sourceRange: SourceRange, content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Link(content: Seq[Inline], ref: Option[ReferenceId], args: Seq[Argument]) extends Span {
+case class Link(sourceRange: SourceRange, content: Seq[Inline], ref: Option[ReferenceId], args: Seq[Argument]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Quoted(content: Seq[Inline], kind: Quoted.QuoteKind) extends Span {
+case class Quoted(sourceRange: SourceRange, content: Seq[Inline], kind: Quoted.QuoteKind) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -411,15 +415,15 @@ object Quoted {
   }
 }
 
-case class Strong(content: Seq[Inline]) extends Span {
+case class Strong(sourceRange: SourceRange, content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Subscript(content: Seq[Inline]) extends Span {
+case class Subscript(sourceRange: SourceRange, content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
-case class Superscript(content: Seq[Inline]) extends Span {
+case class Superscript(sourceRange: SourceRange, content: Seq[Inline]) extends Span {
   def accept[A](visitor: Span.Visitor[A]): A = visitor.visit(this)
 }
 
