@@ -15,23 +15,11 @@ object Lazy {
   import scala.language.implicitConversions
 
   /** Creates a new [[smd.util.Lazy]] instance which lazily computes the provided expression. */
-  implicit def apply[A](thunk: => A): Lazy[A] = new Lazy[A] {
-    private var unevaluated = true
-    private var value: A = _
-
-    def get: A = {
-      if(unevaluated) synchronized {
-        if(unevaluated) {
-          value = thunk
-          unevaluated = false
-        }
-      }
-      value
-    }
-
+  implicit def apply[A](value: => A): Lazy[A] = new Lazy[A] {
+    private var evaluated = false
+    lazy val get: A = { evaluated = true; value }
     def map[B](f: A => B): Lazy[B] = Lazy(f(get))
-
-    override def toString: String = if(unevaluated) "Lazy(?)" else s"Lazy($value)"
+    override def toString: String = if(evaluated) s"Lazy($value)" else "Lazy(?)"
   }
 
   /** Extractor for [[smd.util.Lazy]] instances. Pattern matching will force evaluation. */
