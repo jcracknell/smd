@@ -355,7 +355,7 @@ trait Grammar extends Parsers {
   /* An expression which stands alone as a block, without being wrapped in a paragraph. */
   lazy val expressionBlock: Parser[dom.ExpressionBlock] = rule {
     // N.B. the block must be followed by a blank line, otherwise it is a paragraph
-    sp.? ~> embeddableExpression <~ sp.? ~ ?=(blankLine) ^^ { pr => dom.ExpressionBlock(pr.sourceRange, pr.product) }
+    sp.? ~> interpolatedExpression <~ sp.? ~ ?=(blankLine) ^^ { pr => dom.ExpressionBlock(pr.sourceRange, pr.product) }
   }
 
   lazy val blockquote: Parser[dom.Blockquote] = {
@@ -389,7 +389,7 @@ trait Grammar extends Parsers {
     | autoLink
     | code
     | objectLiteral // attributes
-    | embeddableExpression
+    | interpolatedExpression
     )
 
     ?=(specialChar) ~ modal | unicodeCharacter
@@ -481,8 +481,8 @@ trait Grammar extends Parsers {
     grammar ^^ { pr => dom.Code(pr.sourceRange, pr.product) }
   }
 
-  /* An inline expression starting with a twirl. */
-  lazy val inlineExpression = embeddableExpression ^^ { pr => dom.InlineExpression(pr.sourceRange, pr.product) }
+  /* An inline interpolated expression. */
+  lazy val inlineExpression = interpolatedExpression ^^ { pr => dom.InlineExpression(pr.sourceRange, pr.product) }
 
   lazy val symbol = CodePoint.Values(specialCharValues) ^^ { pr => dom.Symbol(pr.sourceRange, pr.product.charSequence.toString) }
 
@@ -517,27 +517,19 @@ trait Grammar extends Parsers {
     '<', '>',   // autolinks
     '|',        // table cell delimiter
     '{', '}',   // attributes
-    '@'         // twirl
+    '@'         // expression interpolation
   )
 
   //endregion
 
   //region Expressions
 
-  /* The 'twirl'; used to switch between markdown and expression mode. */
-  val twirl = "@".p
-
-  /** An expression which can be embedded in markdown following the twirl.
-    * The user is restricted to either a control structure, or a left-hand-side expression.
-    * This effectively prohibits the use of binary operators without explicitly adding parentheses
-    * to denote the start and end of the expression.
-    * A semicolon ''immediately'' following an expression is consumed to prevent the proliferation
-    * of misplaced semicolons resulting from programmers adding them out of habit. */
-  lazy val embeddableExpression =
-    ?=(twirl) ~> ( twirl ~> conditionalExpression           // control structures
-                 |          leftHandSideExpression <~ ";".? // first leaving the twirl for an identifier
-                 | twirl ~> leftHandSideExpression <~ ";".? // now discarding the twirl
-                 )
+  lazy val interpolatedExpression: Parser[Expression] =
+    ?=("@") ~> (
+             leftHandSideExpressionNoSpace <~ ";".?
+    | "@" ~> leftHandSideExpressionNoSpace <~ ";".?
+    | "@{" ~ sp.? ~> expr <~ sp.? ~ "}"
+    )
 
   lazy val expr: Parser[Expression] = rule(
     conditionalExpression
@@ -611,7 +603,10 @@ trait Grammar extends Parsers {
     "^" ^^^ dom.Exponentiation
   )
 
-  lazy val leftHandSideExpression: Parser[Expression] = {
+  lazy val leftHandSideExpressionNoSpace = leftHandSideExpressionTemplate(ε)
+  lazy val leftHandSideExpression        = leftHandSideExpressionTemplate(sp)
+
+  protected def leftHandSideExpressionTemplate(sp: Parser[Any]): Parser[Expression] = {
     val rightSide = (
       parenthesizedArgumentList    ^* { args => (body: Expression) => dom.Application(body, args) }
     | "." ~ sp.? ~> identifierName ^* { name => (body: Expression) => dom.Member(body, name)      }
@@ -680,7 +675,7 @@ trait Grammar extends Parsers {
 
   // Identifiers
 
-  lazy val identifierExpression: Parser[dom.Identifier] = twirl ~> identifierName ^* dom.Identifier
+  lazy val identifierExpression: Parser[dom.Identifier] = "@" ~> identifierName ^* dom.Identifier
 
   protected lazy val identifierName: Parser[String] =
     // Not a keyword: not a keyword followed by something other than an identifier part

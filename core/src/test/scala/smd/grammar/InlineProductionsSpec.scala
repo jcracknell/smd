@@ -60,12 +60,17 @@ class InlineProductionsSpec extends ParsingScenarios {
     parsing("""@(-1)""") as inline should produce (InlineExpression(SourceRange.Unknown, Negative(NumericLiteral(1d))))
     parsing("""@1 + 2""") as inline should produce (InlineExpression(SourceRange.Unknown, NumericLiteral(1d)))
     parsing("""@(1 + 2)""") as inline should produce (InlineExpression(SourceRange.Unknown, Addition(NumericLiteral(1d), NumericLiteral(2d))))
-    parsing("""@if(true) 1 else 2""") as inline should produce (
+    parsing("@foo.bar") as inline should produce (InlineExpression(SourceRange(0, 8), Member(Identifier("foo"), "bar")))
+    parsing("@foo. bar") as inline should produce (InlineExpression(SourceRange(0, 4), Identifier("foo")))
+    parsing("@foo.bar;") as inline should produce (InlineExpression(SourceRange(0, 9), Member(Identifier("foo"), "bar")))
+    parsing("@img(src)") as inline should produce (InlineExpression(SourceRange(0, 9), Application(Identifier("img"), Seq(IriLiteral("src")))))
+    parsing("@img (src)") as inline should produce (InlineExpression(SourceRange(0, 4), Identifier("img")))
+    parsing("""@{if(true) 1 else 2}""") as inline should produce (
       InlineExpression(SourceRange.Unknown, 
         Conditional(BooleanLiteral(true), NumericLiteral(1d), Some(NumericLiteral(2d)))
       )
     )
-    parsing("""@if(true) 1 elsie""") as inline should produce (
+    parsing("""@{if(true) 1} elsie""") as inline should produce (
       InlineExpression(SourceRange.Unknown, 
         Conditional(BooleanLiteral(true), NumericLiteral(1d), None)
       )
