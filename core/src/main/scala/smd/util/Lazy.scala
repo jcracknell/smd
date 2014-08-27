@@ -16,10 +16,9 @@ object Lazy {
 
   /** Creates a new [[smd.util.Lazy]] instance which lazily computes the provided expression. */
   implicit def apply[A](value: => A): Lazy[A] = new Lazy[A] {
-    private var evaluated = false
-    lazy val get: A = { evaluated = true; value }
+    lazy val get: A = value
     def map[B](f: A => B): Lazy[B] = Lazy(f(get))
-    override def toString: String = if(evaluated) s"Lazy($value)" else "Lazy(?)"
+    override def toString: String = "Lazy(?)"
   }
 
   /** Extractor for [[smd.util.Lazy]] instances. Pattern matching will force evaluation. */
