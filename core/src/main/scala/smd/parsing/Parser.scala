@@ -61,9 +61,27 @@ abstract class Parser[+A] { lhs =>
       if(r.accepted && f.isDefinedAt(r.product)) r.copy(f(r.product)) else Rejected
     }
   }
+
+  /** Creates a parser which creates and applies a new parser based on the result of the
+    * left hand side. */
+  def >> [B](f: Accepted[A] => Parser[B]): Parser[B] = Parser { context => 
+    parse(context) match {
+      case Rejected => Rejected
+      case pr: Accepted[A] => f(pr).parse(context)
+    }
+  }
+
+  /** Creates a parser which creates and applies a new parser based on the product of the
+    * left hand side. */
+  def >>* [B](f: A => Parser[B]): Parser[B] = >> { pr => f(pr.product) }
 }
 
 object Parser {
+  /** Creates an [[smd.parsing.Parser]] using the provided behavior. */
+  def apply[A](f: ParsingContext => ParsingResult[A]): Parser[A] = new Parser[A] {
+    def parse(context: ParsingContext): ParsingResult[A] = f(context)
+  }
+
   /** [[smd.parsing.Parser]] matching the empty string, which always accepts and consumes no input. */
   object EmptyString extends Parser[Unit] {
     def parse(context: ParsingContext): ParsingResult[Unit] = context.resultBuilder.accept(Unit)
