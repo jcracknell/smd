@@ -72,7 +72,7 @@ trait Parsers extends ImplicitParserOps {
     assert(n >= 0, "repSep requires a non-negative number of repetitions")
 
     if(0 == n)
-      repSep(1, rep, sep).? ^* { _.getOrElse(Seq()) }
+      repSep(1, rep, sep).? ^*^ { _.getOrElse(Seq()) }
     else
       rep ~ (sep ~ rep).*>=(n-1) ^~ { (r, srs) =>
         (ListBuffer[Either[R, S]](Left(r)) /: srs) { (lb, sr) => lb += Right(sr._1) += Left(sr._2) }.toList
@@ -80,10 +80,10 @@ trait Parsers extends ImplicitParserOps {
   }
 
   protected def repSepR[R](n: Int, rep: Parser[R], sep: Parser[Any]): Parser[Seq[R]] =
-    repSep(n, rep, sep) ^* { _ collect { case Left(r) => r } }
+    repSep(n, rep, sep) ^*^ { _ collect { case Left(r) => r } }
 
   protected def repSepS[S](n: Int, rep: Parser[Any], sep: Parser[S]): Parser[Seq[S]] =
-    repSep(n, rep, sep) ^* { _ collect { case Right(s) => s } }
+    repSep(n, rep, sep) ^*^ { _ collect { case Right(s) => s } }
 
   /** For now the primary purpose of this function is to 'seal' the provided parser. */
   protected def rule[A](p: Parser[A]): Parser[A] = p

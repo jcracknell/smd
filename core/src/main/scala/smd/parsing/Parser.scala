@@ -15,7 +15,7 @@ abstract class Parser[+A] { lhs =>
   def ^^  [B](transform: ParsingResult[A] => B): Parser[B] = TransformParser(this, transform)
 
   /** Apply a transformation to the product of the left-hand parser. */
-  def ^*  [B](transform: A => B): Parser[B] = this ^^ { r => transform(r.product) }
+  def ^*^  [B](transform: A => B): Parser[B] = this ^^ { r => transform(r.product) }
 
   def ^^^ [B](transform: => B): Parser[B] = this ^^ { r => transform }
 
@@ -48,14 +48,14 @@ abstract class Parser[+A] { lhs =>
   def *<= (max: Int)          = RepetitionParser(this, None,           Some(max)     )
   def +                       = rep1
 
-  def ^? [B](f: PartialFunction[ParsingResult[A], B]): Parser[B] = new Parser[B] {
+  def ^^? [B](f: PartialFunction[ParsingResult[A], B]): Parser[B] = new Parser[B] {
     def parse(context: ParsingContext): ParsingResult[B] = {
       val r = lhs.parse(context)
       if(r.accepted && f.isDefinedAt(r)) r.copy(f(r)) else Rejected
     }
   }
 
-  def ^*? [B](f: PartialFunction[A, B]): Parser[B] = new Parser[B] {
+  def ^*^? [B](f: PartialFunction[A, B]): Parser[B] = new Parser[B] {
     def parse(context: ParsingContext): ParsingResult[B] = {
       val r = lhs.parse(context)
       if(r.accepted && f.isDefinedAt(r.product)) r.copy(f(r.product)) else Rejected
@@ -77,7 +77,7 @@ abstract class Parser[+A] { lhs =>
 
   /** Creates a parser which creates and applies a new parser based on the product of the
     * left hand side. */
-  def >>* [B](f: A => Parser[B]): Parser[B] = >> { pr => f(pr.product) }
+  def >*> [B](f: A => Parser[B]): Parser[B] = >> { pr => f(pr.product) }
 }
 
 object Parser {

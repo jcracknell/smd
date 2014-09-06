@@ -91,7 +91,7 @@ object NumeralSystem {
           unit ~ decem          ^~  { (u, d)  => d - u       }
         | unit ~ quintum        ^~  { (u, q)  => q - u       }
         | quintum ~ unit.*(0,3) ^~  { (q, us) => q + us.sum  }
-        | unit.*(1,3)           ^*  { (us)    => us.sum      }
+        | unit.*(1,3)           ^*^ { (us)    => us.sum      }
         | ε                     ^^^ 0
       )
 

@@ -19,7 +19,7 @@ trait ImplicitParserOps {
       * @param transform the transformation to be applied to the product [[scala.Tuple${n}]].
       * @tparam B the transformed product type.
       */
-    def ^~ [B](transform: (${TS}) => B): Parser[B] = parser ^* transform.tupled
+    def ^~ [B](transform: (${TS}) => B): Parser[B] = parser ^*^ transform.tupled
   }
   </#list>
 }
