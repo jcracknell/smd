@@ -130,5 +130,11 @@ class PrimaryExpressionProductionsSpec extends ParsingScenarios {
     """) as primaryExpression should produce (
       InlineLiteral(Seq(Text(SourceRange.Unknown, "text")))
     )
+
+    parsing("@<[**text]>**") as primaryExpression should produce (
+      InlineLiteral(Seq(
+        Symbol(SourceRange.Unknown, "*"), Symbol(SourceRange.Unknown, "*"), Text(SourceRange.Unknown, "text")
+      ))
+    )
   }
 }

@@ -135,4 +135,22 @@ class InlineProductionsSpec extends ParsingScenarios {
     parsing("pelican") as inline should produce (Text(SourceRange.Unknown, "pelican"))
     parsing("pelican's") as inline should produce (Text(SourceRange.Unknown, "pelican's"))
   }
+  describe("precedence") {
+    parsing("**@<[text**]>") as inline should produce (Symbol(SourceRange.Unknown, "*"))
+    parsing("**[label**](url)") as inline should produce (Symbol(SourceRange.Unknown, "*"))
+    parsing("*@<[text*]>") as inline should produce (Symbol(SourceRange.Unknown, "*"))
+    parsing("*[label*](url)") as inline should produce (Symbol(SourceRange.Unknown, "*"))
+    parsing("@<[*text]>*]>") as inline should produce (
+      InlineExpression(SourceRange.Unknown, InlineLiteral(Seq(
+        Symbol(SourceRange.Unknown, "*"), Text(SourceRange.Unknown, "text") 
+      )))
+    )
+    parsing("[*label](url)*](url)") as inline should produce (
+      Link(SourceRange.Unknown,
+        Seq(Symbol(SourceRange.Unknown, "*"), Text(SourceRange.Unknown, "label")),
+        None,
+        Seq(IriLiteral("url"))
+      )
+    )
+  }
 }

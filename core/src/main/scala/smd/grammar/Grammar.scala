@@ -12,6 +12,8 @@ trait Grammar extends Parsers {
     // TODO: error handling
     parser.parse(ParsingContext(InputExtent(extents))).product
 
+  protected def parseExtents[A](parser: Parser[A], e0: InputExtent, es: InputExtent*): A = parseExtents(parser, e0 +: es)
+
   protected implicit class ParsingResultOps[A](private val pr: ParsingResult[A]) {
     def sourceRange: dom.SourceRange =
       dom.SourceRange(pr.parsed.sourceStartIndex, pr.parsed.sourceEndIndex)
@@ -381,6 +383,9 @@ trait Grammar extends Parsers {
 
   lazy val blockLine_? =  (?!(newLine) ~ blockAtom).* ~ newLine.? ^^(_.parsed)
 
+  /** A block atom which cannot traverse a blank line. */
+  lazy val inlineAtom = ?!(sp.? ~ blankLine) ~> &(blockAtom)
+
   /** An indivisible element of a block; used to quickly scan block content. Matches either a single character, or
     * a 'modal' element requiring specific line handling differing from the ordinary block rules. */
   lazy val blockAtom = {
@@ -395,6 +400,7 @@ trait Grammar extends Parsers {
 
     ?=(specialChar) ~ modal | unicodeCharacter
   }
+
 
   //endregion
 
@@ -429,7 +435,10 @@ trait Grammar extends Parsers {
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[dom.Link] = {
-    val label = "[" ~> (?!("]") ~> &(inline)).* <~ "]"
+    val labelStart   = "[" ~ sp.?
+    val labelEnd     = sp.? ~ "]"
+    val labelContent = (?!(labelEnd) ~> inlineAtom).* ^^ { pr => parseExtents(blockInlines_?, pr.parsed) }
+    val label        = labelStart ~> labelContent <~ labelEnd
 
     label ~ referenceId.? ~ parenthesizedArgumentList.? ^^ { pr =>
       pr.product match { case (lbl, ref, args) => dom.Link(pr.sourceRange, lbl, ref, args.getOrElse(Seq())) }
@@ -772,8 +781,9 @@ trait Grammar extends Parsers {
 
   lazy val inlineLiteralExpression: Parser[dom.InlineLiteral] =
     "@<" ~> ("[".p.+ ^*^ (_.length)) >*> { braceCount =>
-      val end = "]".repeat(braceCount) ~ ">"
-      sp.? ~> ((?!(sp.? ~ end) ~> inline).+ <~ sp.?).* <~ end ^*^ { p => dom.InlineLiteral(p.flatten) }
+      val end = sp.? ~ "]".repeat(braceCount) ~ ">"
+      val content = (?!(end) ~> inlineAtom).* ^^ { _.parsed }
+      sp.? ~> content <~ end ^*^ { p => dom.InlineLiteral(parseExtents(blockInlines_?, p)) }
     }
 
   //region IriLiteral
