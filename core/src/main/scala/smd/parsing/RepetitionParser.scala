@@ -1,7 +1,7 @@
 package smd
 package parsing
 
-case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[Seq[A]] {
+case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[List[A]] {
   if(min.isDefined && max.isDefined)
     assert(min.get <= max.get, s"Provided range [${min.get}, ${max.get}] is invalid.")
   if(min.isDefined)
@@ -12,7 +12,7 @@ case class RepetitionParser[+A](body: Parser[A], min: Option[Int], max: Option[I
   private val minCount = min.getOrElse(0)
   private val maxCount = max.getOrElse(-1)
 
-  def parse(context: ParsingContext): ParsingResult[Seq[A]] = {
+  def parse(context: ParsingContext): ParsingResult[List[A]] = {
     val rb = context.resultBuilder
     val products = collection.mutable.ListBuffer[A]()
 
