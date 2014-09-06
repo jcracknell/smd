@@ -85,13 +85,13 @@ object NumeralSystem {
 
     protected object Grammar extends Parsers {
       lazy val numeral =
-        ?!(EOF) ~> decade(∅, ∅, m) ~ decade(m, d, c) ~ decade(c, l, x) ~ decade(x, v, i) <~ EOF ^~ { (a, b, c, d) => a + b + c + d }
+        ?!(EOF) ~> decade(∅, ∅, m) ~ decade(m, d, c) ~ decade(c, l, x) ~ decade(x, v, i) <~ EOF ^*^ { case (a, b, c, d) => a + b + c + d }
 
       def decade(decem: Parser[Int], quintum: Parser[Int], unit: Parser[Int]): Parser[Int] = (
-          unit ~ decem          ^~  { (u, d)  => d - u       }
-        | unit ~ quintum        ^~  { (u, q)  => q - u       }
-        | quintum ~ unit.*(0,3) ^~  { (q, us) => q + us.sum  }
-        | unit.*(1,3)           ^*^ { (us)    => us.sum      }
+          unit ~ decem          ^*^ { case (u, d)  => d - u       }
+        | unit ~ quintum        ^*^ { case (u, q)  => q - u       }
+        | quintum ~ unit.*(0,3) ^*^ { case (q, us) => q + us.sum  }
+        | unit.*(1,3)           ^*^ { case (us)    => us.sum      }
         | ε                     ^^^ 0
       )
 

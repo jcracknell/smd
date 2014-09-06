@@ -321,8 +321,8 @@ trait Grammar extends Parsers {
 
     val cellContent = (?!(` || ` | rowEnd) ~ blockAtom).* ^^ { pr => (pr.sourceRange, pr.parsed) }
 
-    val alignRow = +> ~> (align       ~  <+>).* ~ align       ~ <+ ^~ { (as, fa, fs) => as :+ ((fa, fs)) }
-    val row      = |> ~> (cellContent ~  <|>).* ~ cellContent ~ <| ^~ { (cs, fc, fs) => cs :+ ((fc, fs)) }
+    val alignRow = +> ~> (align       ~  <+>).* ~ align       ~ <+ ^*^ { case (as, fa, fs) => as :+ ((fa, fs)) }
+    val row      = |> ~> (cellContent ~  <|>).* ~ cellContent ~ <| ^*^ { case (cs, fc, fs) => cs :+ ((fc, fs)) }
 
     val commentRows_? = (
       (spaceChars_? ~ multiLineComment).+ ~ (blankLine | singleLineComment)
@@ -362,7 +362,7 @@ trait Grammar extends Parsers {
 
   lazy val blockquote: Parser[dom.Blockquote] = {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
-    val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^~ { (init, subs) => parseExtents(&(blocks), init +: subs) }
+    val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^*^ { case (init, subs) => parseExtents(&(blocks), init +: subs) }
 
     repSepR(1, blockquoteBlock, interBlock_?) ^^ { pr => dom.Blockquote(pr.sourceRange, pr.product.flatten) }
   }
@@ -550,7 +550,7 @@ trait Grammar extends Parsers {
     | &(expr)                 <~ `then`
     )
 
-    `if` ~> cond ~ &(expr) ~ (`else` ~> &(expr)).? ^~ { (c, t, e) => dom.Conditional(c, t, e) }
+    `if` ~> cond ~ &(expr) ~ (`else` ~> &(expr)).? ^*^ { case (c, t, e) => dom.Conditional(c, t, e) }
   }
 
   lazy val logicalOrExpression = binOp(logicalAndExpression,  
@@ -666,12 +666,12 @@ trait Grammar extends Parsers {
 
   lazy val arrayLiteralExpression: Parser[dom.ArrayLiteral] = {
     /** A non-elided array element preceded by any number of elided elements. */
-    val subsequentElement = argumentSeparator.+ ~ &(expr) ^~ { (seps, e) => seps.tail.map(_ => None) :+ Some(e) }
+    val subsequentElement = argumentSeparator.+ ~ &(expr) ^*^ { case (seps, e) => seps.tail.map(_ => None) :+ Some(e) }
 
     val arrayElements = (
-      &(expr) ~ subsequentElement.* <~ argumentSeparator.* ^~  { (e, ses) => Some(e) +: ses.flatten }
-    | subsequentElement.+           <~ argumentSeparator.* ^*^  {      (p) => None +: p.flatten      }
-    | argumentSeparator.*                                  ^^^ {             Seq()                  }
+      &(expr) ~ subsequentElement.* <~ argumentSeparator.* ^*^ { case (e, ses) => Some(e) +: ses.flatten }
+    | subsequentElement.+           <~ argumentSeparator.* ^*^ { case (p)      => None +: p.flatten      }
+    | argumentSeparator.*                                  ^^^ {                  Seq()                  }
     )
 
     "[" ~ sp.? ~> arrayElements <~ sp.? ~ "]" ^*^ { es => dom.ArrayLiteral(es) }
@@ -894,8 +894,8 @@ trait Grammar extends Parsers {
       val decimalIntegerLiteral = ("0" | nonZeroDigit ~ digit.*) ^^(_.parsed.toString.toDouble)
 
       (
-        decimalIntegerLiteral ~ optionalDecimalPart ~ optionalExponentPart ^~ { (i, d, e) => (i + d) * e }
-      | requiredDecimalPart ~ optionalExponentPart                         ^~ { (d, e)    => d * e       }
+        decimalIntegerLiteral ~ optionalDecimalPart ~ optionalExponentPart ^*^ { case (i, d, e) => (i + d) * e }
+      | requiredDecimalPart ~ optionalExponentPart                         ^*^ { case (d, e)    => d * e       }
       )
     }
 

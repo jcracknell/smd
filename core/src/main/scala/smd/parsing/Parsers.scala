@@ -3,7 +3,7 @@ package parsing
 
 import scala.collection.mutable.ListBuffer
 
-trait Parsers extends ImplicitParserOps {
+trait Parsers {
   import scala.language.implicitConversions
 
   protected val CodePoint =       smd.unicode.CodePointCriteria
@@ -74,7 +74,7 @@ trait Parsers extends ImplicitParserOps {
     if(0 == n)
       repSep(1, rep, sep).? ^*^ { _.getOrElse(Nil) }
     else
-      rep ~ (sep ~ rep).*>=(n-1) ^~ { (r, srs) =>
+      rep ~ (sep ~ rep).*>=(n-1) ^*^ { case (r, srs) =>
         (ListBuffer[Either[R, S]](Left(r)) /: srs) { (lb, sr) => lb += Right(sr._1) += Left(sr._2) }.toList
       }
   }
