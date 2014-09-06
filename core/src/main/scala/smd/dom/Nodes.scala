@@ -39,13 +39,14 @@ sealed abstract class Expression extends Node with Visitable[Expression.Visitor]
 object Expression {
   trait Visitor[+A] {
     def visit(node: ArrayLiteral): A
+    def visit(node: BlockLiteral): A
     def visit(node: BooleanLiteral): A
-    def visit(node: DocumentLiteral): A
     def visit(node: NullLiteral): A
     def visit(node: NumericLiteral): A
     def visit(node: ObjectLiteral): A
     def visit(node: StringLiteral): A
     def visit(node: VerbatimLiteral): A
+    def visit(node: InlineLiteral): A
     def visit(node: IriLiteral): A
     def visit(node: Addition): A
     def visit(node: Application): A
@@ -450,11 +451,15 @@ case class ArrayLiteral(elems: Seq[Option[Expression]]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
+case class BlockLiteral(blocks: Seq[Block]) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
 case class BooleanLiteral(value: Boolean) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
-case class DocumentLiteral(doc: Document) extends Expression {
+case class InlineLiteral(inlines: Seq[Inline]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 

@@ -373,6 +373,7 @@ trait Grammar extends Parsers {
   lazy val blockInlines: Parser[Seq[Inline]] =
     sp.? ~> (inline.+ <~ sp.?).+ ^*(_.flatten)
 
+  // TODO: why the double repetition here?
   lazy val blockInlines_? : Parser[Seq[Inline]] =
     sp.? ~> (inline.+ <~ sp.?).* ^*(_.flatten)
 
@@ -524,13 +525,6 @@ trait Grammar extends Parsers {
 
   //region Expressions
 
-  lazy val interpolatedExpression: Parser[Expression] =
-    ?=("@") ~> (
-             leftHandSideExpressionNoSpace <~ ";".?
-    | "@" ~> leftHandSideExpressionNoSpace <~ ";".?
-    | "@{" ~ sp.? ~> expr <~ sp.? ~ "}"
-    )
-
   lazy val expr: Parser[Expression] = rule(
     conditionalExpression
   | logicalOrExpression
@@ -603,10 +597,30 @@ trait Grammar extends Parsers {
     "^" ^^^ dom.Exponentiation
   )
 
-  lazy val leftHandSideExpressionNoSpace = leftHandSideExpressionTemplate(ε)
-  lazy val leftHandSideExpression        = leftHandSideExpressionTemplate(sp)
+  /** An interpolated expression which can be embedded in a document. */
+  lazy val interpolatedExpression: Parser[Expression] =
+    ?=("@") ~> (
+             interpolatedLeftHandSideExpression <~ ";".? // First with the twirl in case it belongs to an ident or doc
+    | "@" ~> interpolatedLeftHandSideExpression <~ ";".? // then try without it
+    | "@{" ~ sp.? ~> expr <~ sp.? ~ "}"                  // or any brace-delimited expression
+    )
 
-  protected def leftHandSideExpressionTemplate(sp: Parser[Any]): Parser[Expression] = {
+  /** A chain of member access or application expressions starting on an identifier and not containing
+    * spaces or comments, or a primary expression. */
+  lazy val interpolatedLeftHandSideExpression: Parser[Expression] = {
+    val rightSide = (
+      parenthesizedArgumentList    ^* { args => (body: Expression) => dom.Application(body, args) }
+    | "." ~> identifierName        ^* { name => (body: Expression) => dom.Member(body, name)      }
+    ) 
+
+    (
+      identifierExpression ~ rightSide.* ^* { case (body, builders) => (body.asInstanceOf[Expression] /: builders) { (x, bld) => bld(x) } }
+    | primaryExpression
+    )
+  }
+
+  /** A chain of member access or application expressions. */
+  lazy val leftHandSideExpression: Parser[Expression] = {
     val rightSide = (
       parenthesizedArgumentList    ^* { args => (body: Expression) => dom.Application(body, args) }
     | "." ~ sp.? ~> identifierName ^* { name => (body: Expression) => dom.Member(body, name)      }
@@ -618,7 +632,6 @@ trait Grammar extends Parsers {
   /** A parenthesized list of 0 or more arguments. */
   protected lazy val parenthesizedArgumentList = "(" ~ sp.? ~> argumentList.? <~ sp.? ~ ")" ^* { _.getOrElse(Seq()) }
 
-
   /** An unparenthesized list of 1 or more arguments. */
   lazy val argumentList = {
     lazy val argument = (
@@ -629,13 +642,14 @@ trait Grammar extends Parsers {
     repSepR(1, argument, argumentSeparator) ^* { _ map { case (n, v) => dom.Argument(n, v) } }
   }
 
-  /** An identifier, literal, array, object, or parenthesized expression. */
   lazy val primaryExpression: Parser[Expression] = (
     identifierExpression
   | literalExpression
   | arrayLiteralExpression
   | objectLiteralExpression
   | parenthesizedExpression
+  | inlineLiteralExpression
+  | blockLiteralExpression
   )
 
   protected lazy val parenthesizedExpression =  "(" ~ sp.? ~> &(expr) <~ sp.? ~ ")"
@@ -720,6 +734,46 @@ trait Grammar extends Parsers {
   | (numericLiteralExpression | nullLiteralExpression | booleanLiteralExpression) <~ ?!(iriAtom)
   | iriLiteralExpression
   )
+
+  lazy val blockLiteralExpression: Parser[dom.BlockLiteral] = {
+    // This is a dirty trick; we use a lookahead parser to strip any possible margin from the entire
+    // remainder of the document, parse the resulting ranges, and then calculate where we ended up.
+    val stripMargin = ((spaceChars_? ~ "|" ~ " ").? ~> (line ^^ { pr => (pr.startIndex until pr.endIndex) })).*
+    val docOpen = "@<" ~> ("{".p.+ ^^(_.length))
+
+    docOpen ~ ?=(stripMargin) >>* { case (braceCount, marginlessRanges) =>
+      Parser { context =>
+        val docClose = "}".repeat(braceCount) ~ ">"
+        val doc = ((?!(docClose) ~ blockAtom).* ^^ (_.parsed)) <~ docClose 
+
+        val marginlessExtents = marginlessRanges.map(r => context.input.subSequence(r.start, r.end))
+
+        doc.parse(ParsingContext(InputExtent(marginlessExtents))) match {
+          case Rejected => Rejected
+          case Accepted(docExtent, _, virtualLength) =>
+            // We determine the "real" position we need to advance to by comparing the "virtual" length
+            // of the document resulting from parsing the marginless ranges to the ranges themselves.
+            val (_, realPosition) = ((virtualLength, 0) /: marginlessRanges) { (acc, r) => 
+              acc match {
+                case (0, _) => acc
+                case (v, _) => if(v > r.length) (v - r.length, 0) else (0, r.start + v)
+              }
+            }
+            val parsedBlocks = parseExtents(blocks, Seq(docExtent))
+
+            val rb = context.resultBuilder
+            context.advanceTo(realPosition)
+            rb.accept(dom.BlockLiteral(parsedBlocks))
+        }
+      }
+    }
+  }
+
+  lazy val inlineLiteralExpression: Parser[dom.InlineLiteral] =
+    "@<" ~> "[".p.+ >>* { m =>
+      val end = "]".repeat(m.length).p
+      sp.? ~> ((?!(sp.? ~ end) ~> inline).+ <~ sp.?).* <~ end ^* { p => dom.InlineLiteral(p.flatten) }
+    }
 
   //region IriLiteral
 
@@ -919,12 +973,12 @@ trait Grammar extends Parsers {
   /** A C-style multi-line comment. */
   protected lazy val multiLineComment  = rule { "/*" ~ (?!("*/") ~ unicodeCharacter).* ~ "*/" }
   /** A C-style single-line comment. */
-  protected lazy val singleLineComment = rule { "//" ~ line_? }
+  protected lazy val singleLineComment = rule { "//" ~ line.? }
 
   protected lazy val commentStart = "//" | "/*"
 
   /** The (remainder) of the the current line, including the newline sequence. */
-  protected lazy val line_? = (?!(newLine) ~ unicodeCharacter).* ~ newLine.?
+  protected lazy val line = rule { ?!(EOF) ~ (?!(newLine) ~ unicodeCharacter).* ~ (newLine | EOF) }
 
   /** Zero or more blank lines. */
   protected lazy val blankLines_? = (spaceChars_? ~ newLine).* ~ (spaceChars_? ~ EOF).? ^^(_.parsed)

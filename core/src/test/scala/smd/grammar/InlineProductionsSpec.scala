@@ -75,6 +75,26 @@ class InlineProductionsSpec extends ParsingScenarios {
         Conditional(BooleanLiteral(true), NumericLiteral(1d), None)
       )
     )
+    parsing("""
+    |@box(@<{
+    | | # heading
+    | | 
+    | | content
+    |}>)
+    """) as inline should produce (
+      InlineExpression(SourceRange.Unknown,
+        Application(Identifier("box"), Seq(
+          BlockLiteral(Seq(
+            Heading(SourceRange.Unknown, 1, Seq(
+              Text(SourceRange.Unknown, "heading")
+            )),
+            Paragraph(SourceRange.Unknown, Seq(
+              Text(SourceRange.Unknown, "content")
+            ))
+          ))
+        ))
+      )
+    )
   }
   describe("Link") {
     parsing("[foo](baz)") as inline should produce (Link(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "foo")), None, Seq(IriLiteral("baz"))))
