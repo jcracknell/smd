@@ -64,10 +64,14 @@ abstract class Parser[+A] { lhs =>
 
   /** Creates a parser which creates and applies a new parser based on the result of the
     * left hand side. */
-  def >> [B](f: Accepted[A] => Parser[B]): Parser[B] = Parser { context => 
-    parse(context) match {
-      case Rejected => Rejected
-      case pr: Accepted[A] => f(pr).parse(context)
+  def >> [B](f: ParsingResult[A] => Parser[B]): Parser[B] = Parser { context => 
+    val rb = context.resultBuilder
+    lhs.parse(context) match {
+      case lr: Accepted[A] => f(lr).parse(context) match {
+        case rr: Accepted[B] => rb.accept(rr.product)
+        case _ => Rejected
+      }
+      case _ => Rejected
     }
   }
 
