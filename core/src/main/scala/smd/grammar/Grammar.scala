@@ -770,8 +770,8 @@ trait Grammar extends Parsers {
   }
 
   lazy val inlineLiteralExpression: Parser[dom.InlineLiteral] =
-    "@<" ~> "[".p.+ >*> { m =>
-      val end = "]".repeat(m.length).p
+    "@<" ~> ("[".p.+ ^*^ (_.length)) >*> { braceCount =>
+      val end = "]".repeat(braceCount) ~ ">"
       sp.? ~> ((?!(sp.? ~ end) ~> inline).+ <~ sp.?).* <~ end ^*^ { p => dom.InlineLiteral(p.flatten) }
     }
 

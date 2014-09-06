@@ -105,6 +105,8 @@ class PrimaryExpressionProductionsSpec extends ParsingScenarios {
       InlineLiteral(Seq(Text(SourceRange.Unknown, "text")))
     )
 
+    parsing("@<[text]>") as primaryExpression should consume ("@<[text]>")
+
     parsing("@<[[[text]]]>") as primaryExpression should produce (
       InlineLiteral(Seq(Text(SourceRange.Unknown, "text")))
     )
