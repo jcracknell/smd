@@ -37,6 +37,8 @@ object SourceRange {
     assert(end >= start, "must be a valid range")
 
     def length: Int = end - start
+
+    override def toString: String = s"($start,$end)"
   }
 
   /** Special [[smd.dom.SourceRange]] value which is always equal to any other [[smd.dom.SourceRange]]. */
@@ -53,7 +55,7 @@ object SourceRange {
       case _ => false
     }
 
-    override def toString: String = "Unknown"
+    override def toString: String = "?"
   }
 }
 
