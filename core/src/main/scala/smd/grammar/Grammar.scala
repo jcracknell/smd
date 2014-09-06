@@ -477,9 +477,10 @@ trait Grammar extends Parsers {
   }
 
   /** Backtick-enclosed code. */
-  lazy val code = {
-    val grammar = new VerbatimStringGrammar { protected def contentAtom: Parser[Any] = ?!(newLine) ~ unicodeCharacter }
-    grammar ^^ { pr => dom.Code(pr.sourceRange, pr.product) }
+  lazy val code = ("`".p.+ ^^ (_.length)) >*> { tickCount =>
+    val end     = " ".? ~ "`".repeat(tickCount)
+    val content = (?!(end | newLine) ~ unicodeCharacter).* ^^ (_.parsed)
+    " ".? ~> content <~ end ^^ { pr => dom.Code(pr.sourceRange, pr.product.toString) }
   }
 
   /* An inline interpolated expression. */
@@ -896,26 +897,10 @@ trait Grammar extends Parsers {
 
   //region String Literals
 
-  lazy val verbatimLiteralExpression = {
-    val grammar = new VerbatimStringGrammar { protected def contentAtom: Parser[Any] = unicodeCharacter }
-    grammar ^*^ { s => dom.VerbatimLiteral(s) }
-  }
-
-  trait VerbatimStringGrammar extends Parser[String] {
-    protected def contentAtom: Parser[Any]
-
-    def parse(context: ParsingContext): ParsingResult[String] =
-      verbatimString.parse(context)
-
-    lazy val verbatimString = ?=("`") ~> |<< {
-                                for(n <- 1 to 16) yield {
-                                  val ticks = rule { new String(Array.fill(n)('`')) }
-                                  val start = rule { ticks ~ ?!("`") ~ " ".? }
-                                  val end   = rule { " ".? ~ ticks           }
-                                  val content = (?!(end) ~ contentAtom).+ ^^ { _.parsed }
-                                  start ~> content <~ end ^*^ { _.toString }
-                                }
-                              }
+  lazy val verbatimLiteralExpression = ("`".p.+ ^^ (_.length)) >*> { tickCount =>
+    val end     = " ".? ~ "`".repeat(tickCount)
+    var content = (?!(end) ~ unicodeCharacter).* ^^ (_.parsed)
+    " ".? ~> content <~ end ^^ { pr => dom.VerbatimLiteral(pr.product.toString) }
   }
 
   lazy val stringLiteralExpression: Parser[dom.StringLiteral] = {
