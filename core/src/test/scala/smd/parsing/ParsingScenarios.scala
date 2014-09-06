@@ -31,6 +31,9 @@ trait ParsingScenarios extends FunSpec {
 
   //region ParsingExpectation
 
+  def consume[A](expected: String): ParsingExpectation[A] =
+    new ParsingExpectation.Consuming[A](expected)
+
   def produce[A](expectedProduct: A): ParsingExpectation[A] =
     new ParsingExpectation.Product(expectedProduct)
 
@@ -45,6 +48,18 @@ trait ParsingScenarios extends FunSpec {
   }
 
   object ParsingExpectation {
+    class Consuming[-A](expected: String) extends ParsingExpectation[A] {
+      def summary: String = s"consume ${expected.literalEncode}"
+      def assert(scenario: ParsingScenario[A]): Unit =
+        scenario.parser.parse(scenario.input) match {
+          case Accepted.Consuming(consumed) =>
+            if(consumed != expected)
+              fail(s"""expected: ${expected.literalEncode}
+                      |consumed: ${consumed.literalEncode}""".trim.stripMargin)
+          case _ => fail("input was rejected")
+        }
+    }
+
     class Product[-A](expectedProduct: A) extends ParsingExpectation[A] {
       def summary: String = s"produce $expectedProduct"
       def assert(scenario: ParsingScenario[A]): Unit =
