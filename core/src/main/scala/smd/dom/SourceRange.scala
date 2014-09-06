@@ -15,7 +15,9 @@ sealed abstract class SourceRange {
   def length: Int 
 
   override def equals(obj: scala.Any): Boolean = obj match {
-    case SourceRange.Unknown => true
+    // Note that we cannot use the usual pattern matching in this case - because of the odd
+    // equality rules SourceRange.Unknown alone will match any SourceRange
+    case _: SourceRange.Unknown.type => true
     case that: SourceRange => this.start == that.start && this.end == that.end
     case _ => false
   }
