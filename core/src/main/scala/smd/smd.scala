@@ -29,14 +29,13 @@ package object smd {
   }
 
   implicit class UpgrayeddedCharSequence(val cs: CharSequence) extends IndexedSeq[Char] {
-    def subSequenceProxy(start: Int, end: Int = cs.length()): CharSequence =
-      new smd.util.ProxyCharSequence(cs, start, end)
-
-    def literalEncode: String = util.LiteralEncoding.encode(cs)
-
+    def apply(idx: Int): Char = cs.charAt(idx)
     def length: Int = cs.length
 
-    def apply(idx: Int): Char = cs.charAt(idx)
+    def literalEncode: String = util.LiteralEncoding.encode(cs)
+    def repeat(n: Int): String = (1 to n).map(_ => cs).mkString
+    def subSequenceProxy(start: Int, end: Int = cs.length()): CharSequence =
+      new smd.util.ProxyCharSequence(cs, start, end)
   }
 
   implicit class UpgrayeddedIterator[A](val it: Iterator[A]) extends AnyVal {
