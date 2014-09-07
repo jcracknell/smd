@@ -25,6 +25,39 @@ class InlineProductionsSpec extends ParsingScenarios {
         Text(SourceRange.Unknown, "a"), Attributes(SourceRange.Unknown, Seq("b" -> IriLiteral("c"))), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "d")
       ))
     }
+    describe("selector-like attribute syntax") {
+      parsing("{#id}") as inline should produce (Attributes(SourceRange.Unknown, Seq("id" -> StringLiteral("id"))))
+      parsing("{.class}") as inline should produce (Attributes(SourceRange.Unknown, Seq("class" -> StringLiteral("class"))))
+      parsing("{#id.class}") as inline should produce (Attributes(SourceRange.Unknown, Seq(
+        "id"    -> StringLiteral("id"),
+        "class" -> StringLiteral("class")
+      )))
+      parsing("{.class#id}") as inline should produce (Attributes(SourceRange.Unknown, Seq(
+        "class" -> StringLiteral("class"),
+        "id"    -> StringLiteral("id")
+      )))
+      parsing("{#id .class}") as inline should produce (Attributes(SourceRange.Unknown, Seq(
+        "id"    -> StringLiteral("id"),
+        "class" -> StringLiteral("class")
+      )))
+      parsing("{ #id1 .class1.class2 #id2#id3 #id4.class3 .class4#id5 }") as inline should produce (Attributes(SourceRange.Unknown, Seq(
+        "id"    -> StringLiteral("id1"),
+        "class" -> StringLiteral("class1"),
+        "class" -> StringLiteral("class2"),
+        "id"    -> StringLiteral("id2"),
+        "id"    -> StringLiteral("id3"),
+        "id"    -> StringLiteral("id4"),
+        "class" -> StringLiteral("class3"),
+        "class" -> StringLiteral("class4"),
+        "id"    -> StringLiteral("id5")
+      )))
+      parsing("{ foo = bar, #id1, fizz = buzz, .class1 }") as inline should produce (Attributes(SourceRange.Unknown, Seq(
+        "foo"   -> IriLiteral("bar"),
+        "id"    -> StringLiteral("id1"),
+        "fizz"  -> IriLiteral("buzz"),
+        "class" -> StringLiteral("class1")
+      )))
+    }
   }
   describe("AutoLink") {
     parsing("<https://github.com>") as inline should produce (AutoLink(SourceRange.Unknown, "https://github.com"))

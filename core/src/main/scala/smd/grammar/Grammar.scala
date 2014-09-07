@@ -425,13 +425,29 @@ trait Grammar extends Parsers {
   )
 
   /** An object literal expression defining attributes of the enclosing block. */
-  lazy val attributes: Parser[dom.Attributes] =
+  lazy val attributes: Parser[dom.Attributes] = {
+    val namedAttribute = propertyLabel ~ &(expr) ^*^ { case (n, v) => Seq(dom.Attributes.Attribute(n, v)) }
+
+    // TODO: Just about anything goes in a CSS identifier by the time you are done with escapes, so we
+    // need to come up with some sane rules to accomodate unicode characters and add escape support
+    val cssIdent = "-?[_a-zA-Z][-_a-zA-Z0-9]*".r.p ^*^ { _.toString }
+
+    val classAttribute = "." ~> cssIdent ^*^ { v => dom.Attributes.Attribute("class", dom.StringLiteral(v)) }
+    val idAttribute    = "#" ~> cssIdent ^*^ { v => dom.Attributes.Attribute("id", dom.StringLiteral(v)) }
+
+    val selectorLike = repSepR(1, (classAttribute | idAttribute) <~ ?!(sp.? ~ ":"), sp.?)
+
+    val attributes = repSepR(0, selectorLike | namedAttribute, argumentSeparator) 
+
+    val attributesLiteral = "{" ~ sp.? ~> attributes <~ sp.? ~ "}"
+
     // N.B. that a preceding space is consumed if there is a trailing space so as to avoid
     // creating multiple space nodes.
     (
-      space ~> objectLiteral <~ ?=(space)
-    |          objectLiteral
-    ) ^^ { pr => dom.Attributes(pr.sourceRange, pr.product map { case (n, v) => dom.Attributes.Attribute(n, v) }) }
+      space ~> attributesLiteral <~ ?=(space)
+    |          attributesLiteral
+    ) ^^ { pr => dom.Attributes(pr.sourceRange, pr.product.flatten) }
+  }
 
   /** A link of the form `[link text][optional refid](url, args)`. */
   lazy val link: Parser[dom.Link] = {
