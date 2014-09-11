@@ -50,6 +50,12 @@ class LiteralExpressionProductionsSpec extends ParsingScenarios {
     parsing("`` `a` ``") as literalExpression should produce (VerbatimLiteral("`a`"))
     parsing("` a `") as literalExpression should produce (VerbatimLiteral("a"))
     parsing("`  a  `") as literalExpression should produce (VerbatimLiteral(" a "))
+    parsing("'a@{foo}b'") as literalExpression should produce (Interpolation(Seq(StringLiteral("a"), IriLiteral("foo"), StringLiteral("b"))))
+    parsing("'Hello @user!'") as literalExpression should produce (Interpolation(Seq(StringLiteral("Hello "), Identifier("user"), StringLiteral("!"))))
+    parsing("\"@foo\"") as literalExpression should produce (Interpolation(Seq(Identifier("foo"))))
+    parsing("'Hello @user.toUpperCase(), it is @date today.'") as literalExpression should produce (Interpolation(Seq(
+      StringLiteral("Hello "), Application(Member(Identifier("user"), "toUpperCase"), Seq()), StringLiteral(", it is "), Identifier("date"), StringLiteral(" today.")
+    )))
   }
   describe("iri literals") {
     parsing("nullish") as literalExpression should produce (IriLiteral("nullish"))

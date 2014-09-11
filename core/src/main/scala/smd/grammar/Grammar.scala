@@ -432,8 +432,8 @@ trait Grammar extends Parsers {
     // need to come up with some sane rules to accomodate unicode characters and add escape support
     val cssIdent = "-?[_a-zA-Z][-_a-zA-Z0-9]*".r.p ^*^ { _.toString }
 
-    val classAttribute = "." ~> cssIdent ^*^ { v => dom.Attributes.Attribute("class", dom.StringLiteral(v)) }
-    val idAttribute    = "#" ~> cssIdent ^*^ { v => dom.Attributes.Attribute("id", dom.StringLiteral(v)) }
+    val classAttribute = "." ~> cssIdent ^*^ { v => dom.Attributes.Attribute(dom.StringLiteral("class"), dom.StringLiteral(v)) }
+    val idAttribute    = "#" ~> cssIdent ^*^ { v => dom.Attributes.Attribute(dom.StringLiteral("id"), dom.StringLiteral(v)) }
 
     val selectorLike = repSepR(1, (classAttribute | idAttribute) <~ ?!(sp.? ~ ":"), sp.?)
 
@@ -696,15 +696,15 @@ trait Grammar extends Parsers {
   lazy val objectLiteralExpression: Parser[dom.ObjectLiteral] =
     objectLiteral ^*^ { attrs => dom.ObjectLiteral(attrs map { case (n, v) => dom.ObjectLiteral.Property(n, v) }) }
 
-  lazy val objectLiteral: Parser[Seq[(String, dom.Expression)]] =
+  lazy val objectLiteral: Parser[Seq[(Expression, Expression)]] =
     "{" ~ sp.? ~> repSepR(0, propertyLabel ~ &(expr), argumentSeparator) <~ sp.? ~ "}"
 
-  protected lazy val propertyLabel: Parser[String] = {
+  protected lazy val propertyLabel: Parser[dom.Expression] = {
     val propertyName = (
-      stringLiteralExpression   ^*^ { _.value          }
-    | verbatimLiteralExpression ^*^ { _.value          }
-    | numericLiteralExpression  ^*^ { _.value.toString }
-    | identifierName
+      stringLiteralExpression
+    | verbatimLiteralExpression
+    | numericLiteralExpression  
+    | identifierName ^*^ { dom.StringLiteral }
     )
 
     propertyName <~ sp.? ~ "=" ~ sp.?
@@ -929,16 +929,26 @@ trait Grammar extends Parsers {
     " ".? ~> content <~ end ^^ { pr => dom.VerbatimLiteral(pr.product.toString) }
   }
 
-  lazy val stringLiteralExpression: Parser[dom.StringLiteral] = {
-    val stringPart = (
-      escape                               ^*^ { _.flatMap(Character.toChars(_)) }
-    | !CodePoint.Values(newLineCharValues) ^*^ { _.chars                         }
-    )
-
+  lazy val stringLiteralExpression: Parser[dom.Expression] = {
     |<< {
-      for(qs <- Seq("\"", "'")) yield {
-        val quot = qs.p
-        quot ~> (?!(quot) ~> stringPart).* <~ quot ^*^ { p => dom.StringLiteral(new String(p.flatten.toArray)) }
+      Seq("\"", "'") map { q =>
+        val quote = q.p
+
+        val literalPart = {
+          val atom = (
+            escape ^*^ { cps => new String(cps.flatMap(Character.toChars(_)).toArray) }
+          | (?!(quote | "@") ~> unicodeCharacter).+ ^^ { _.parsed }
+          | ?!(&(interpolatedExpression)) ~> "@"
+          )
+
+          atom.+ ^*^ { atoms => dom.StringLiteral(atoms.mkString) }
+        }
+
+        quote ~> (literalPart | &(interpolatedExpression)).* <~ quote ^*^ {
+          case Nil => dom.StringLiteral("")
+          case (s: dom.StringLiteral) :: Nil => s
+          case parts => dom.Interpolation(parts)
+        }
       }
     }
   }

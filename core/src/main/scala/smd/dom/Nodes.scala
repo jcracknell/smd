@@ -57,6 +57,7 @@ object Expression {
     def visit(node: GreaterThan): A
     def visit(node: GreaterThanOrEqualTo): A
     def visit(node: Identifier): A
+    def visit(node: Interpolation): A
     def visit(node: LessThan): A
     def visit(node: LessThanOrEqualTo): A
     def visit(node: LogicalAnd): A
@@ -353,10 +354,10 @@ case class Attributes(sourceRange: SourceRange, attrs: Seq[Attributes.Attribute]
 }
 
 object Attributes {
-  case class Attribute(name: String, value: Expression)
+  case class Attribute(name: Expression, value: Expression)
 
   object Attribute {
-    implicit def tuple2ToAttribute(tup: (String, Expression)): Attribute = Attribute(tup._1, tup._2)
+    implicit def tuple2ToAttribute(tup: (String, Expression)): Attribute = Attribute(StringLiteral(tup._1), tup._2)
   }
 }
 
@@ -476,10 +477,10 @@ case class ObjectLiteral(props: Seq[ObjectLiteral.Property]) extends Expression 
 }
 
 object ObjectLiteral {
-  case class Property(name: String, value: Expression)
+  case class Property(name: Expression, value: Expression)
 
   object Property {
-    implicit def tuple2ToProperty(tup: (String, Expression)): Property = Property(tup._1, tup._2)
+    implicit def tuple2ToProperty(tup: (String, Expression)): Property = Property(StringLiteral(tup._1), tup._2)
   }
 }
 
@@ -534,6 +535,10 @@ case class GreaterThanOrEqualTo(lhs: Expression, rhs: Expression) extends Expres
 }
 
 case class Identifier(name: String) extends Expression {
+  def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
+}
+
+case class Interpolation(parts: Seq[Expression]) extends Expression {
   def accept[A](visitor: Expression.Visitor[A]): A = visitor.visit(this)
 }
 
@@ -595,14 +600,14 @@ case class Subtraction(lhs: Expression, rhs: Expression) extends Expression with
 
 //region Misc
 
-case class Argument(name: Option[String], value: Expression) {
+case class Argument(name: Option[Expression], value: Expression) {
   def isNamed: Boolean = name.isDefined
 }
 
 object Argument {
   implicit def fromTuple(t: (String, Expression)): Argument = t match { case (n, v) => named(n, v) }
   implicit def fromExpression(e: Expression): Argument = unnamed(e)
-  def named(n: String, v: Expression): Argument = Argument(Some(n), v)
+  def named(n: String, v: Expression): Argument = Argument(Some(StringLiteral(n)), v)
   def unnamed(v: Expression): Argument = Argument(None, v)
 }
 
