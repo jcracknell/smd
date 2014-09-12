@@ -29,6 +29,12 @@ class PrimaryExpressionProductionsSpec extends ParsingScenarios {
   parsing("{}") as primaryExpression should produce (ObjectLiteral(Seq()))
 
   parsing("{'a':42}") as primaryExpression should produce (ObjectLiteral(Seq(StringLiteral("a") -> NumericLiteral(42d))))
+  parsing("{@foo.bar: baz}") as primaryExpression should produce (
+    ObjectLiteral(Seq(Member(Identifier("foo"), "bar") -> IriLiteral("baz")))
+  )
+  parsing("{@foo(bar): baz}") as primaryExpression should produce (
+    ObjectLiteral(Seq(Application(Identifier("foo"), Seq(IriLiteral("bar"))) -> IriLiteral("baz")))
+  )
 
   describe("selector-like property syntax") {
     parsing("{#id}") as primaryExpression should produce (ObjectLiteral(Seq(StringLiteral("id") -> StringLiteral("id"))))

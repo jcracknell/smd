@@ -645,8 +645,8 @@ trait Grammar extends Parsers {
   /** An unparenthesized list of 1 or more arguments. */
   lazy val argumentList = {
     lazy val argument = (
-      (&(primaryExpression) <~ sp.? ~ ":" ~ sp.?) ~ &(expr) ^*^ { case (n, e) => (Some(n), e) }
-    |                                               &(expr) ^*^ { case e => (None, e) }
+      (&(leftHandSideExpression) <~ sp.? ~ ":" ~ sp.?) ~ &(expr) ^*^ { case (n, e) => (Some(n), e) }
+    |                                                    &(expr) ^*^ { case e => (None, e) }
     )
 
     repSepR(1, argument, argumentSeparator) ^*^ { _ map { case (n, v) => dom.Argument(n, v) } }
@@ -683,7 +683,7 @@ trait Grammar extends Parsers {
   lazy val objectLiteral: Parser[Seq[(Expression, Expression)]] = {
     val `:` = rule { sp.? ~ ":" ~ sp.? }
 
-    val namedProperty = (&(primaryExpression) <~ `:`) ~ &(expr) ^*^ { _ :: Nil }
+    val namedProperty = (&(leftHandSideExpression) <~ `:`) ~ &(expr) ^*^ { _ :: Nil }
 
     // TODO: Just about anything goes in a CSS identifier by the time you are done with escapes, so we
     // need to come up with some sane rules to accomodate unicode characters and add escape support
