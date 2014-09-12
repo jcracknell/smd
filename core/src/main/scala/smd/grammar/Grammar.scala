@@ -969,21 +969,24 @@ trait Grammar extends Parsers {
 
   /** An escape sequence. Yields a sequence of code points. */
   lazy val escape: Parser[Seq[Int]] = {
-    val characterEscape = LiteralSetParser(
-      Map(
-        "\"" -> '\"',    "\"" -> '\"',    "t"  -> '\t',    "n"  -> '\n',
-        "r"  -> '\r',    "\\" -> '\\',    "b"  -> '\b',    "f"  -> '\f',
-        "v"  -> '\u000b'
-      ) mapValues { c => Seq(c.toInt) }
-    )
+    
     val numericEscape = (
       "#" ~> (digit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 10)) }) <~ ";".?
     | "#".? ~ ("u" | "x") ~> (hexDigit.*(1,6) ^^ { r => Seq(Integer.parseInt(r.parsed.toString, 16)) }) <~ ";".?
     )
-    val namedEscape = LiteralSetParser(NamedEntity.entities.values.map(e => (e.name, e.codePoints))) <~ ";"
-    val literalEscape = !CodePoint.Values(newLineCharValues) ^*^ { _.codePoints.map(_.value) }
 
-    "\\" ~> (characterEscape | numericEscape | namedEscape | literalEscape)
+    val namedEscape = LiteralSetParser(NamedEntity.entities.values.map(e => (e.name, e.codePoints))) <~ ";"
+
+    // The lower ASCII symbols
+    val literalEscape = CodePoint.Values(
+      Seq(
+        '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*',
+        '+', ',', '-', '.', ':', ';', '<', '=', '>', '?', 
+        '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~'
+      ).map(_.toInt)
+    ) ^*^ { _.codePoints.map(_.value) }
+
+    "\\" ~> (numericEscape | namedEscape | literalEscape)
   }
 
   /** Matches any number of comments and space characters until a newline or single line comment is encountered. */

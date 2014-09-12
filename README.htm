@@ -98,7 +98,7 @@
   Subscript and Superscript
 </h3>
 <p>
-  Text can be made subscript or superscript by enclosing it with tilde (<code>~</code>) or caret (<code>^</code>) characters respectively.
+  Text can be made subscript or superscript by enclosing it with tilde (<code>~</code>) or caret (<code>^</code>) characters respectively. Subscript and superscript text may not directly contain spaces, however more complex content can by offset from the baseline by enclosing the content in an interpolated markdown literal.
 </p>
 <div class="smd-expression-block">
   <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(H~2~0 January 1^st^))))</pre>
@@ -121,6 +121,9 @@
 <h3 id="" class="smd-heading" data-smd-heading-level="3">
   Entities
 </h3>
+<p>
+  Entities are <q class="double">escape sequences</q> can be used to insert hard-to-type glyphs into a document or to prevent a character from being interpreted as markdown syntax. The following entity syntax is supported:
+</p>
 <ul class="smd-ul-tight">
   <li class="smd-ul-tight-item">
     <div class="smd-ul-tight-content">
@@ -130,32 +133,26 @@
   </li>
   <li class="smd-ul-tight-item">
     <div class="smd-ul-tight-content">
-      Decimal escapes of the form <code>\#201;</code>
+      Decimal escapes for UTF-32 codepoints of up to 24 bits (6 decimal digits) of the form <code>\#000233;</code>
     </div>
     
   </li>
   <li class="smd-ul-tight-item">
     <div class="smd-ul-tight-content">
-      Hexadecimal escapes of the form <code>\#u201;</code>, <code>\u201;</code>, <code>\#x201;</code> or <code>\x201;</code>
+      Hexadecimal escapes for UTF-32 codepoints of up to 24 bits (6 hexadecimal digits) of the form <code>\#uE9;</code>, <code>\u00E9;</code>, <code>\#x000000e9;</code> or <code>\xe9;</code>
     </div>
     
   </li>
   <li class="smd-ul-tight-item">
     <div class="smd-ul-tight-content">
-      Character escapes of the form <code>\n</code>, <code>\t</code> as seen in most programming languages, though their usefulness here is
+      Literal escapes for the lower-ASCII symbols of the form <code>\$</code>
     </div>
-    <ol class="smd-ol-tight smd-ol-loweralpha smd-ol-trailingdot" data-smd-counter-start="-67147507">
-      <li class="smd-ol-tight-item">
-        
-      </li>
-      
-    </ol>
     
   </li>
   
 </ul>
 <p>
-  The presence of the semicolon is optional in all cases save that of a named HTML entity, however it can serve to disambiguate the end of the entity.
+  The presence of the semicolon is optional in all cases save that of a named HTML entity, however it can be useful to disambiguate the end of the entity from the surrounding text.
 </p>
 <div class="smd-expression-block">
   <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
@@ -163,7 +160,10 @@
 ))))</pre>
 </div>
 <p>
-  Any character can be preceded with a backslash to create a valid character escape, preventing the usual syntax rules from applying. For example, an asterix can be escaped as <code>\*</code> to prevent it from being interpreted as emphasis.
+  Literal escapes are useful to prevent symbols from being interpreted as markdown syntax. For example, writing <code>\*</code> will produce a literal asterix, preventing the asterix from being interpreted as emphasis.
+</p>
+<p>
+  Note that named entities are case sensitive, as the case often determines the resulting glyph. For example, <code>\eacute;</code> maps to <q class="double">&#233; - U+00E9 LATIN SMALL LETTER E WITH ACUTE</q>, whereas <code>\Eacute;</code> maps to <q class="double">&#201; - U+00C9 LATIN CAPITAL LETTER E WITH ACUTE</q>.
 </p>
 <h3 id="" class="smd-heading" data-smd-heading-level="3">
   Line Breaks

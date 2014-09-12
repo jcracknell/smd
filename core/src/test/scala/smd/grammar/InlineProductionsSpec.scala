@@ -85,7 +85,12 @@ class InlineProductionsSpec extends ParsingScenarios {
     """) as inline should produce (LineBreak(SourceRange.Unknown))
   }
   describe("Entity") {
-    parsing("""\ """) as inline should produce (Entity(SourceRange.Unknown, Seq(' '.toInt)))
+    parsing("""\#233""") as inline should produce (Entity(SourceRange(0, 5), "é".map(_.toInt)))
+    parsing("""\#233;""") as inline should produce (Entity(SourceRange(0, 6), "é".map(_.toInt)))
+    parsing("""\eacute;""") as inline should produce (Entity(SourceRange(0, 8), "é".map(_.toInt)))
+    parsing("""\$foo()""") as inline should produce (Entity(SourceRange(0, 2), Seq('$'.toInt)))
+    parsing("""\n""") as inline should produce (Symbol(SourceRange(0, 1), "\\"))
+    parsing("""\t""") as inline should produce (Symbol(SourceRange(0, 1), "\\"))
   }
   describe("InlineExpression") {
     parsing("""@1""") as inline should produce (InlineExpression(SourceRange.Unknown, NumericLiteral(1d)))
@@ -157,12 +162,10 @@ class InlineProductionsSpec extends ParsingScenarios {
   describe("Subscript") {
     parsing("""~1~""") as inline should produce (Subscript(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "1"))))
     parsing("""~1 2~""") as inline should produce (Symbol(SourceRange.Unknown, "~"))
-    parsing("""~1\ 2~""") as inline should produce (Subscript(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "1"), Entity(SourceRange.Unknown, Seq(' '.toInt)), Text(SourceRange.Unknown, "2"))))
   }
   describe("Superscript") {
     parsing("""^1^""") as inline should produce (Superscript(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "1"))))
     parsing("""^1 2^""") as inline should produce (Symbol(SourceRange.Unknown, "^"))
-    parsing("""^1\ 2^""") as inline should produce (Superscript(SourceRange.Unknown, Seq(Text(SourceRange.Unknown, "1"), Entity(SourceRange.Unknown, Seq(' '.toInt)), Text(SourceRange.Unknown, "2"))))
   }
   describe("Text") {
     parsing("pelican") as inline should produce (Text(SourceRange.Unknown, "pelican"))
