@@ -653,14 +653,22 @@ trait Grammar extends Parsers {
   }
 
   lazy val primaryExpression: Parser[Expression] = (
-    identifierExpression
-  | literalExpression
-  | arrayLiteralExpression
+    stringLiteralExpression
+  | verbatimLiteralExpression
   | objectLiteralExpression
   | parenthesizedExpression
   | inlineLiteralExpression
   | blockLiteralExpression
+  | (
+        numericLiteralExpression
+    ||| nullLiteralExpression
+    ||| booleanLiteralExpression
+    ||| identifierExpression
+    ||| iriLiteralExpression
+    )
+  | arrayLiteralExpression
   )
+
 
   protected lazy val parenthesizedExpression =  "(" ~ sp.? ~> &(expr) <~ sp.? ~ ")"
 
@@ -741,13 +749,6 @@ trait Grammar extends Parsers {
     CodePoint.Category(UnicodeCategory.map(u => u.Groups.L + u.Nl)) || CodePoint.Values('$', '_')
 
   // Literals
-
-  lazy val literalExpression: Parser[Expression] = (
-    stringLiteralExpression
-  | verbatimLiteralExpression
-  | (numericLiteralExpression | nullLiteralExpression | booleanLiteralExpression) <~ ?!(iriAtom)
-  | iriLiteralExpression
-  )
 
   lazy val blockLiteralExpression: Parser[dom.BlockLiteral] = {
     // This is a dirty trick; we use a lookahead parser to strip any possible margin from the entire
