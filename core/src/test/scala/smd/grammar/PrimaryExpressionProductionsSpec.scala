@@ -28,7 +28,44 @@ class PrimaryExpressionProductionsSpec extends ParsingScenarios {
 
   parsing("{}") as primaryExpression should produce (ObjectLiteral(Seq()))
 
-  parsing("{'a'=42}") as primaryExpression should produce (ObjectLiteral(Seq("a" -> NumericLiteral(42d))))
+  parsing("{'a':42}") as primaryExpression should produce (ObjectLiteral(Seq(StringLiteral("a") -> NumericLiteral(42d))))
+
+  describe("selector-like property syntax") {
+    parsing("{#id}") as primaryExpression should produce (ObjectLiteral(Seq(StringLiteral("id") -> StringLiteral("id"))))
+    parsing("{.class}") as primaryExpression should produce (ObjectLiteral(Seq(StringLiteral("class") -> StringLiteral("class"))))
+    parsing("{#id.class}") as primaryExpression should produce (ObjectLiteral(Seq(
+      StringLiteral("id")    -> StringLiteral("id"),
+      StringLiteral("class") -> StringLiteral("class")
+    )))
+    parsing("{.class#id}") as primaryExpression should produce (ObjectLiteral(Seq(
+      StringLiteral("class") -> StringLiteral("class"),
+      StringLiteral("id")    -> StringLiteral("id")
+    )))
+    parsing("{#id .class}") as primaryExpression should produce (ObjectLiteral(Seq(
+      StringLiteral("id")    -> StringLiteral("id"),
+      StringLiteral("class") -> StringLiteral("class")
+    )))
+    parsing("{ #id1 .class1.class2 #id2#id3 #id4.class3 .class4#id5 }") as primaryExpression should produce (ObjectLiteral(Seq(
+      StringLiteral("id")    -> StringLiteral("id1"),
+      StringLiteral("class") -> StringLiteral("class1"),
+      StringLiteral("class") -> StringLiteral("class2"),
+      StringLiteral("id")    -> StringLiteral("id2"),
+      StringLiteral("id")    -> StringLiteral("id3"),
+      StringLiteral("id")    -> StringLiteral("id4"),
+      StringLiteral("class") -> StringLiteral("class3"),
+      StringLiteral("class") -> StringLiteral("class4"),
+      StringLiteral("id")    -> StringLiteral("id5")
+    )))
+    parsing("{ foo: bar, #id1, fizz: buzz, .class1 }") as primaryExpression should produce (ObjectLiteral(Seq(
+      IriLiteral("foo")   -> IriLiteral("bar"),
+      StringLiteral("id")    -> StringLiteral("id1"),
+      IriLiteral("fizz")  -> IriLiteral("buzz"),
+      StringLiteral("class") -> StringLiteral("class1")
+    )))
+    parsing("{ #id: .class .class: #id }") as primaryExpression should produce (
+      ObjectLiteral(Seq(IriLiteral("#id") -> IriLiteral(".class"), IriLiteral(".class") -> IriLiteral("#id")))
+    )
+  }
 
   parsing("(@a || true)") as primaryExpression should produce ( LogicalOr(Identifier("a"), BooleanLiteral(true)))
 

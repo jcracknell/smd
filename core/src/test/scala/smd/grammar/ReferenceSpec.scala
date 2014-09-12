@@ -34,20 +34,20 @@ class ReferenceSpec extends ParsingScenarios {
   parsing("[refid]:http://www.google.com") as reference should reject
 
   parsing("""
-  |[my github account]: https://github.com/jcracknell, { 'class' = 'special' }
+  |[my github account]: https://github.com/jcracknell, { 'class' : 'special' }
   """) as reference should produce (
     Reference(SourceRange.Unknown, ReferenceId("my github account"), Seq(
       IriLiteral("https://github.com/jcracknell"),
-      ObjectLiteral(Seq("class" -> StringLiteral("special")))
+      ObjectLiteral(Seq(StringLiteral("class") -> StringLiteral("special")))
     ))
   )
 
   parsing("""
-  |[my github account]: (https://github.com/jcracknell, { 'class' = 'special' })
+  |[my github account]: (https://github.com/jcracknell, { 'class' : 'special' })
   """) as reference should produce (
     Reference(SourceRange.Unknown, ReferenceId("my github account"), Seq(
       IriLiteral("https://github.com/jcracknell"),
-      ObjectLiteral(Seq("class" -> StringLiteral("special")))
+      ObjectLiteral(Seq(StringLiteral("class") -> StringLiteral("special")))
     ))
   )
 

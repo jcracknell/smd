@@ -357,7 +357,7 @@ object Attributes {
   case class Attribute(name: Expression, value: Expression)
 
   object Attribute {
-    implicit def tuple2ToAttribute(tup: (String, Expression)): Attribute = Attribute(StringLiteral(tup._1), tup._2)
+    implicit def tupleToAttribute(x: (Expression, Expression)): Attribute = Attribute(x._1, x._2)
   }
 }
 
@@ -480,7 +480,7 @@ object ObjectLiteral {
   case class Property(name: Expression, value: Expression)
 
   object Property {
-    implicit def tuple2ToProperty(tup: (String, Expression)): Property = Property(StringLiteral(tup._1), tup._2)
+    implicit def tuple2ToProperty(tup: (Expression, Expression)): Property = Property(tup._1, tup._2)
   }
 }
 
@@ -605,9 +605,9 @@ case class Argument(name: Option[Expression], value: Expression) {
 }
 
 object Argument {
-  implicit def fromTuple(t: (String, Expression)): Argument = t match { case (n, v) => named(n, v) }
+  implicit def fromTuple(t: (Expression, Expression)): Argument = t match { case (n, v) => named(n, v) }
   implicit def fromExpression(e: Expression): Argument = unnamed(e)
-  def named(n: String, v: Expression): Argument = Argument(Some(StringLiteral(n)), v)
+  def named(n: Expression, v: Expression): Argument = Argument(Some(n), v)
   def unnamed(v: Expression): Argument = Argument(None, v)
 }
 

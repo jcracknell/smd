@@ -645,8 +645,8 @@ trait Grammar extends Parsers {
   /** An unparenthesized list of 1 or more arguments. */
   lazy val argumentList = {
     lazy val argument = (
-      propertyLabel ~ &(expr) ^*^ { case (n, e) => (Some(n), e) }
-    | &(expr) ^*^ { e => (None, e) }
+      (&(primaryExpression) <~ sp.? ~ ":" ~ sp.?) ~ &(expr) ^*^ { case (n, e) => (Some(n), e) }
+    |                                               &(expr) ^*^ { case e => (None, e) }
     )
 
     repSepR(1, argument, argumentSeparator) ^*^ { _ map { case (n, v) => dom.Argument(n, v) } }
@@ -681,31 +681,21 @@ trait Grammar extends Parsers {
     objectLiteral ^*^ { props => dom.ObjectLiteral(props map { case (n, v) => dom.ObjectLiteral.Property(n, v) }) }
 
   lazy val objectLiteral: Parser[Seq[(Expression, Expression)]] = {
-    val namedProperty = propertyLabel ~ &(expr) ^*^ { _ :: Nil }
+    val `:` = rule { sp.? ~ ":" ~ sp.? }
+
+    val namedProperty = (&(primaryExpression) <~ `:`) ~ &(expr) ^*^ { _ :: Nil }
 
     // TODO: Just about anything goes in a CSS identifier by the time you are done with escapes, so we
     // need to come up with some sane rules to accomodate unicode characters and add escape support
     val cssIdent = "-?[_a-zA-Z][-_a-zA-Z0-9]*".r.p ^*^ { _.toString }
-
     val classProperty  = "." ~> cssIdent ^*^ { v => (dom.StringLiteral("class"), dom.StringLiteral(v)) }
     val idProperty     = "#" ~> cssIdent ^*^ { v => (dom.StringLiteral("id"), dom.StringLiteral(v)) }
 
-    val selectorLike = repSepR(1, (classProperty | idProperty) <~ ?!(sp.? ~ "="), sp.?)
+    val selectorLike = repSepR(1, (classProperty | idProperty) <~ ?!(`:`), sp.?)
 
     val properties = repSepR(0, selectorLike | namedProperty, argumentSeparator)
 
     "{" ~ sp.? ~> properties <~ sp.? ~ "}" ^*^ { _.flatten }
-  }
-
-  protected lazy val propertyLabel: Parser[dom.Expression] = {
-    val propertyName = (
-      stringLiteralExpression
-    | verbatimLiteralExpression
-    | numericLiteralExpression  
-    | identifierName ^*^ { dom.StringLiteral }
-    )
-
-    propertyName <~ sp.? ~ "=" ~ sp.?
   }
 
   /** An argument separator - at least one space with an optional comma. */
