@@ -42,6 +42,18 @@ class BlockquoteSpec extends ParsingScenarios {
   parsing("""
   |> Blockquote
   |
+  |> ends
+  """) as blockquote should produce (
+    Blockquote(SourceRange.Unknown, Seq(
+      Paragraph(SourceRange.Unknown, Seq(
+        Text(SourceRange.Unknown, "Blockquote")
+      ))
+    ))
+  )
+
+  parsing("""
+  |> Blockquote
+  |>
   |> continues
   """) as blockquote should produce (
     Blockquote(SourceRange.Unknown, Seq(

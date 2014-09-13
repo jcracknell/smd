@@ -34,13 +34,19 @@
   </li>
   <li class="smd-ul-tight-item">
     <div class="smd-ul-tight-content">
-      Indented code blocks; a feature I like to describe as <q class="single">easy to invoke by accident, yet difficult to use with purpose</q>.
+      Indented code blocks; a feature I like to describe as <q class="double">easy to invoke by accident, yet difficult to use with purpose</q>.
     </div>
     
   </li>
   <li class="smd-ul-tight-item">
     <div class="smd-ul-tight-content">
-      <q class="single">Setext</q> (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax supporting only two levels.
+      <q class="double">Setext</q> (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax supporting only two levels.
+    </div>
+    
+  </li>
+  <li class="smd-ul-tight-item">
+    <div class="smd-ul-tight-content">
+      <q class="double">Lazy</q> blockquote continuations, as this better matches the user&apos;s expectations and allows for the creation of adjacent blockquotes.
     </div>
     
   </li>
@@ -184,12 +190,36 @@ line 2.
 <h3 id="" class="smd-heading" data-smd-heading-level="3">
   Paragraphs
 </h3>
+<p>
+  A paragraph is the simplest block element, and consists of any number of non-empty lines provided they do not match the syntax for any other block element. Generally if your input looks like a paragraph, it is one!
+</p>
 <h3 id="" class="smd-heading" data-smd-heading-level="3">
   Headings
 </h3>
 <p>
   A heading is preceded by a variable number of pound characters (<code>#</code>) determining the level of the heading. Setext-style (underlined) headings as seen in other markdown dialects are unsupported.
 </p>
+<h3 id="" class="smd-heading" data-smd-heading-level="3">
+  Blockquotes
+</h3>
+<p>
+  A blockquote is announced by the <code>&gt;</code> character, and continues until an empty line is encountered. The <code>&gt;</code> character can be omitted after the first line; however unlike the original markdown dialect, <q class="double">lazy</q> blockquote contiunations whereby adjacent blockquotes separated by blank lines are folded together are unsupported.
+</p>
+<div class="smd-expression-block">
+  <pre class="smd-markdown-expression">Application(Identifier(example),List(Argument(None,VerbatimLiteral(
+&gt; This is a blockquote. The blockquote can span multiple lines,
+and you do not have to start each line with `&gt;`. If you want to
+create a second paragraph within the same blockquote, you must
+prefix the blank line with the `&gt;` character.
+&gt;
+&gt; A single space is discarded after the blockquote marker:
+&gt;
+&gt;    * This is a list item because the space after the `&gt;` is
+&gt;      discarded, leaving three spaces before the `*` - not four.
+&gt;     * This is not a list item because it is preceded by four
+&gt;       spaces after the initial space is discarded.
+))))</pre>
+</div>
 <h3 id="" class="smd-heading" data-smd-heading-level="3">
   Lists
 </h3>

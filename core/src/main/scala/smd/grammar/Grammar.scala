@@ -360,11 +360,15 @@ trait Grammar extends Parsers {
     sp.? ~> interpolatedExpression <~ sp.? ~ ?=(blankLine) ^^ { pr => dom.ExpressionBlock(pr.sourceRange, pr.product) }
   }
 
+  /** A blockquote consists of a line annouced by an `>` followed by any number of additional announced
+    * or non-empty lines. A single space following the announcement is consumed. 
+    */
   lazy val blockquote: Parser[dom.Blockquote] = {
     val announcedLine = ">" ~ " ".? ~> blockLine_?
-    val blockquoteBlock = announcedLine ~ (announcedLine | blockLine).* ^*^ { case (init, subs) => parseExtents(&(blocks), init +: subs) }
-
-    repSepR(1, blockquoteBlock, interBlock_?) ^^ { pr => dom.Blockquote(pr.sourceRange, pr.product.flatten) }
+    announcedLine ~ (announcedLine | blockLine).* ^^ { pr =>
+      val content = pr.product match { case (init, subs) => parseExtents(blocks, init :: subs) }
+      dom.Blockquote(pr.sourceRange, content)
+    }
   }
 
   lazy val heading: Parser[dom.Heading] =

@@ -4,20 +4,21 @@
 
 ## Summary of Omissions and Extensions
 
-SMD implements a markdown dialect which deviates substantially from
-[the original syntax][1] developped by John Gruber, but endeavours to
-conform in spirit; defining a lightweight markup language which is easy to understand and whose rendered output
-closely resembles the input text (insofar as this is possible).
+SMD implements a markdown dialect which deviates substantially from [the original syntax][1] developped by
+John Gruber, but endeavours to conform in spirit; defining a lightweight markup language which is easy to
+understand and whose rendered output closely resembles the input text (insofar as this is possible).
 
 ### Omissions
 
   * Underscore syntax for bold and italic text.
   * Image embedding of the form `![title](href)`, as this functionality is better handled as a macro.
   * Embedded HTML.
-  * Indented code blocks; a feature I like to describe as 'easy to invoke by accident, yet difficult to use with
-    purpose'.
-  * 'Setext' (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax
+  * Indented code blocks; a feature I like to describe as "easy to invoke by accident, yet difficult to use with
+    purpose".
+  * "Setext" (underlined) headings, which have been omitted as it is silly to have an alternative heading syntax
     supporting only two levels.
+  * "Lazy" blockquote continuations, as this better matches the user's expectations and allows for the creation
+    of adjacent blockquotes.
 
 ### Extensions
 
@@ -99,10 +100,35 @@ line 2.
 
 ### Paragraphs
 
+A paragraph is the simplest block element, and consists of any number of non-empty lines provided they
+do not match the syntax for any other block element. Generally if your input looks like a paragraph, it
+is one!
+
 ### Headings
 
 A heading is preceded by a variable number of pound characters (`#`) determining the level of the heading.
 Setext-style (underlined) headings as seen in other markdown dialects are unsupported.
+
+### Blockquotes
+
+A blockquote is announced by the `>` character, and continues until an empty line is encountered.
+The `>` character can be omitted after the first line; however unlike the original markdown dialect,
+"lazy" blockquote contiunations whereby adjacent blockquotes separated by blank lines are folded
+together are unsupported.
+
+@example(```
+> This is a blockquote. The blockquote can span multiple lines,
+and you do not have to start each line with `>`. If you want to
+create a second paragraph within the same blockquote, you must
+prefix the blank line with the `>` character.
+>
+> A single space is discarded after the blockquote marker:
+>
+>    * This is a list item because the space after the `>` is
+>      discarded, leaving three spaces before the `*` - not four.
+>     * This is not a list item because it is preceded by four
+>       spaces after the initial space is discarded.
+```)
 
 ### Lists
 
