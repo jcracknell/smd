@@ -75,4 +75,11 @@ object LiteralSetParser {
     */
   def apply[A](literals: Iterable[(String, A)]): LiteralSetParser[A] =
     apply(literals.toMap)
+
+  /** Create a new [[smd.parsing.LiteralSetParser]] matching the provided literals with the matched
+    * literal as its product.
+    * 
+    * @param literals The literals to be matched by the resulting [[smd.parsing.LiteralSetParser]].
+    */
+  def identity(literals: Iterable[String]): LiteralSetParser[String] = apply(literals.map(s => (s, s)).toMap)
 }

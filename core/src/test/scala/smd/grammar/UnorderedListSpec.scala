@@ -24,6 +24,34 @@ class UnorderedListSpec extends ParsingScenarios {
   )
 
   parsing("""
+  | • Item 1
+  | • Item 2
+  """) as unorderedList should produce (
+    TightUnorderedList(SourceRange.Unknown, Seq(
+      TightUnorderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")),
+        Seq()
+      ),
+      TightUnorderedList.Item(SourceRange.Unknown, 
+        Seq(Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "2")),
+        Seq()
+      )
+    ))
+  )
+
+  parsing("""
+  | * Item 1
+  | + Item 2
+  """) as unorderedList should produce (
+    TightUnorderedList(SourceRange.Unknown, Seq(
+      TightUnorderedList.Item(SourceRange.Unknown,
+        Seq(Text(SourceRange.Unknown, "Item"), Space(SourceRange.Unknown), Text(SourceRange.Unknown, "1")),
+        Seq()
+      )
+    ))
+  )
+
+  parsing("""
   |* Item 1
   |continues
   | * Item 2

@@ -132,7 +132,8 @@ prefix the blank line with the `>` character.
 
 ### Lists
 
-List markers must be followed by at least one space.
+List markers must be followed by at least one space. This prevents emphasis appearing at the beginning of a line
+from being interpreted as a list marker, and for consistency the rule applies to all list types.
 
 Lists can be either *tight* or *loose*.
 The items of a *tight* list contain span markup and cannot span multiple paragraphs:
@@ -170,8 +171,19 @@ Not in item 2.
 
 #### Unordered Lists
 
-As seen previously, an unordered list is denoted by a marker consisting of the `*`, `-` or `+` character. Your choice
-of marker character has no effect whatsoever.
+As seen previously, an unordered list is created using one of the following marker characters:
+
++-------:+:-------+:------------------+
+| \*     | U+002A | ASTERISK          |
+| \-     | U+002D | HYPHEN MINUS      |
+| \+     | U+002B | PLUS SIGN         |
+| \u2022 | U+2022 | BULLET            |
+| \u2023 | U+2023 | TRIANGULAR BULLET |
+| \u2043 | U+2043 | HYPHEN BULLET     |
+| \u25E6 | U+25E6 | WHITE BULLET      |
+
+Your choice of marker character has no effect whatsoever, but switching to a different marker mid-list will instead
+create a new list.
 
 #### Ordered Lists
 

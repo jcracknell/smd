@@ -52,25 +52,32 @@ trait Grammar extends Parsers {
 
   //region Lists
 
-  lazy val unorderedList = new ListGrammar[dom.UnorderedList] {
-    type MarkerProduct = Any
-    type Loose = dom.LooseUnorderedList
-    type Tight = dom.TightUnorderedList
-    type ItemTight = dom.TightUnorderedList.Item
-    type ItemLoose = dom.LooseUnorderedList.Item
+  lazy val unorderedList: Parser[dom.UnorderedList] = {
+    ?=(unorderedListMarker) ~> |<< {
+      unorderedListMarkerVariants map { bullet =>
+        new ListGrammar[dom.UnorderedList] {
+          type MarkerProduct = Any
+          type Loose = dom.LooseUnorderedList
+          type Tight = dom.TightUnorderedList
+          type ItemTight = dom.TightUnorderedList.Item
+          type ItemLoose = dom.LooseUnorderedList.Item
 
-    lazy val marker = unorderedListMarker
-    def mkLoose(sourceRange: dom.SourceRange, items: Seq[ItemLoose]): Loose =
-      dom.LooseUnorderedList(sourceRange, items)
+          val marker = bullet
 
-    def mkTight(sourceRange: dom.SourceRange, items: Seq[ItemTight]): Tight =
-      dom.TightUnorderedList(sourceRange, items)
+          def mkLoose(sourceRange: dom.SourceRange, items: Seq[ItemLoose]): Loose =
+            dom.LooseUnorderedList(sourceRange, items)
 
-    def mkItemLoose(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Block]): ItemLoose =
-      dom.LooseUnorderedList.Item(sourceRange, content)
+          def mkTight(sourceRange: dom.SourceRange, items: Seq[ItemTight]): Tight =
+            dom.TightUnorderedList(sourceRange, items)
 
-    def mkItemTight(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Inline], sublists: Seq[dom.List]): ItemTight = 
-      dom.TightUnorderedList.Item(sourceRange, content, sublists)
+          def mkItemLoose(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Block]): ItemLoose =
+            dom.LooseUnorderedList.Item(sourceRange, content)
+
+          def mkItemTight(sourceRange: dom.SourceRange, mp: MarkerProduct, content: Seq[Inline], sublists: Seq[dom.List]): ItemTight = 
+            dom.TightUnorderedList.Item(sourceRange, content, sublists)
+        }
+      }
+    }
   }
 
   lazy val orderedList: Parser[dom.OrderedList] = {
@@ -110,8 +117,6 @@ trait Grammar extends Parsers {
   lazy val definitionList: Parser[dom.DefinitionList] = rule {
     val term = blockLine ^^ { pr => (pr.sourceRange, pr.product) }
 
-    val definitionMarker: Parser[Any] = nonIndentSpace_? ~ (":" | "~") ~ spaceChar.+
-
     // Here we abuse the standard list grammar a bit, as the definitions of a definition "list" actually
     // look like a regular list.
     val definitions = new ListGrammar[Seq[dom.DefinitionList.Definition]] {
@@ -121,7 +126,7 @@ trait Grammar extends Parsers {
       type ItemLoose = dom.LooseDefinitionList.Definition
       type ItemTight = dom.TightDefinitionList.Definition
 
-      def marker = definitionMarker
+      val marker = genListMarker(":" | "~")
 
       def mkLoose(sourceRange: dom.SourceRange, items: Seq[ItemLoose]): Loose = items
 
@@ -240,13 +245,44 @@ trait Grammar extends Parsers {
     }
   }
 
-  protected lazy val listMarker = ?=(nonIndentSpace_?) ~> (
-    unorderedListMarker
-  | (?=(orderedListMarkerLike) ~> |<<(orderedListMarkerVariants map { case (_, _, p) => p }))
+  /** Any unordered or ordered list marker. */
+  protected lazy val listMarker = ?=(nonIndentSpace_?) ~> (unorderedListMarker | orderedListMarker)
+
+  protected def genListMarker[A](mark: Parser[A]): Parser[A] = nonIndentSpace_? ~> mark <~ spaceChar.+
+
+  /** Any unordered list marker. */
+  protected lazy val unorderedListMarker: Parser[Any] = genListMarker(LiteralSetParser.identity(unorderedListMarkerStrings))
+
+  protected lazy val unorderedListMarkerVariants: Seq[Parser[Any]] = unorderedListMarkerStrings map { bullet => genListMarker(bullet) }
+
+  protected val unorderedListMarkerStrings: Seq[String] = Seq(
+    "*",
+    "-",
+    "+", 
+    "\u2022", // BULLET
+    "\u2023", // TRIANGULAR BULLET
+    "\u2043", // HYPHEN BULLET
+    "\u26E6"  // WHITE BULLET
   )
 
-  protected lazy val unorderedListMarker = nonIndentSpace_? ~ ("*" | "-" | "+") ~ spaceChar.+
+  /** Any ordered list marker. */
+  protected lazy val orderedListMarker =
+    ?=(orderedListMarkerLike) ~> |<<(orderedListMarkerVariants map { case (_, _, p) => p })
 
+  /** Performant means of matching input which is likely an ordered list marker. */
+  protected lazy val orderedListMarkerLike = genListMarker(
+    """(?iux)                             # ignore case, unicode character classes, comments
+    [(]?                                  # begin separator
+    ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
+    (
+      \#                                  # auto-number
+    | [0-9]+                              # arabic
+    | [a-z]+                              # alpha/roman
+    )
+    [.)]                                  # end separator
+    """.r
+  )
+  
   protected lazy val orderedListMarkerVariants: Seq[(dom.OrderedList.NumeralStyle, dom.OrderedList.SeparatorStyle, Parser[(Option[String], CharSequence)])] = {
     // Arabic numerals must come first as the default in the event of an initial placeholder marker.
     val numeralStyles = Seq(
@@ -271,25 +307,9 @@ trait Grammar extends Parsers {
     } yield (
       numeralStyle,
       separatorStyle,
-      nonIndentSpace_? ~ sepBefore ~> counterName_? ~ ("#" | numeral ^^ (_.parsed)) <~ sepAfter ~ spaceChar.+
+      genListMarker(sepBefore ~> counterName_? ~ ("#" | numeral ^^ (_.parsed)) <~ sepAfter)
     ) 
   }
-
-  // For performance reasons we use a regex to quickly check if there is a valid counter ahead
-  // This is also a relatively concise and comprehensible reference for the counter grammar.
-  protected lazy val orderedListMarkerLike = 
-    """(?iux)                             # ignore case, unicode character classes, comments
-    [\ ]{0,3}                             # non-indent space
-    [(]?                                  # begin separator
-    ([\p{Lower}\p{Upper}\p{Digit}_-]+:)?  # optional counter name
-    (
-      \#                                  # auto-number
-    | [0-9]+                              # arabic
-    | [a-z]+                              # alpha/roman
-    )
-    [.)]                                  # end separator
-    [\t\ ]                                # must be followed by at least one space
-    """.r
 
   //endregion
 

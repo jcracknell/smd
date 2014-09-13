@@ -224,7 +224,7 @@ prefix the blank line with the `&gt;` character.
   Lists
 </h3>
 <p>
-  List markers must be followed by at least one space.
+  List markers must be followed by at least one space. This prevents emphasis appearing at the beginning of a line from being interpreted as a list marker, and for consistency the rule applies to all list types.
 </p>
 <p>
   Lists can be either <em>tight</em> or <em>loose</em>. The items of a <em>tight</em> list contain span markup and cannot span multiple paragraphs:
@@ -267,7 +267,103 @@ Not in item 2.
   Unordered Lists
 </h4>
 <p>
-  As seen previously, an unordered list is denoted by a marker consisting of the <code>*</code>, <code>-</code> or <code>+</code> character. Your choice of marker character has no effect whatsoever.
+  As seen previously, an unordered list is created using one of the following marker characters:
+</p>
+<table>
+  <thead>
+    
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        &#42;
+      </td>
+      <td>
+        U+002A
+      </td>
+      <td>
+        ASTERISK
+      </td>
+      
+    </tr>
+    <tr>
+      <td>
+        &#45;
+      </td>
+      <td>
+        U+002D
+      </td>
+      <td>
+        HYPHEN MINUS
+      </td>
+      
+    </tr>
+    <tr>
+      <td>
+        &#43;
+      </td>
+      <td>
+        U+002B
+      </td>
+      <td>
+        PLUS SIGN
+      </td>
+      
+    </tr>
+    <tr>
+      <td>
+        &#8226;
+      </td>
+      <td>
+        U+2022
+      </td>
+      <td>
+        BULLET
+      </td>
+      
+    </tr>
+    <tr>
+      <td>
+        &#8227;
+      </td>
+      <td>
+        U+2023
+      </td>
+      <td>
+        TRIANGULAR BULLET
+      </td>
+      
+    </tr>
+    <tr>
+      <td>
+        &#8259;
+      </td>
+      <td>
+        U+2043
+      </td>
+      <td>
+        HYPHEN BULLET
+      </td>
+      
+    </tr>
+    <tr>
+      <td>
+        &#9702;
+      </td>
+      <td>
+        U+25E6
+      </td>
+      <td>
+        WHITE BULLET
+      </td>
+      
+    </tr>
+    
+  </tbody>
+  
+</table>
+<p>
+  Your choice of marker character has no effect whatsoever, but switching to a different marker mid-list will instead create a new list.
 </p>
 <h4 id="" class="smd-heading" data-smd-heading-level="4">
   Ordered Lists
