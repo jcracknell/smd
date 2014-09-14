@@ -3,7 +3,7 @@ package runtime
 
 import org.scalatest.{FunSpec, Matchers}
 
-class XValueSpec extends FunSpec with Matchers {
+class RuntimeTypesSpec extends FunSpec with Matchers with RuntimeTypes {
   describe("XNumber") {
     describe("factory") {
       it("should handle the general case") {
