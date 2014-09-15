@@ -20,11 +20,6 @@ object SmdBuild extends Build {
       "-Ywarn-nullary-unit",
       "-Ywarn-numeric-widen"  
     ),
-    libraryDependencies <++= (scalaVersion) { sv =>
-      Seq(
-        "org.scalatest" %% "scalatest" % "latest.release" % "test"
-      )
-    },
     freemarker <<= (unmanagedSourceDirectories in Compile) map { (sources) =>
       sources.get foreach { sourceDir =>
         (sourceDir ** "*.fm").get foreach { templateFile =>
@@ -62,6 +57,12 @@ object SmdBuild extends Build {
     id = "core",
     base = file("core"),
     settings = baseSettings ++ Seq(
+      libraryDependencies <++= (scalaVersion){ sv =>
+        Seq(
+          "org.scala-lang"  % "scala-reflect" % sv,
+          "org.scalatest"  %% "scalatest"     % "latest.release" % "test"
+        )
+      },
       generateResources <<= resourceDirectory in Compile map { (baseDir: File) =>
         NamedEntitiesGenerator.generate(baseDir)
       }
